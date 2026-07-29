@@ -1,0 +1,323 @@
+"use client";
+
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import { useMemo, useState } from "react";
+import {
+  FaArrowLeft,
+  FaCalendarAlt,
+  FaCheckCircle,
+  FaCreditCard,
+  FaMapMarkerAlt,
+  FaShieldAlt,
+  FaUserFriends,
+} from "react-icons/fa";
+
+const tour = {
+  title: "Fethiye Jeep Safari",
+  location: "Fethiye, Muğla",
+  unitPrice: 2490,
+  image:
+    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85",
+};
+
+export default function ReservationPage() {
+  const [date, setDate] = useState("");
+  const [guests, setGuests] = useState(2);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const total = useMemo(
+    () => tour.unitPrice * guests,
+    [guests]
+  );
+
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+    setLoading(true);
+    setMessage(null);
+
+    const { error } = await supabase.from("reservations").insert({
+      tour_id: "1",
+      tour_title: tour.title,
+      tour_date: date,
+      guests,
+      full_name: fullName,
+      email,
+      phone,
+      unit_price: tour.unitPrice,
+      total_price: total,
+      status: "pending",
+    });
+
+    if (error) {
+      console.error(error);
+      setMessage({
+        type: "error",
+        text: "Rezervasyon kaydedilemedi. Lütfen tekrar deneyin.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    setMessage({
+      type: "success",
+      text: "Rezervasyonunuz başarıyla alındı.",
+    });
+
+    setDate("");
+    setGuests(2);
+    setFullName("");
+    setEmail("");
+    setPhone("");
+    setLoading(false);
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-white">
+      <header className="border-b border-white/10 bg-slate-950/95">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-xl font-black">
+              T
+            </div>
+
+            <div>
+              <div className="text-xl font-black">TUROBUS</div>
+              <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-orange-400">
+                Marketplace
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/turlar/1"
+            className="flex items-center gap-2 text-sm font-black text-slate-300 hover:text-orange-400"
+          >
+            <FaArrowLeft />
+            Tur Detayına Dön
+          </Link>
+        </div>
+      </header>
+
+      <section className="mx-auto max-w-7xl px-5 py-14 lg:px-8">
+        <div className="mb-10">
+          <p className="text-sm font-black uppercase tracking-[0.22em] text-orange-400">
+            Güvenli rezervasyon
+          </p>
+
+          <h1 className="mt-4 text-4xl font-black tracking-tight md:text-6xl">
+            Rezervasyonunu tamamla
+          </h1>
+
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-400">
+            Bilgilerini kontrol et ve rezervasyon özetini oluştur.
+          </p>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="grid gap-10 lg:grid-cols-[1fr_390px]"
+        >
+          <div className="space-y-8">
+            <section className="rounded-[30px] border border-white/10 bg-slate-900 p-7">
+              <h2 className="text-2xl font-black">Tur ve tarih bilgileri</h2>
+
+              <div className="mt-6 grid gap-5 md:grid-cols-2">
+                <label>
+                  <span className="text-sm font-black">Tur tarihi</span>
+
+                  <div className="mt-2 flex min-h-14 items-center gap-3 rounded-2xl bg-white px-4">
+                    <FaCalendarAlt className="text-orange-500" />
+
+                    <input
+                      type="date"
+                      required
+                      value={date}
+                      onChange={(event) => setDate(event.target.value)}
+                      className="w-full bg-transparent text-sm font-bold text-slate-950 outline-none"
+                    />
+                  </div>
+                </label>
+
+                <label>
+                  <span className="text-sm font-black">Kişi sayısı</span>
+
+                  <div className="mt-2 flex min-h-14 items-center gap-3 rounded-2xl bg-white px-4">
+                    <FaUserFriends className="text-orange-500" />
+
+                    <select
+                      value={guests}
+                      onChange={(event) =>
+                        setGuests(Number(event.target.value))
+                      }
+                      className="w-full bg-transparent text-sm font-bold text-slate-950 outline-none"
+                    >
+                      <option value={1}>1 kişi</option>
+                      <option value={2}>2 kişi</option>
+                      <option value={3}>3 kişi</option>
+                      <option value={4}>4 kişi</option>
+                      <option value={5}>5 kişi</option>
+                    </select>
+                  </div>
+                </label>
+              </div>
+            </section>
+
+            <section className="rounded-[30px] border border-white/10 bg-slate-900 p-7">
+              <h2 className="text-2xl font-black">İletişim bilgileri</h2>
+
+              <div className="mt-6 grid gap-5 md:grid-cols-2">
+                <label className="md:col-span-2">
+                  <span className="text-sm font-black">Ad soyad</span>
+
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    placeholder="Adınız ve soyadınız"
+                    className="mt-2 min-h-14 w-full rounded-2xl bg-white px-5 text-sm font-bold text-slate-950 outline-none"
+                  />
+                </label>
+
+                <label>
+                  <span className="text-sm font-black">E-posta</span>
+
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="ornek@email.com"
+                    className="mt-2 min-h-14 w-full rounded-2xl bg-white px-5 text-sm font-bold text-slate-950 outline-none"
+                  />
+                </label>
+
+                <label>
+                  <span className="text-sm font-black">Telefon</span>
+
+                  <input
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
+                    placeholder="05xx xxx xx xx"
+                    className="mt-2 min-h-14 w-full rounded-2xl bg-white px-5 text-sm font-bold text-slate-950 outline-none"
+                  />
+                </label>
+              </div>
+            </section>
+
+            <section className="rounded-[30px] border border-white/10 bg-slate-900 p-7">
+              <h2 className="text-2xl font-black">Ödeme adımı</h2>
+
+              <div className="mt-6 rounded-2xl border border-orange-500/20 bg-orange-500/10 p-5">
+                <div className="flex items-start gap-4">
+                  <FaCreditCard className="mt-1 text-orange-400" size={22} />
+
+                  <div>
+                    <h3 className="font-black">
+                      Online ödeme bir sonraki aşamada açılacak
+                    </h3>
+
+                    <p className="mt-2 leading-7 text-slate-400">
+                      Şimdilik rezervasyon formunu ve toplam tutar hesabını
+                      test ediyoruz.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside className="lg:sticky lg:top-6 lg:self-start">
+            <div className="overflow-hidden rounded-[30px] border border-orange-500/20 bg-slate-900 shadow-2xl shadow-orange-500/10">
+              <img
+                src={tour.image}
+                alt={tour.title}
+                className="h-52 w-full object-cover"
+              />
+
+              <div className="p-7">
+                <h2 className="text-2xl font-black">{tour.title}</h2>
+
+                <div className="mt-3 flex items-center gap-2 text-sm text-slate-400">
+                  <FaMapMarkerAlt className="text-orange-400" />
+                  {tour.location}
+                </div>
+
+                <div className="mt-7 space-y-4 border-t border-white/10 pt-6 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Kişi başı</span>
+                    <span className="font-black">
+                      {tour.unitPrice.toLocaleString("tr-TR")} TL
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Kişi sayısı</span>
+                    <span className="font-black">{guests}</span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Tur tarihi</span>
+                    <span className="font-black">
+                      {date || "Seçilmedi"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex items-end justify-between border-t border-white/10 pt-6">
+                  <span className="font-black">Toplam</span>
+
+                  <span className="text-3xl font-black text-orange-500">
+                    {total.toLocaleString("tr-TR")} TL
+                  </span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-6 min-h-14 w-full rounded-2xl bg-orange-500 px-6 font-black transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? "Kaydediliyor..." : "Rezervasyonu Onayla"}
+                </button>
+
+                {message && (
+                  <div
+                    className={`mt-4 rounded-2xl border p-4 text-sm font-bold ${
+                      message.type === "success"
+                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                        : "border-red-500/20 bg-red-500/10 text-red-400"
+                    }`}
+                  >
+                    {message.text}
+                  </div>
+                )}
+
+                <div className="mt-5 flex items-center gap-3 rounded-2xl bg-emerald-500/10 p-4 text-sm text-emerald-400">
+                  <FaShieldAlt />
+                  Bilgilerin güvenli şekilde korunur.
+                </div>
+
+                <div className="mt-4 flex items-center gap-3 text-xs text-slate-500">
+                  <FaCheckCircle className="text-emerald-400" />
+                  Rezervasyon özeti e-posta adresine gönderilecek.
+                </div>
+              </div>
+            </div>
+          </aside>
+        </form>
+      </section>
+    </main>
+  );
+}

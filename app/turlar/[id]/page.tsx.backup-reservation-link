@@ -306,12 +306,12 @@ export default async function TourDetailPage({
               </label>
             </div>
 
-            <Link
-              href="/rezervasyon"
-              className="mt-6 flex min-h-14 w-full items-center justify-center rounded-2xl bg-orange-500 px-6 font-black transition hover:bg-orange-600"
+            <button
+              type="button"
+              className="mt-6 min-h-14 w-full rounded-2xl bg-orange-500 px-6 font-black transition hover:bg-orange-600"
             >
               Rezervasyon Yap
-            </Link>
+            </button>
 
             <div className="mt-5 flex items-center gap-3 rounded-2xl bg-emerald-500/10 p-4 text-sm text-emerald-400">
               <FaShieldAlt />
