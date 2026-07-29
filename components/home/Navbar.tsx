@@ -1,68 +1,161 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Globe2, UserRound, Heart } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  FaBars,
+  FaGlobe,
+  FaHeart,
+  FaTimes,
+  FaUser,
+} from "react-icons/fa";
+
+const navigation = [
+  { label: "Ana Sayfa", href: "/" },
+  { label: "Turlar", href: "/turlar" },
+  { label: "Oteller", href: "/oteller" },
+  { label: "Aktiviteler", href: "/aktiviteler" },
+  { label: "Acenteler", href: "/acenteler" },
+  { label: "Kurumsal", href: "/hakkimizda" },
+];
 
 export default function Navbar() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-slate-950/70 backdrop-blur-xl border-b border-white/10">
-
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-8">
-
-        <Link href="/" className="flex items-center gap-3">
-
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500 text-xl">
-            🚌
-          </div>
-
-          <div>
-            <div className="text-2xl font-black tracking-tight text-white">
-              TUROBUS
-            </div>
-
-            <div className="text-[11px] uppercase tracking-[4px] text-orange-400">
-              Marketplace
-            </div>
-          </div>
-
-        </Link>
-
-        <nav className="hidden gap-10 font-medium text-slate-300 lg:flex">
-
-          <Link href="/">Ana Sayfa</Link>
-          <Link href="#">Turlar</Link>
-          <Link href="#">Oteller</Link>
-          <Link href="#">Aktiviteler</Link>
-          <Link href="#">Acenteler</Link>
-          <Link href="#">Kurumsal</Link>
-
-        </nav>
-
-        <div className="flex items-center gap-5">
-
-          <button>
-            <Globe2 className="h-5 w-5 text-white" />
-          </button>
-
-          <button>
-            <Heart className="h-5 w-5 text-white" />
-          </button>
-
+    <>
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-2xl">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
           <Link
-            href="/login"
-            className="rounded-xl bg-orange-500 px-6 py-3 font-semibold text-white hover:bg-orange-600"
+            href="/"
+            className="flex items-center gap-3"
+            onClick={() => setMobileMenuOpen(false)}
           >
-            Giriş Yap
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-xl font-black text-white shadow-lg shadow-orange-500/25">
+              T
+            </div>
+
+            <div>
+              <div className="text-xl font-black tracking-tight text-white">
+                TUROBUS
+              </div>
+
+              <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-orange-400">
+                Marketplace
+              </div>
+            </div>
           </Link>
 
-          <button className="lg:hidden">
-            <Menu className="h-6 w-6 text-white" />
+          <nav className="hidden items-center gap-8 lg:flex">
+            {navigation.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="text-sm font-bold text-slate-300 transition hover:text-orange-400"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="hidden items-center gap-2 md:flex">
+            <button
+              type="button"
+              aria-label="Dil seçimi"
+              className="flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-slate-300 transition hover:bg-white/5 hover:text-white"
+            >
+              <FaGlobe />
+              TR
+            </button>
+
+            <Link
+              href="/favoriler"
+              aria-label="Favoriler"
+              className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/5 hover:text-orange-400"
+            >
+              <FaHeart />
+            </Link>
+
+            <Link
+              href="/login"
+              className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-black text-white transition hover:border-orange-500/30 hover:bg-white/10"
+            >
+              <FaUser />
+              Giriş Yap
+            </Link>
+
+            <Link
+              href="/acente-basvuru"
+              className="flex h-11 items-center rounded-xl bg-orange-500 px-5 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
+            >
+              Turunu Yayınla
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            aria-label={mobileMenuOpen ? "Menüyü kapat" : "Menüyü aç"}
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((current) => !current)}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 md:hidden"
+          >
+            {mobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
-
         </div>
+      </header>
 
-      </div>
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-slate-950/95 px-5 pb-28 pt-24 backdrop-blur-2xl md:hidden">
+          <nav className="mx-auto flex max-w-md flex-col gap-2">
+            {navigation.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-lg font-black text-white transition hover:border-orange-500/30 hover:bg-orange-500/10 hover:text-orange-400"
+              >
+                {item.label}
+              </Link>
+            ))}
 
-    </header>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <Link
+                href="/favoriler"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] font-black text-white"
+              >
+                <FaHeart className="text-orange-400" />
+                Favoriler
+              </Link>
+
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] font-black text-white"
+              >
+                <FaUser className="text-orange-400" />
+                Giriş Yap
+              </Link>
+            </div>
+
+            <Link
+              href="/acente-basvuru"
+              onClick={() => setMobileMenuOpen(false)}
+              className="mt-3 flex min-h-14 items-center justify-center rounded-2xl bg-orange-500 px-6 font-black text-white transition hover:bg-orange-600"
+            >
+              Turunu Yayınla
+            </Link>
+          </nav>
+        </div>
+      )}
+    </>
   );
 }

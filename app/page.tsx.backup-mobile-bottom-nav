@@ -14,7 +14,6 @@ import MobileAppCTA from "@/components/home/MobileAppCTA";
 import Newsletter from "@/components/home/Newsletter";
 import Footer from "@/components/home/Footer";
 import BackToTop from "@/components/home/BackToTop";
-import MobileBottomNav from "@/components/home/MobileBottomNav";
 
 export default function Home() {
   return (
@@ -54,8 +53,6 @@ export default function Home() {
       <Footer />
 
       <BackToTop />
-
-      <MobileBottomNav />
     </main>
   );
 }
