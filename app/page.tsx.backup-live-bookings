@@ -1,6 +1,5 @@
 import Navbar from "@/components/home/Navbar";
 import HeroSearch from "@/components/home/HeroSearch";
-import LiveBookings from "@/components/home/LiveBookings";
 import Categories from "@/components/home/Categories";
 import HowItWorks from "@/components/home/HowItWorks";
 import Campaigns from "@/components/home/Campaigns";
@@ -22,8 +21,6 @@ export default function Home() {
 
       {/* Gelişmiş arama alanı */}
       <HeroSearch />
-
-      <LiveBookings />
 
       <Categories />
 

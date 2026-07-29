@@ -1,6 +1,5 @@
 import Navbar from "@/components/home/Navbar";
 import HeroSearch from "@/components/home/HeroSearch";
-import LiveBookings from "@/components/home/LiveBookings";
 import Categories from "@/components/home/Categories";
 import HowItWorks from "@/components/home/HowItWorks";
 import Campaigns from "@/components/home/Campaigns";
@@ -10,7 +9,6 @@ import FeaturedTours from "@/components/home/FeaturedTours";
 import TrustSection from "@/components/home/TrustSection";
 import OperatorCTA from "@/components/home/OperatorCTA";
 import Testimonials from "@/components/home/Testimonials";
-import MobileAppCTA from "@/components/home/MobileAppCTA";
 import Newsletter from "@/components/home/Newsletter";
 import Footer from "@/components/home/Footer";
 
@@ -22,8 +20,6 @@ export default function Home() {
 
       {/* Gelişmiş arama alanı */}
       <HeroSearch />
-
-      <LiveBookings />
 
       <Categories />
 
@@ -44,8 +40,6 @@ export default function Home() {
       <OperatorCTA />
 
       <Testimonials />
-
-      <MobileAppCTA />
 
       <Newsletter />
 
