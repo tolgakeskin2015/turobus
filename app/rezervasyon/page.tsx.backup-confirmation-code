@@ -28,7 +28,6 @@ export default function ReservationPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const [reservationCode, setReservationCode] = useState("");
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -45,10 +44,6 @@ export default function ReservationPage() {
     event.preventDefault();
     setLoading(true);
     setMessage(null);
-
-    const reservationCode = `TRB-${Date.now()
-      .toString()
-      .slice(-8)}`;
 
     const { error } = await supabase.from("reservations").insert({
       tour_id: "1",
@@ -72,8 +67,6 @@ export default function ReservationPage() {
       setLoading(false);
       return;
     }
-
-    setReservationCode(reservationCode);
 
     setMessage({
       type: "success",
@@ -307,19 +300,7 @@ export default function ReservationPage() {
                         : "border-red-500/20 bg-red-500/10 text-red-400"
                     }`}
                   >
-                    <p>{message.text}</p>
-
-                    {message.type === "success" && reservationCode && (
-                      <div className="mt-3 rounded-xl bg-slate-950/40 p-3">
-                        <p className="text-xs uppercase tracking-wider text-emerald-300">
-                          Rezervasyon numarası
-                        </p>
-
-                        <p className="mt-1 text-lg font-black text-white">
-                          {reservationCode}
-                        </p>
-                      </div>
-                    )}
+                    {message.text}
                   </div>
                 )}
 
