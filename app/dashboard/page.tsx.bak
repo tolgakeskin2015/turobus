@@ -72,41 +72,6 @@ export default function Dashboard() {
     }
 
     loadDashboardData();
-  const tourChannel = supabase
-    .channel("dashboard-tours")
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "tours",
-      },
-      () => {
-        window.location.reload();
-      }
-    )
-    .subscribe();
-
-  const reservationChannel = supabase
-    .channel("dashboard-reservations")
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "reservations",
-      },
-      () => {
-        window.location.reload();
-      }
-    )
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(tourChannel);
-    supabase.removeChannel(reservationChannel);
-  };
-
   }, []);
 
   const activeTours = useMemo(

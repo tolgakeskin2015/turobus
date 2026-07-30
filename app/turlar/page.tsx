@@ -1,129 +1,102 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import {
+  FaArrowLeft,
   FaChevronDown,
   FaClock,
   FaHeart,
   FaMapMarkerAlt,
   FaSearch,
   FaShieldAlt,
-  FaSlidersH,
   FaStar,
 } from "react-icons/fa";
 
-const tours = [
-  {
-    id: 1,
-    title: "Fethiye Jeep Safari",
-    location: "Fethiye, Muğla",
-    category: "Macera",
-    duration: "Tam Gün",
-    rating: 4.9,
-    reviews: 1284,
-    oldPrice: 3250,
-    price: 2490,
-    badge: "Çok Satan",
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    id: 2,
-    title: "Ölüdeniz Tekne Turu",
-    location: "Ölüdeniz, Fethiye",
-    category: "Tekne",
-    duration: "8 Saat",
-    rating: 4.8,
-    reviews: 936,
-    oldPrice: 2450,
-    price: 1990,
-    badge: "Erken Rezervasyon",
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    id: 3,
-    title: "Kapadokya Balon Turu",
-    location: "Göreme, Nevşehir",
-    category: "Aktivite",
-    duration: "3 Saat",
-    rating: 4.9,
-    reviews: 2147,
-    oldPrice: 5750,
-    price: 4990,
-    badge: "Premium",
-    image:
-      "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    id: 4,
-    title: "Dalaman Çayı Rafting",
-    location: "Dalaman, Muğla",
-    category: "Macera",
-    duration: "Tam Gün",
-    rating: 4.8,
-    reviews: 742,
-    oldPrice: 2900,
-    price: 2350,
-    badge: "Popüler",
-    image:
-      "https://images.unsplash.com/photo-1530866495561-507c9faab2ed?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    id: 5,
-    title: "Antalya Şehir ve Şelale Turu",
-    location: "Antalya",
-    category: "Günübirlik",
-    duration: "9 Saat",
-    rating: 4.7,
-    reviews: 584,
-    oldPrice: 2250,
-    price: 1850,
-    badge: "Yeni",
-    image:
-      "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    id: 6,
-    title: "Pamukkale ve Hierapolis Turu",
-    location: "Pamukkale, Denizli",
-    category: "Kültür",
-    duration: "Tam Gün",
-    rating: 4.9,
-    reviews: 1186,
-    oldPrice: 3100,
-    price: 2690,
-    badge: "Önerilen",
-    image:
-      "https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?auto=format&fit=crop&w=1200&q=85",
-  },
-];
-
-const categories = [
-  "Tümü",
-  "Macera",
-  "Tekne",
-  "Aktivite",
-  "Günübirlik",
-  "Kültür",
-];
+type Tour = {
+  id: string;
+  slug: string;
+  title: string;
+  short_description: string | null;
+  city: string;
+  district: string | null;
+  category: string | null;
+  duration: string | null;
+  adult_price: number;
+  old_price: number;
+  cover_image: string | null;
+  rating: number | null;
+  review_count: number | null;
+  bestseller: boolean;
+  early_booking: boolean;
+  featured: boolean;
+  status: string;
+  created_at: string;
+};
 
 export default function ToursPage() {
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Tümü");
   const [sort, setSort] = useState("Önerilen");
-  const [mobileFilters, setMobileFilters] = useState(false);
+
+  useEffect(() => {
+    async function loadTours() {
+      setLoading(true);
+      setErrorMessage("");
+
+      const { data, error } = await supabase
+        .from("tours")
+        .select(
+          "id, slug, title, short_description, city, district, category, duration, adult_price, old_price, cover_image, rating, review_count, bestseller, early_booking, featured, status, created_at"
+        )
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error(error);
+
+        setErrorMessage(
+          "Turlar yüklenemedi. Lütfen daha sonra tekrar deneyin."
+        );
+
+        setLoading(false);
+        return;
+      }
+
+      setTours((data ?? []) as Tour[]);
+      setLoading(false);
+    }
+
+    loadTours();
+  }, []);
+
+  const categories = useMemo(() => {
+    const values = tours
+      .map((tour) => tour.category)
+      .filter((value): value is string => Boolean(value));
+
+    return ["Tümü", ...Array.from(new Set(values))];
+  }, [tours]);
 
   const filteredTours = useMemo(() => {
     let result = tours.filter((tour) => {
+      const query = search.trim().toLocaleLowerCase("tr-TR");
+
       const matchesSearch =
-        tour.title.toLocaleLowerCase("tr-TR").includes(
-          search.toLocaleLowerCase("tr-TR")
-        ) ||
-        tour.location.toLocaleLowerCase("tr-TR").includes(
-          search.toLocaleLowerCase("tr-TR")
-        );
+        !query ||
+        tour.title.toLocaleLowerCase("tr-TR").includes(query) ||
+        tour.city.toLocaleLowerCase("tr-TR").includes(query) ||
+        (tour.district ?? "")
+          .toLocaleLowerCase("tr-TR")
+          .includes(query) ||
+        (tour.category ?? "")
+          .toLocaleLowerCase("tr-TR")
+          .includes(query);
 
       const matchesCategory =
         category === "Tümü" || tour.category === category;
@@ -132,19 +105,53 @@ export default function ToursPage() {
     });
 
     if (sort === "Fiyat: Artan") {
-      result = [...result].sort((a, b) => a.price - b.price);
+      result = [...result].sort(
+        (first, second) =>
+          first.adult_price - second.adult_price
+      );
     }
 
     if (sort === "Fiyat: Azalan") {
-      result = [...result].sort((a, b) => b.price - a.price);
+      result = [...result].sort(
+        (first, second) =>
+          second.adult_price - first.adult_price
+      );
     }
 
     if (sort === "En Yüksek Puan") {
-      result = [...result].sort((a, b) => b.rating - a.rating);
+      result = [...result].sort(
+        (first, second) =>
+          Number(second.rating ?? 0) -
+          Number(first.rating ?? 0)
+      );
+    }
+
+    if (sort === "En Yeniler") {
+      result = [...result].sort(
+        (first, second) =>
+          new Date(second.created_at).getTime() -
+          new Date(first.created_at).getTime()
+      );
+    }
+
+    if (sort === "Önerilen") {
+      result = [...result].sort((first, second) => {
+        const firstScore =
+          Number(first.featured) * 3 +
+          Number(first.bestseller) * 2 +
+          Number(first.early_booking);
+
+        const secondScore =
+          Number(second.featured) * 3 +
+          Number(second.bestseller) * 2 +
+          Number(second.early_booking);
+
+        return secondScore - firstScore;
+      });
     }
 
     return result;
-  }, [search, category, sort]);
+  }, [category, search, sort, tours]);
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -157,6 +164,7 @@ export default function ToursPage() {
 
             <div>
               <div className="text-xl font-black">TUROBUS</div>
+
               <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-orange-400">
                 Marketplace
               </div>
@@ -165,9 +173,10 @@ export default function ToursPage() {
 
           <Link
             href="/"
-            className="text-sm font-bold text-slate-300 transition hover:text-orange-400"
+            className="flex items-center gap-2 text-sm font-black text-slate-300 transition hover:text-orange-400"
           >
-            Ana Sayfaya Dön
+            <FaArrowLeft />
+            Ana Sayfa
           </Link>
         </div>
       </header>
@@ -175,7 +184,7 @@ export default function ToursPage() {
       <section className="border-b border-white/10 bg-slate-900/40 px-5 py-14 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <p className="text-sm font-black uppercase tracking-[0.22em] text-orange-400">
-            Türkiye’nin en seçkin deneyimleri
+            Doğrulanmış acentelerden deneyimler
           </p>
 
           <h1 className="mt-4 text-4xl font-black tracking-tight md:text-6xl">
@@ -183,17 +192,17 @@ export default function ToursPage() {
           </h1>
 
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-400">
-            Doğrulanmış acentelerin sunduğu turları karşılaştır ve sana en
-            uygun deneyimi güvenle seç.
+            Supabase’e eklenen güncel turları karşılaştır ve sana uygun
+            deneyimi güvenle seç.
           </p>
 
           <div className="mt-9 flex max-w-3xl items-center gap-3 rounded-2xl bg-white p-3">
-            <FaSearch className="ml-3 text-orange-500" />
+            <FaSearch className="ml-3 shrink-0 text-orange-500" />
 
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tur, şehir veya bölge ara"
+              placeholder="Tur, şehir, bölge veya kategori ara"
               className="min-h-12 flex-1 bg-transparent text-sm font-bold text-slate-950 outline-none placeholder:text-slate-400"
             />
 
@@ -226,144 +235,203 @@ export default function ToursPage() {
             ))}
           </div>
 
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => setMobileFilters((value) => !value)}
-              className="flex min-h-12 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 font-bold lg:hidden"
+          <label className="relative flex min-h-12 items-center rounded-xl border border-white/10 bg-white/[0.04] px-4">
+            <select
+              value={sort}
+              onChange={(event) => setSort(event.target.value)}
+              className="appearance-none bg-transparent pr-8 text-sm font-bold text-white outline-none"
             >
-              <FaSlidersH />
-              Filtreler
-            </button>
+              <option className="bg-slate-900">Önerilen</option>
+              <option className="bg-slate-900">En Yeniler</option>
+              <option className="bg-slate-900">Fiyat: Artan</option>
+              <option className="bg-slate-900">Fiyat: Azalan</option>
+              <option className="bg-slate-900">
+                En Yüksek Puan
+              </option>
+            </select>
 
-            <label className="relative flex min-h-12 items-center rounded-xl border border-white/10 bg-white/[0.04] px-4">
-              <select
-                value={sort}
-                onChange={(event) => setSort(event.target.value)}
-                className="appearance-none bg-transparent pr-7 text-sm font-bold text-white outline-none"
-              >
-                <option className="bg-slate-900">Önerilen</option>
-                <option className="bg-slate-900">Fiyat: Artan</option>
-                <option className="bg-slate-900">Fiyat: Azalan</option>
-                <option className="bg-slate-900">En Yüksek Puan</option>
-              </select>
-
-              <FaChevronDown className="pointer-events-none absolute right-4 text-xs text-slate-500" />
-            </label>
-          </div>
+            <FaChevronDown className="pointer-events-none absolute right-4 text-xs text-slate-500" />
+          </label>
         </div>
 
-        <div className="mb-8 flex items-center justify-between">
-          <p className="text-sm text-slate-400">
+        {!loading && !errorMessage && (
+          <p className="mb-8 text-sm text-slate-400">
             <span className="font-black text-white">
               {filteredTours.length}
             </span>{" "}
             tur bulundu
           </p>
-        </div>
+        )}
 
-        {mobileFilters && (
-          <div className="mb-8 rounded-3xl border border-white/10 bg-slate-900 p-6 lg:hidden">
-            <p className="font-black">Gelişmiş filtreler yakında burada olacak.</p>
+        {loading && (
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <div
+                key={item}
+                className="h-[520px] animate-pulse rounded-[28px] bg-slate-900"
+              />
+            ))}
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {filteredTours.map((tour) => (
-            <article
-              key={tour.id}
-              className="group overflow-hidden rounded-[28px] border border-white/10 bg-slate-900 transition duration-300 hover:-translate-y-2 hover:border-orange-500/40"
-            >
-              <div className="relative h-64 overflow-hidden">
-                <img
-                  src={tour.image}
-                  alt={tour.title}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
-                />
+        {errorMessage && (
+          <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-8 text-red-400">
+            {errorMessage}
+          </div>
+        )}
 
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-
-                <div className="absolute left-5 top-5 rounded-full bg-orange-500 px-4 py-2 text-xs font-black">
-                  {tour.badge}
-                </div>
-
-                <button
-                  type="button"
-                  aria-label="Favorilere ekle"
-                  className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-black/40 backdrop-blur-md"
+        {!loading &&
+          !errorMessage &&
+          filteredTours.length > 0 && (
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+              {filteredTours.map((tour) => (
+                <article
+                  key={tour.id}
+                  className="group overflow-hidden rounded-[28px] border border-white/10 bg-slate-900 transition duration-300 hover:-translate-y-2 hover:border-orange-500/40"
                 >
-                  <FaHeart />
-                </button>
-              </div>
+                  <div className="relative h-64 overflow-hidden bg-slate-800">
+                    {tour.cover_image ? (
+                      <img
+                        src={tour.cover_image}
+                        alt={tour.title}
+                        className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-sm font-bold text-slate-500">
+                        Kapak görseli eklenmedi
+                      </div>
+                    )}
 
-              <div className="p-6">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <FaMapMarkerAlt className="text-orange-400" />
-                    {tour.location}
-                  </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
 
-                  <div className="flex items-center gap-1 font-black">
-                    <FaStar className="text-yellow-400" />
-                    {tour.rating}
-                  </div>
-                </div>
+                    <div className="absolute left-5 top-5 flex flex-wrap gap-2">
+                      {tour.bestseller && (
+                        <span className="rounded-full bg-orange-500 px-4 py-2 text-xs font-black">
+                          Çok Satan
+                        </span>
+                      )}
 
-                <h2 className="mt-4 text-2xl font-black">
-                  {tour.title}
-                </h2>
+                      {tour.early_booking && (
+                        <span className="rounded-full bg-purple-600 px-4 py-2 text-xs font-black">
+                          Erken Rezervasyon
+                        </span>
+                      )}
 
-                <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  <FaClock />
-                  {tour.duration}
-                </div>
-
-                <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-                  <FaShieldAlt className="text-emerald-400" />
-                  Ücretsiz iptal seçeneği
-                </div>
-
-                <div className="mt-6 border-t border-white/10 pt-5">
-                  <p className="text-sm text-slate-500 line-through">
-                    {tour.oldPrice.toLocaleString("tr-TR")} TL
-                  </p>
-
-                  <div className="mt-1 flex items-end justify-between gap-4">
-                    <div>
-                      <p className="text-3xl font-black text-orange-500">
-                        {tour.price.toLocaleString("tr-TR")} TL
-                      </p>
-
-                      <p className="mt-1 text-xs text-slate-500">
-                        kişi başı
-                      </p>
+                      {tour.featured && (
+                        <span className="rounded-full bg-blue-600 px-4 py-2 text-xs font-black">
+                          Öne Çıkan
+                        </span>
+                      )}
                     </div>
 
-                    <Link
-                      href={`/turlar/${tour.id}`}
-                      className="rounded-xl bg-orange-500 px-5 py-3 text-sm font-black transition hover:bg-orange-600"
+                    <button
+                      type="button"
+                      aria-label="Favorilere ekle"
+                      className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-black/40 backdrop-blur-md transition hover:bg-white hover:text-slate-950"
                     >
-                      İncele
-                    </Link>
+                      <FaHeart />
+                    </button>
                   </div>
 
-                  <p className="mt-4 text-xs text-slate-500">
-                    {tour.reviews.toLocaleString("tr-TR")} doğrulanmış yorum
-                  </p>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+                  <div className="p-6">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 text-sm text-slate-400">
+                        <FaMapMarkerAlt className="text-orange-400" />
+                        {tour.city}
+                        {tour.district
+                          ? `, ${tour.district}`
+                          : ""}
+                      </div>
 
-        {filteredTours.length === 0 && (
-          <div className="rounded-3xl border border-white/10 bg-slate-900 p-12 text-center">
-            <h2 className="text-2xl font-black">Sonuç bulunamadı</h2>
-            <p className="mt-3 text-slate-400">
-              Arama kelimelerini veya kategoriyi değiştirmeyi dene.
-            </p>
-          </div>
-        )}
+                      <div className="flex items-center gap-1 font-black">
+                        <FaStar className="text-yellow-400" />
+                        {tour.rating ?? 5}
+
+                        <span className="ml-1 text-xs font-medium text-slate-500">
+                          ({tour.review_count ?? 0})
+                        </span>
+                      </div>
+                    </div>
+
+                    <h2 className="mt-4 text-2xl font-black">
+                      {tour.title}
+                    </h2>
+
+                    {tour.short_description && (
+                      <p className="mt-3 line-clamp-2 leading-7 text-slate-400">
+                        {tour.short_description}
+                      </p>
+                    )}
+
+                    <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
+                      <FaClock />
+                      {tour.duration || "Süre belirtilmedi"}
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
+                      <FaShieldAlt className="text-emerald-400" />
+                      Güvenli rezervasyon
+                    </div>
+
+                    <div className="mt-6 border-t border-white/10 pt-5">
+                      {tour.old_price > 0 && (
+                        <p className="text-sm text-slate-500 line-through">
+                          {tour.old_price.toLocaleString("tr-TR")} TL
+                        </p>
+                      )}
+
+                      <div className="mt-1 flex items-end justify-between gap-4">
+                        <div>
+                          <p className="text-3xl font-black text-orange-500">
+                            {tour.adult_price.toLocaleString(
+                              "tr-TR"
+                            )}{" "}
+                            TL
+                          </p>
+
+                          <p className="mt-1 text-xs text-slate-500">
+                            kişi başı
+                          </p>
+                        </div>
+
+                        <Link
+                          href={`/turlar/${tour.slug}`}
+                          className="rounded-xl bg-orange-500 px-5 py-3 text-sm font-black transition hover:bg-orange-600"
+                        >
+                          İncele
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+
+        {!loading &&
+          !errorMessage &&
+          filteredTours.length === 0 && (
+            <div className="rounded-3xl border border-white/10 bg-slate-900 p-12 text-center">
+              <h2 className="text-2xl font-black">
+                Tur bulunamadı
+              </h2>
+
+              <p className="mt-3 text-slate-400">
+                Arama kelimesini veya kategoriyi değiştirmeyi dene.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setCategory("Tümü");
+                }}
+                className="mt-6 rounded-xl bg-orange-500 px-6 py-3 font-black"
+              >
+                Filtreleri Temizle
+              </button>
+            </div>
+          )}
       </section>
     </main>
   );
