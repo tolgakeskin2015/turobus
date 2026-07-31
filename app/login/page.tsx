@@ -181,11 +181,11 @@ export default function LoginPage() {
             </p>
 
             <div className="mt-10 grid max-w-2xl gap-4 sm:grid-cols-3">
-              {[
+              {([
                 ["Güvenli giriş", FaShieldAlt],
                 ["Kolay rezervasyon", FaCheckCircle],
                 ["Tek panel", FaUser],
-              ].map(([label, Icon]) => (
+              ] as const).map(([label, Icon]) => (
                 <div
                   key={String(label)}
                   className="rounded-2xl border border-white/10 bg-white/[0.04] p-5"

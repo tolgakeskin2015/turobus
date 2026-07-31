@@ -1,91 +1,285 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useMemo, useState } from "react";
+import ReservationCalendar from "@/components/reservation/ReservationCalendar";
+import ReservationContact from "@/components/reservation/ReservationContact";
+import ReservationSummary from "@/components/reservation/ReservationSummary";
+import type {
+  Departure,
+  ReservationResult,
+  Tour,
+} from "@/components/reservation/types";
 import {
   FaArrowLeft,
-  FaCalendarAlt,
-  FaCheckCircle,
   FaCreditCard,
-  FaMapMarkerAlt,
-  FaShieldAlt,
-  FaUserFriends,
 } from "react-icons/fa";
 
-const tour = {
-  title: "Fethiye Jeep Safari",
-  location: "Fethiye, Muğla",
-  unitPrice: 2490,
-  image:
-    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85",
-};
-
 export default function ReservationPage() {
-  const [date, setDate] = useState("");
-  const [guests, setGuests] = useState(2);
+  const [tour, setTour] = useState<Tour | null>(null);
+  const [departures, setDepartures] = useState<Departure[]>([]);
+  const [selectedDepartureId, setSelectedDepartureId] = useState("");
+  const [guests, setGuests] = useState(1);
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [reservationCode, setReservationCode] = useState("");
+
+  const [pageLoading, setPageLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [pageError, setPageError] = useState("");
+
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
 
-  const total = useMemo(
-    () => tour.unitPrice * guests,
-    [guests]
+  const [result, setResult] =
+    useState<ReservationResult | null>(null);
+
+  const selectedDeparture = useMemo(
+    () =>
+      departures.find(
+        (departure) => departure.id === selectedDepartureId
+      ) ?? null,
+    [departures, selectedDepartureId]
   );
+
+  async function loadDepartures(tourId: string) {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const { data, error } = await supabase
+      .from("tour_departures")
+      .select(
+        "id, tour_id, departure_date, capacity, reserved_count, adult_price, child_price, status"
+      )
+      .eq("tour_id", tourId)
+      .gte("departure_date", today)
+      .order("departure_date", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    const loadedDepartures = (data ?? []) as Departure[];
+
+    setDepartures(loadedDepartures);
+
+    const firstAvailable = loadedDepartures.find(
+      (departure) =>
+        departure.status === "active" &&
+        departure.reserved_count < departure.capacity
+    );
+
+    setSelectedDepartureId((current) => {
+      const currentStillExists = loadedDepartures.some(
+        (departure) =>
+          departure.id === current &&
+          departure.status === "active" &&
+          departure.reserved_count < departure.capacity
+      );
+
+      if (currentStillExists) {
+        return current;
+      }
+
+      return firstAvailable?.id ?? "";
+    });
+
+    return loadedDepartures;
+  }
+
+  useEffect(() => {
+    async function loadReservationPage() {
+      setPageLoading(true);
+      setPageError("");
+
+      try {
+        const searchParams = new URLSearchParams(
+          window.location.search
+        );
+
+        const slug = searchParams.get("tour");
+
+        if (!slug) {
+          throw new Error(
+            "Rezervasyon yapılacak tur belirtilmedi."
+          );
+        }
+
+        const { data: tourData, error: tourError } =
+          await supabase
+            .from("tours")
+            .select(
+              "id, slug, title, city, district, adult_price, child_price, cover_image"
+            )
+            .eq("slug", slug)
+            .eq("status", "active")
+            .maybeSingle();
+
+        if (tourError) {
+          throw tourError;
+        }
+
+        if (!tourData) {
+          throw new Error(
+            "Tur bulunamadı veya rezervasyona kapalı."
+          );
+        }
+
+        const loadedTour = tourData as Tour;
+
+        setTour(loadedTour);
+        await loadDepartures(loadedTour.id);
+      } catch (error) {
+        console.error(error);
+
+        setPageError(
+          error instanceof Error
+            ? error.message
+            : "Rezervasyon bilgileri yüklenemedi."
+        );
+      } finally {
+        setPageLoading(false);
+      }
+    }
+
+    loadReservationPage();
+  }, []);
+
+  function handleDepartureChange(departureId: string) {
+    setSelectedDepartureId(departureId);
+    setGuests(1);
+    setMessage(null);
+    setResult(null);
+  }
 
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
-    setLoading(true);
-    setMessage(null);
 
-    const reservationCode = `TRB-${Date.now()
-      .toString()
-      .slice(-8)}`;
-
-    const { error } = await supabase.from("reservations").insert({
-      tour_id: "1",
-      tour_title: tour.title,
-      tour_date: date,
-      guests,
-      full_name: fullName,
-      email,
-      phone,
-      unit_price: tour.unitPrice,
-      total_price: total,
-      status: "pending",
-    });
-
-    if (error) {
-      console.error(error);
+    if (!tour || !selectedDeparture) {
       setMessage({
         type: "error",
-        text: "Rezervasyon kaydedilemedi. Lütfen tekrar deneyin.",
+        text: "Lütfen rezervasyon tarihi seçin.",
       });
-      setLoading(false);
       return;
     }
 
-    setReservationCode(reservationCode);
+    const remaining =
+      selectedDeparture.capacity -
+      selectedDeparture.reserved_count;
+
+    if (guests > remaining) {
+      setMessage({
+        type: "error",
+        text: `Bu tarih için yalnızca ${remaining} kişilik yer kaldı.`,
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    setMessage(null);
+    setResult(null);
+
+    const { data, error } = await supabase.rpc(
+      "create_tour_reservation",
+      {
+        p_departure_id: selectedDeparture.id,
+        p_full_name: fullName.trim(),
+        p_email: email.trim(),
+        p_phone: phone.trim(),
+        p_guests: guests,
+      }
+    );
+
+    if (error) {
+      console.error(error);
+
+      let errorText = error.message;
+
+      if (error.message.includes("Yeterli kontenjan")) {
+        errorText =
+          "Seçtiğiniz kişi sayısı için yeterli kontenjan kalmadı.";
+      } else if (
+        error.message.includes("rezervasyona kapalı")
+      ) {
+        errorText =
+          "Bu tur tarihi artık rezervasyona kapalı.";
+      }
+
+      setMessage({
+        type: "error",
+        text: errorText,
+      });
+
+      setSubmitting(false);
+      return;
+    }
+
+    const reservationResult =
+      data as ReservationResult;
+
+    setResult(reservationResult);
 
     setMessage({
       type: "success",
-      text: "Rezervasyonunuz başarıyla alındı.",
+      text: "Rezervasyonunuz başarıyla oluşturuldu.",
     });
 
-    setDate("");
-    setGuests(2);
     setFullName("");
     setEmail("");
     setPhone("");
-    setLoading(false);
+    setGuests(1);
+
+    try {
+      await loadDepartures(tour.id);
+    } catch (refreshError) {
+      console.error(refreshError);
+    }
+
+    setSubmitting(false);
+  }
+
+  if (pageLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
+        <div className="rounded-3xl border border-white/10 bg-slate-900 p-10 text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-orange-500/20 border-t-orange-500" />
+
+          <p className="mt-5 font-bold text-slate-400">
+            Tur ve kontenjan bilgileri yükleniyor...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (pageError || !tour) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
+        <div className="max-w-lg rounded-3xl border border-red-500/20 bg-slate-900 p-10 text-center">
+          <h1 className="text-3xl font-black">
+            Rezervasyon açılamadı
+          </h1>
+
+          <p className="mt-4 leading-7 text-slate-400">
+            {pageError ||
+              "Tur bilgileri bulunamadı."}
+          </p>
+
+          <Link
+            href="/turlar"
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-black transition hover:bg-orange-600"
+          >
+            <FaArrowLeft />
+            Turlara Dön
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -98,7 +292,10 @@ export default function ReservationPage() {
             </div>
 
             <div>
-              <div className="text-xl font-black">TUROBUS</div>
+              <div className="text-xl font-black">
+                TUROBUS
+              </div>
+
               <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-orange-400">
                 Marketplace
               </div>
@@ -106,8 +303,8 @@ export default function ReservationPage() {
           </Link>
 
           <Link
-            href="/turlar/1"
-            className="flex items-center gap-2 text-sm font-black text-slate-300 hover:text-orange-400"
+            href={`/turlar/${tour.slug}`}
+            className="flex items-center gap-2 text-sm font-black text-slate-300 transition hover:text-orange-400"
           >
             <FaArrowLeft />
             Tur Detayına Dön
@@ -126,7 +323,8 @@ export default function ReservationPage() {
           </h1>
 
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-400">
-            Bilgilerini kontrol et ve rezervasyon özetini oluştur.
+            Açık tur tarihini seç, kalan kontenjanı kontrol et
+            ve rezervasyonunu güvenle oluştur.
           </p>
         </div>
 
@@ -135,110 +333,44 @@ export default function ReservationPage() {
           className="grid gap-10 lg:grid-cols-[1fr_390px]"
         >
           <div className="space-y-8">
-            <section className="rounded-[30px] border border-white/10 bg-slate-900 p-7">
-              <h2 className="text-2xl font-black">Tur ve tarih bilgileri</h2>
+            <ReservationCalendar
+              tour={tour}
+              departures={departures}
+              selectedDepartureId={selectedDepartureId}
+              guests={guests}
+              onDepartureChange={handleDepartureChange}
+              onGuestsChange={setGuests}
+            />
 
-              <div className="mt-6 grid gap-5 md:grid-cols-2">
-                <label>
-                  <span className="text-sm font-black">Tur tarihi</span>
-
-                  <div className="mt-2 flex min-h-14 items-center gap-3 rounded-2xl bg-white px-4">
-                    <FaCalendarAlt className="text-orange-500" />
-
-                    <input
-                      type="date"
-                      required
-                      value={date}
-                      onChange={(event) => setDate(event.target.value)}
-                      className="w-full bg-transparent text-sm font-bold text-slate-950 outline-none"
-                    />
-                  </div>
-                </label>
-
-                <label>
-                  <span className="text-sm font-black">Kişi sayısı</span>
-
-                  <div className="mt-2 flex min-h-14 items-center gap-3 rounded-2xl bg-white px-4">
-                    <FaUserFriends className="text-orange-500" />
-
-                    <select
-                      value={guests}
-                      onChange={(event) =>
-                        setGuests(Number(event.target.value))
-                      }
-                      className="w-full bg-transparent text-sm font-bold text-slate-950 outline-none"
-                    >
-                      <option value={1}>1 kişi</option>
-                      <option value={2}>2 kişi</option>
-                      <option value={3}>3 kişi</option>
-                      <option value={4}>4 kişi</option>
-                      <option value={5}>5 kişi</option>
-                    </select>
-                  </div>
-                </label>
-              </div>
-            </section>
+            <ReservationContact
+              fullName={fullName}
+              email={email}
+              phone={phone}
+              onFullNameChange={setFullName}
+              onEmailChange={setEmail}
+              onPhoneChange={setPhone}
+            />
 
             <section className="rounded-[30px] border border-white/10 bg-slate-900 p-7">
-              <h2 className="text-2xl font-black">İletişim bilgileri</h2>
-
-              <div className="mt-6 grid gap-5 md:grid-cols-2">
-                <label className="md:col-span-2">
-                  <span className="text-sm font-black">Ad soyad</span>
-
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(event) => setFullName(event.target.value)}
-                    placeholder="Adınız ve soyadınız"
-                    className="mt-2 min-h-14 w-full rounded-2xl bg-white px-5 text-sm font-bold text-slate-950 outline-none"
-                  />
-                </label>
-
-                <label>
-                  <span className="text-sm font-black">E-posta</span>
-
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="ornek@email.com"
-                    className="mt-2 min-h-14 w-full rounded-2xl bg-white px-5 text-sm font-bold text-slate-950 outline-none"
-                  />
-                </label>
-
-                <label>
-                  <span className="text-sm font-black">Telefon</span>
-
-                  <input
-                    type="tel"
-                    required
-                    value={phone}
-                    onChange={(event) => setPhone(event.target.value)}
-                    placeholder="05xx xxx xx xx"
-                    className="mt-2 min-h-14 w-full rounded-2xl bg-white px-5 text-sm font-bold text-slate-950 outline-none"
-                  />
-                </label>
-              </div>
-            </section>
-
-            <section className="rounded-[30px] border border-white/10 bg-slate-900 p-7">
-              <h2 className="text-2xl font-black">Ödeme adımı</h2>
+              <h2 className="text-2xl font-black">
+                Ödeme adımı
+              </h2>
 
               <div className="mt-6 rounded-2xl border border-orange-500/20 bg-orange-500/10 p-5">
                 <div className="flex items-start gap-4">
-                  <FaCreditCard className="mt-1 text-orange-400" size={22} />
+                  <FaCreditCard
+                    className="mt-1 shrink-0 text-orange-400"
+                    size={22}
+                  />
 
                   <div>
                     <h3 className="font-black">
-                      Online ödeme bir sonraki aşamada açılacak
+                      Online ödeme yakında açılacak
                     </h3>
 
                     <p className="mt-2 leading-7 text-slate-400">
-                      Şimdilik rezervasyon formunu ve toplam tutar hesabını
-                      test ediyoruz.
+                      Bu aşamada rezervasyon ve kontenjan sistemi
+                      gerçek verilerle çalışmaktadır.
                     </p>
                   </div>
                 </div>
@@ -246,95 +378,14 @@ export default function ReservationPage() {
             </section>
           </div>
 
-          <aside className="lg:sticky lg:top-6 lg:self-start">
-            <div className="overflow-hidden rounded-[30px] border border-orange-500/20 bg-slate-900 shadow-2xl shadow-orange-500/10">
-              <img
-                src={tour.image}
-                alt={tour.title}
-                className="h-52 w-full object-cover"
-              />
-
-              <div className="p-7">
-                <h2 className="text-2xl font-black">{tour.title}</h2>
-
-                <div className="mt-3 flex items-center gap-2 text-sm text-slate-400">
-                  <FaMapMarkerAlt className="text-orange-400" />
-                  {tour.location}
-                </div>
-
-                <div className="mt-7 space-y-4 border-t border-white/10 pt-6 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Kişi başı</span>
-                    <span className="font-black">
-                      {tour.unitPrice.toLocaleString("tr-TR")} TL
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Kişi sayısı</span>
-                    <span className="font-black">{guests}</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Tur tarihi</span>
-                    <span className="font-black">
-                      {date || "Seçilmedi"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex items-end justify-between border-t border-white/10 pt-6">
-                  <span className="font-black">Toplam</span>
-
-                  <span className="text-3xl font-black text-orange-500">
-                    {total.toLocaleString("tr-TR")} TL
-                  </span>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="mt-6 min-h-14 w-full rounded-2xl bg-orange-500 px-6 font-black transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {loading ? "Kaydediliyor..." : "Rezervasyonu Onayla"}
-                </button>
-
-                {message && (
-                  <div
-                    className={`mt-4 rounded-2xl border p-4 text-sm font-bold ${
-                      message.type === "success"
-                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                        : "border-red-500/20 bg-red-500/10 text-red-400"
-                    }`}
-                  >
-                    <p>{message.text}</p>
-
-                    {message.type === "success" && reservationCode && (
-                      <div className="mt-3 rounded-xl bg-slate-950/40 p-3">
-                        <p className="text-xs uppercase tracking-wider text-emerald-300">
-                          Rezervasyon numarası
-                        </p>
-
-                        <p className="mt-1 text-lg font-black text-white">
-                          {reservationCode}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="mt-5 flex items-center gap-3 rounded-2xl bg-emerald-500/10 p-4 text-sm text-emerald-400">
-                  <FaShieldAlt />
-                  Bilgilerin güvenli şekilde korunur.
-                </div>
-
-                <div className="mt-4 flex items-center gap-3 text-xs text-slate-500">
-                  <FaCheckCircle className="text-emerald-400" />
-                  Rezervasyon özeti e-posta adresine gönderilecek.
-                </div>
-              </div>
-            </div>
-          </aside>
+          <ReservationSummary
+            tour={tour}
+            departure={selectedDeparture}
+            guests={guests}
+            loading={submitting}
+            message={message}
+            result={result}
+          />
         </form>
       </section>
     </main>

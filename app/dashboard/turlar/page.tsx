@@ -292,6 +292,14 @@ export default function DashboardToursPage() {
                       </Link>
 
                       <Link
+                        href={`/dashboard/turlar/${tour.id}/takvim`}
+                        aria-label="Tur takvimini yönet"
+                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] transition hover:bg-emerald-500"
+                      >
+                        📅
+                      </Link>
+
+                      <Link
                         href={`/dashboard/turlar/${tour.id}/duzenle`}
                         aria-label="Turu düzenle"
                         className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500 transition hover:bg-orange-600"
