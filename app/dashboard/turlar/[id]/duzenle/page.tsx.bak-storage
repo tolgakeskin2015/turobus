@@ -64,8 +64,6 @@ export default function EditTourPage() {
   const [form, setForm] = useState<TourForm>(emptyForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -153,40 +151,6 @@ export default function EditTourPage() {
     setSaving(true);
     setMessage(null);
 
-    let uploadedImageUrl = form.cover_image || null;
-
-    if (imageFile) {
-      const extension = imageFile.name.split(".").pop() || "jpg";
-      const fileName = `${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}.${extension}`;
-
-      const filePath = `covers/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("tour-images")
-        .upload(filePath, imageFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error(uploadError);
-        setMessage({
-          type: "error",
-          text: "Görsel yüklenemedi: " + uploadError.message,
-        });
-        setSaving(false);
-        return;
-      }
-
-      const { data: publicUrlData } = supabase.storage
-        .from("tour-images")
-        .getPublicUrl(filePath);
-
-      uploadedImageUrl = publicUrlData.publicUrl;
-    }
-
     const { error } = await supabase
       .from("tours")
       .update({
@@ -202,7 +166,7 @@ export default function EditTourPage() {
         adult_price: Number(form.adult_price || 0),
         child_price: Number(form.child_price || 0),
         old_price: Number(form.old_price || 0),
-        cover_image: uploadedImageUrl,
+        cover_image: form.cover_image || null,
         agency_name: form.agency_name || null,
         max_people: Number(form.max_people || 40),
         featured: form.featured,
@@ -227,13 +191,6 @@ export default function EditTourPage() {
       type: "success",
       text: "Tur başarıyla güncellendi.",
     });
-
-    setImageFile(null);
-    setImagePreview("");
-
-    if (uploadedImageUrl) {
-      updateField("cover_image", uploadedImageUrl);
-    }
 
     setSaving(false);
   }
@@ -524,48 +481,6 @@ export default function EditTourPage() {
               <h2 className="text-2xl font-black">Görsel ve acente</h2>
 
               <div className="mt-6 grid gap-5">
-                {form.cover_image && !imagePreview && (
-                  <div className="overflow-hidden rounded-2xl border border-white/10">
-                    <img
-                      src={form.cover_image}
-                      alt="Mevcut kapak görseli"
-                      className="h-64 w-full object-cover"
-                    />
-                  </div>
-                )}
-
-                <label>
-                  <span className="text-sm font-black">
-                    Yeni kapak görseli seç
-                  </span>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0] ?? null;
-                      setImageFile(file);
-
-                      if (file) {
-                        setImagePreview(URL.createObjectURL(file));
-                      } else {
-                        setImagePreview("");
-                      }
-                    }}
-                    className="mt-2 block w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-slate-300 file:mr-4 file:rounded-xl file:border-0 file:bg-orange-500 file:px-4 file:py-2 file:font-black file:text-white"
-                  />
-                </label>
-
-                {imagePreview && (
-                  <div className="overflow-hidden rounded-2xl border border-orange-500/30">
-                    <img
-                      src={imagePreview}
-                      alt="Yeni seçilen kapak görseli"
-                      className="h-64 w-full object-cover"
-                    />
-                  </div>
-                )}
-
                 <label>
                   <span className="text-sm font-black">Kapak görseli URL</span>
 
