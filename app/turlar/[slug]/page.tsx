@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import FavoriteButton from "@/components/favorites/FavoriteButton";
+import TourReviews from "@/components/reviews/TourReviews";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -65,11 +66,19 @@ export default function TourDetailPage() {
         .select("*")
         .eq("slug", params.slug)
         .eq("status", "active")
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
-        console.error(error);
-        setErrorMessage("Tur bulunamadı veya yayından kaldırılmış.");
+      if (error) {
+        console.error("Tur yükleme hatası:", error.message);
+        setErrorMessage("Tur yüklenemedi: " + error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!data) {
+        setErrorMessage(
+          `"${params.slug}" adresine ait aktif bir tur bulunamadı.`
+        );
         setLoading(false);
         return;
       }
@@ -386,6 +395,8 @@ export default function TourDetailPage() {
               </div>
             </section>
           )}
+
+          <TourReviews tourId={tour.id} />
         </div>
 
         <aside className="lg:sticky lg:top-6 lg:self-start">
