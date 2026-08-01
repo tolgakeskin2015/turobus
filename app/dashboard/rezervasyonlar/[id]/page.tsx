@@ -348,6 +348,13 @@ export default function ReservationDetailPage() {
                   <FaWhatsapp />
                   WhatsApp Gönder
                 </button>
+
+                <Link
+                  href={`/dashboard/rezervasyonlar/${reservation.id}/voucher`}
+                  className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-orange-500 px-5 font-black transition hover:bg-orange-600"
+                >
+                  Voucher Görüntüle
+                </Link>
               </div>
 
               <div className="mt-6 border-t border-white/10 pt-6">
