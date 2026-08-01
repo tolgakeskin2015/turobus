@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import FavoriteButton from "@/components/favorites/FavoriteButton";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -10,6 +9,7 @@ import {
   FaCalendarAlt,
   FaCheckCircle,
   FaClock,
+  FaHeart,
   FaMapMarkerAlt,
   FaShieldAlt,
   FaStar,
@@ -407,10 +407,13 @@ export default function TourDetailPage() {
                 </p>
               </div>
 
-              <FavoriteButton
-                tourId={tour.id}
-                className="h-12 w-12 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-orange-500"
-              />
+              <button
+                type="button"
+                aria-label="Favorilere ekle"
+                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] transition hover:bg-orange-500"
+              >
+                <FaHeart />
+              </button>
             </div>
 
             {tour.child_price > 0 && (

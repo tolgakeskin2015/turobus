@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import FavoriteButton from "@/components/favorites/FavoriteButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
   FaClock,
+  FaHeart,
   FaMapMarkerAlt,
   FaShieldAlt,
   FaStar,
@@ -140,10 +140,13 @@ export default function FeaturedTours() {
                     )}
                   </div>
 
-                  <FavoriteButton
-                    tourId={tour.id}
-                    className="absolute right-5 top-5 h-11 w-11 rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-white hover:text-slate-950"
-                  />
+                  <button
+                    type="button"
+                    aria-label="Favorilere ekle"
+                    className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md"
+                  >
+                    <FaHeart />
+                  </button>
                 </div>
 
                 <div className="p-6">

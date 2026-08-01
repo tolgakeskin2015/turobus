@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   FaBars,
   FaGlobe,
@@ -21,6 +22,7 @@ const navigation = [
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [favoriteCount, setFavoriteCount] = useState(0);
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
@@ -29,6 +31,44 @@ export default function Navbar() {
       document.body.style.overflow = "";
     };
   }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    async function loadFavoriteCount() {
+      const userKey =
+        window.localStorage.getItem("turobus_favorite_user_key");
+
+      if (!userKey) {
+        setFavoriteCount(0);
+        return;
+      }
+
+      const { count, error } = await supabase
+        .from("favorites")
+        .select("id", { count: "exact", head: true })
+        .eq("user_key", userKey);
+
+      if (error) {
+        console.error("Favori sayacı yüklenemedi:", error);
+        return;
+      }
+
+      setFavoriteCount(count ?? 0);
+    }
+
+    loadFavoriteCount();
+
+    window.addEventListener(
+      "favorites-updated",
+      loadFavoriteCount
+    );
+
+    return () => {
+      window.removeEventListener(
+        "favorites-updated",
+        loadFavoriteCount
+      );
+    };
+  }, []);
 
   return (
     <>
@@ -79,9 +119,15 @@ export default function Navbar() {
             <Link
               href="/favoriler"
               aria-label="Favoriler"
-              className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/5 hover:text-orange-400"
+              className="relative flex h-11 w-11 items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/5 hover:text-orange-400"
             >
               <FaHeart />
+
+              {favoriteCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-black text-white">
+                  {favoriteCount > 99 ? "99+" : favoriteCount}
+                </span>
+              )}
             </Link>
 
             <Link
@@ -134,6 +180,11 @@ export default function Navbar() {
               >
                 <FaHeart className="text-orange-400" />
                 Favoriler
+                {favoriteCount > 0 && (
+                  <span className="rounded-full bg-orange-500 px-2 py-0.5 text-xs text-white">
+                    {favoriteCount}
+                  </span>
+                )}
               </Link>
 
               <Link
