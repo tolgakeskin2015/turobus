@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import CustomerLiveMap from "@/components/tracking/CustomerLiveMap";
 import {
   FaBus,
   FaCalendarAlt,
@@ -371,6 +372,12 @@ export default function PublicTrackingPage() {
             </div>
           )}
         </section>
+
+        <div className="mt-8">
+          <CustomerLiveMap
+            reservationId={reservation.id}
+          />
+        </div>
 
         <section className="mt-8 rounded-[32px] border border-white/10 bg-slate-900 p-7">
           <div className="flex items-center gap-3">
