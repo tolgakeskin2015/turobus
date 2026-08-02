@@ -17,9 +17,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [checkingSession, setCheckingSession] =
     useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     async function checkExistingSession() {
@@ -37,6 +39,39 @@ export default function LoginPage() {
 
     void checkExistingSession();
   }, [router]);
+
+  async function sendPasswordReset() {
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (!email.trim()) {
+      setErrorMessage(
+        "Önce e-posta adresinizi yazın."
+      );
+      return;
+    }
+
+    setResetting(true);
+
+    const { error } =
+      await supabase.auth.resetPasswordForEmail(
+        email.trim(),
+        {
+          redirectTo:
+            `${window.location.origin}/sifre-yenile`,
+        }
+      );
+
+    if (error) {
+      setErrorMessage(error.message);
+    } else {
+      setSuccessMessage(
+        "Şifre yenileme bağlantısı e-posta adresinize gönderildi."
+      );
+    }
+
+    setResetting(false);
+  }
 
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>
@@ -174,6 +209,23 @@ export default function LoginPage() {
               {errorMessage}
             </div>
           )}
+
+          {successMessage && (
+            <div className="mt-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-400">
+              {successMessage}
+            </div>
+          )}
+
+          <button
+            type="button"
+            disabled={resetting}
+            onClick={sendPasswordReset}
+            className="mt-5 w-full text-center text-sm font-black text-orange-400 disabled:opacity-50"
+          >
+            {resetting
+              ? "Bağlantı gönderiliyor..."
+              : "Şifremi Unuttum"}
+          </button>
 
           <button
             type="submit"
