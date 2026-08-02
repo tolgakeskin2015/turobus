@@ -92,6 +92,16 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    href: "/dashboard/araclar",
+    label: "Araçlar",
+    icon: FaBus,
+    roles: [
+      "super_admin",
+      "company_owner",
+      "operation_manager",
+    ],
+  },
+  {
     href: "/dashboard/turlar",
     label: "Turlar",
     icon: FaBus,
