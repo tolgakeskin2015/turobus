@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { generateQRCode } from "@/lib/qrcode";
+import VoucherPdfButton from "@/components/voucher/VoucherPdfButton";
 import {
   FaArrowLeft,
   FaCalendarAlt,
@@ -166,17 +167,30 @@ export default function VoucherPage() {
             Rezervasyon Detayına Dön
           </Link>
 
-          <button
-            type="button"
-            onClick={printVoucher}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 text-sm font-black transition hover:bg-orange-600"
-          >
-            <FaPrint />
-            Yazdır / PDF Kaydet
-          </button>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <VoucherPdfButton
+              targetId="voucher-document"
+              fileName={`TUROBUS-${
+                reservation.reservation_code ??
+                reservation.id
+              }`}
+            />
+
+            <button
+              type="button"
+              onClick={printVoucher}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 text-sm font-black transition hover:bg-orange-600"
+            >
+              <FaPrint />
+              Yazdır
+            </button>
+          </div>
         </div>
 
-        <article className="overflow-hidden rounded-[32px] bg-white text-slate-950 shadow-2xl print:rounded-none print:shadow-none">
+        <article
+          id="voucher-document"
+          className="overflow-hidden rounded-[32px] bg-white text-slate-950 shadow-2xl print:rounded-none print:shadow-none"
+        >
           <header className="bg-slate-950 px-8 py-8 text-white sm:px-12">
             <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
               <div className="flex items-center gap-4">

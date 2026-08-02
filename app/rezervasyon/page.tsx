@@ -103,9 +103,8 @@ export default function ReservationPage() {
         const slug = searchParams.get("tour");
 
         if (!slug) {
-          throw new Error(
-            "Rezervasyon yapılacak tur belirtilmedi."
-          );
+          window.location.href = "/turlar";
+          return;
         }
 
         const { data: tourData, error: tourError } =

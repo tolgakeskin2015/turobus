@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 type PaymentRequest = {
   reservationId?: string;
@@ -8,6 +8,7 @@ type PaymentRequest = {
 
 export async function POST(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const body = (await request.json()) as PaymentRequest;
 
     if (!body.reservationId) {

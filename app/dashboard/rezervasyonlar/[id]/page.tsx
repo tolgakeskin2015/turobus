@@ -30,6 +30,7 @@ type Reservation = {
   unit_price: number;
   total_price: number;
   status: "pending" | "confirmed" | "cancelled";
+  payment_status: string | null;
   created_at: string;
 };
 
@@ -47,6 +48,7 @@ export default function ReservationDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   async function loadReservation() {
@@ -109,6 +111,62 @@ export default function ReservationDetailPage() {
 
     await loadReservation();
     setActionLoading(false);
+  }
+
+  async function startIyzicoPayment() {
+    if (!reservation) return;
+
+    setPaymentLoading(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(
+        "/api/payments/iyzico/initialize",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            reservationId: reservation.id,
+          }),
+        }
+      );
+
+      const responseText = await response.text();
+
+      let result: {
+        error?: string;
+        paymentPageUrl?: string;
+      } = {};
+
+      try {
+        result = JSON.parse(responseText);
+      } catch {
+        throw new Error(
+          `Ödeme API hatası (${response.status}): ` +
+            responseText.slice(0, 180)
+        );
+      }
+
+      if (!response.ok || !result.paymentPageUrl) {
+        throw new Error(
+          result.error || "Ödeme sayfası başlatılamadı."
+        );
+      }
+
+      window.location.href = result.paymentPageUrl;
+    } catch (error) {
+      console.error(error);
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Ödeme başlatılamadı."
+      );
+
+      setPaymentLoading(false);
+    }
   }
 
   function openWhatsApp() {
@@ -337,6 +395,19 @@ export default function ReservationDetailPage() {
                     className="min-h-14 w-full rounded-2xl border border-white/10 bg-white/[0.04] font-black"
                   >
                     Rezervasyonu Yeniden Aç
+                  </button>
+                )}
+
+                {reservation.payment_status !== "paid" && (
+                  <button
+                    type="button"
+                    disabled={paymentLoading}
+                    onClick={startIyzicoPayment}
+                    className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-blue-600 px-5 font-black transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {paymentLoading
+                      ? "Ödeme sayfası hazırlanıyor..."
+                      : "İyzico ile Ödemeye Geç"}
                   </button>
                 )}
 
