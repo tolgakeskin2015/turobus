@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 import LiveFleetMap from "@/components/command-center/LiveFleetMap";
+import OperationRadar from "@/components/command-center/OperationRadar";
 
 type LiveLocation = {
   reservation_id: string;
@@ -355,27 +356,9 @@ export default function CommandCenterPage() {
           </aside>
         </section>
 
-        <section className="mt-8 rounded-[32px] border border-orange-500/20 bg-orange-500/10 p-7">
-          <div className="flex items-start gap-4">
-            <FaBus
-              className="mt-1 shrink-0 text-orange-400"
-              size={24}
-            />
-
-            <div>
-              <h2 className="text-xl font-black text-orange-300">
-                TUROBUS Operasyon Radarı
-              </h2>
-
-              <p className="mt-3 max-w-4xl leading-7 text-orange-100/80">
-                Bu alan sonraki aşamada geciken araçları,
-                konumu kesilen rehberleri, check-in yapmayan
-                misafirleri ve riskli operasyonları otomatik
-                olarak analiz edecek.
-              </p>
-            </div>
-          </div>
-        </section>
+        <div className="mt-8">
+          <OperationRadar />
+        </div>
       </div>
     </main>
   );
