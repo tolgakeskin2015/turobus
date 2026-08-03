@@ -122,6 +122,53 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    href: "/dashboard/tedarikciler",
+    label: "Tedarikçiler",
+    icon: FaBuilding,
+    roles: [
+      "super_admin",
+      "company_owner",
+      "operation_manager",
+      "accounting",
+    ],
+  },
+  {
+    href: "/dashboard/urunler",
+    label: "Ürün Kataloğu",
+    icon: FaPlusCircle,
+    roles: [
+      "super_admin",
+      "company_owner",
+      "operation_manager",
+      "sales",
+      "accounting",
+    ],
+  },
+  {
+    href: "/dashboard/ek-satis",
+    label: "Ek Satış",
+    icon: FaClipboardList,
+    roles: [
+      "super_admin",
+      "company_owner",
+      "operation_manager",
+      "sales",
+      "accounting",
+      "guide",
+    ],
+  },
+  {
+    href: "/dashboard/giderler",
+    label: "Gider Yönetimi",
+    icon: FaChartLine,
+    roles: [
+      "super_admin",
+      "company_owner",
+      "operation_manager",
+      "accounting",
+    ],
+  },
+  {
     href: "/dashboard/turlar",
     label: "Turlar",
     icon: FaBus,
