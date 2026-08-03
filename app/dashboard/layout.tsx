@@ -102,6 +102,26 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    href: "/dashboard/personel",
+    label: "Personel",
+    icon: FaUserCircle,
+    roles: [
+      "super_admin",
+      "company_owner",
+      "operation_manager",
+    ],
+  },
+  {
+    href: "/dashboard/gorev-atama",
+    label: "Görev Atama",
+    icon: FaClipboardList,
+    roles: [
+      "super_admin",
+      "company_owner",
+      "operation_manager",
+    ],
+  },
+  {
     href: "/dashboard/turlar",
     label: "Turlar",
     icon: FaBus,
