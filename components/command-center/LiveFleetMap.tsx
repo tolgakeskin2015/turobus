@@ -25,8 +25,132 @@ type LiveVehicle = {
     full_name: string;
     guests: number;
     tour_date: string;
+
+    tour_checkins:
+      | {
+          checked_in: boolean;
+          current_status: string;
+        }
+      | {
+          checked_in: boolean;
+          current_status: string;
+        }[]
+      | null;
+
+    operation_assignments:
+      | {
+          assignment_status: string;
+          planned_start_at: string | null;
+          planned_end_at: string | null;
+          pickup_point: string | null;
+          destination_name: string | null;
+
+          vehicle:
+            | {
+                plate_number: string;
+                display_name: string | null;
+                capacity: number;
+                brand: string | null;
+                model: string | null;
+                current_odometer_km: number | null;
+                next_maintenance_km: number | null;
+              }
+            | {
+                plate_number: string;
+                display_name: string | null;
+                capacity: number;
+                brand: string | null;
+                model: string | null;
+                current_odometer_km: number | null;
+                next_maintenance_km: number | null;
+              }[]
+            | null;
+
+          guide:
+            | {
+                full_name: string;
+                phone: string | null;
+              }
+            | {
+                full_name: string;
+                phone: string | null;
+              }[]
+            | null;
+
+          driver:
+            | {
+                full_name: string;
+                phone: string | null;
+              }
+            | {
+                full_name: string;
+                phone: string | null;
+              }[]
+            | null;
+        }
+      | {
+          assignment_status: string;
+          planned_start_at: string | null;
+          planned_end_at: string | null;
+          pickup_point: string | null;
+          destination_name: string | null;
+
+          vehicle:
+            | {
+                plate_number: string;
+                display_name: string | null;
+                capacity: number;
+                brand: string | null;
+                model: string | null;
+                current_odometer_km: number | null;
+                next_maintenance_km: number | null;
+              }
+            | {
+                plate_number: string;
+                display_name: string | null;
+                capacity: number;
+                brand: string | null;
+                model: string | null;
+                current_odometer_km: number | null;
+                next_maintenance_km: number | null;
+              }[]
+            | null;
+
+          guide:
+            | {
+                full_name: string;
+                phone: string | null;
+              }
+            | {
+                full_name: string;
+                phone: string | null;
+              }[]
+            | null;
+
+          driver:
+            | {
+                full_name: string;
+                phone: string | null;
+              }
+            | {
+                full_name: string;
+                phone: string | null;
+              }[]
+            | null;
+        }[]
+      | null;
   } | null;
 };
+
+function firstRelation<T>(
+  value: T | T[] | null | undefined
+) {
+  if (!value) return null;
+
+  return Array.isArray(value)
+    ? value[0] ?? null
+    : value;
+}
 
 function vehicleStatus(vehicle: LiveVehicle) {
   const lastUpdate = new Date(vehicle.updated_at).getTime();
@@ -50,6 +174,26 @@ export default function LiveFleetMap() {
     useState<LiveVehicle | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const selectedAssignment = firstRelation(
+    selectedVehicle?.reservation?.operation_assignments
+  );
+
+  const selectedVehicleRecord = firstRelation(
+    selectedAssignment?.vehicle
+  );
+
+  const selectedGuide = firstRelation(
+    selectedAssignment?.guide
+  );
+
+  const selectedDriver = firstRelation(
+    selectedAssignment?.driver
+  );
+
+  const selectedCheckin = firstRelation(
+    selectedVehicle?.reservation?.tour_checkins
+  );
+
   const loadVehicles = useCallback(async () => {
     const { data, error } = await supabase
       .from("tour_live_locations")
@@ -68,7 +212,40 @@ export default function LiveFleetMap() {
           tour_title,
           full_name,
           guests,
-          tour_date
+          tour_date,
+
+          tour_checkins (
+            checked_in,
+            current_status
+          ),
+
+          operation_assignments (
+            assignment_status,
+            planned_start_at,
+            planned_end_at,
+            pickup_point,
+            destination_name,
+
+            vehicle:vehicles (
+              plate_number,
+              display_name,
+              capacity,
+              brand,
+              model,
+              current_odometer_km,
+              next_maintenance_km
+            ),
+
+            guide:staff_profiles!operation_assignments_guide_id_fkey (
+              full_name,
+              phone
+            ),
+
+            driver:staff_profiles!operation_assignments_driver_id_fkey (
+              full_name,
+              phone
+            )
+          )
         )
       `)
       .order("updated_at", { ascending: false });
@@ -275,18 +452,24 @@ export default function LiveFleetMap() {
             </button>
 
             <p className="text-xs font-black uppercase tracking-wider text-orange-400">
-              {selectedVehicle.reservation?.reservation_code ??
+              {selectedVehicleRecord?.plate_number ??
+                selectedVehicle.reservation?.reservation_code ??
                 "TUROBUS"}
             </p>
 
             <h3 className="mt-2 pr-8 text-xl font-black">
-              {selectedVehicle.reservation?.tour_title ??
+              {selectedVehicleRecord?.display_name ??
+                selectedVehicle.reservation?.tour_title ??
                 "Canlı Tur Aracı"}
             </h3>
 
+            <p className="mt-2 text-sm text-slate-400">
+              {selectedVehicle.reservation?.tour_title}
+            </p>
+
             <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-2xl bg-white/[0.05] p-4">
-                <p className="text-slate-500">Durum</p>
+                <p className="text-slate-500">GPS durumu</p>
                 <p className="mt-1 font-black">
                   {vehicleStatus(selectedVehicle)}
                 </p>
@@ -302,9 +485,42 @@ export default function LiveFleetMap() {
               </div>
 
               <div className="rounded-2xl bg-white/[0.05] p-4">
-                <p className="text-slate-500">Misafir</p>
+                <p className="text-slate-500">Doluluk</p>
                 <p className="mt-1 font-black">
-                  {selectedVehicle.reservation?.guests ?? 0} kişi
+                  {selectedVehicle.reservation?.guests ?? 0}
+                  {" / "}
+                  {selectedVehicleRecord?.capacity ?? "?"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-white/[0.05] p-4">
+                <p className="text-slate-500">Check-in</p>
+                <p className="mt-1 font-black">
+                  {selectedCheckin?.checked_in
+                    ? "Tamamlandı"
+                    : "Bekliyor"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-white/[0.05] p-4">
+                <p className="text-slate-500">Rehber</p>
+                <p className="mt-1 font-black">
+                  {selectedGuide?.full_name ?? "Atanmadı"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-white/[0.05] p-4">
+                <p className="text-slate-500">Şoför</p>
+                <p className="mt-1 font-black">
+                  {selectedDriver?.full_name ?? "Atanmadı"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-white/[0.05] p-4">
+                <p className="text-slate-500">Görev</p>
+                <p className="mt-1 font-black">
+                  {selectedAssignment?.assignment_status ??
+                    "Atanmadı"}
                 </p>
               </div>
 
@@ -320,6 +536,44 @@ export default function LiveFleetMap() {
                 </p>
               </div>
             </div>
+
+            {(selectedAssignment?.pickup_point ||
+              selectedAssignment?.destination_name) && (
+              <div className="mt-4 rounded-2xl bg-white/[0.05] p-4">
+                <p className="text-xs text-slate-500">
+                  Operasyon rotası
+                </p>
+
+                <p className="mt-2 text-sm font-black">
+                  {selectedAssignment.pickup_point ||
+                    "Pickup belirtilmedi"}
+                  {" → "}
+                  {selectedAssignment.destination_name ||
+                    "Destinasyon belirtilmedi"}
+                </p>
+              </div>
+            )}
+
+            {selectedVehicleRecord &&
+              selectedVehicleRecord.current_odometer_km !== null &&
+              selectedVehicleRecord.next_maintenance_km !== null && (
+                <div
+                  className={`mt-4 rounded-2xl p-4 text-sm font-black ${
+                    selectedVehicleRecord.next_maintenance_km -
+                      selectedVehicleRecord.current_odometer_km <=
+                    500
+                      ? "bg-red-500/10 text-red-400"
+                      : "bg-emerald-500/10 text-emerald-400"
+                  }`}
+                >
+                  Bakıma{" "}
+                  {(
+                    selectedVehicleRecord.next_maintenance_km -
+                    selectedVehicleRecord.current_odometer_km
+                  ).toLocaleString("tr-TR")}{" "}
+                  km
+                </div>
+              )}
 
             {selectedVehicle.location_name && (
               <p className="mt-4 text-sm text-slate-400">
