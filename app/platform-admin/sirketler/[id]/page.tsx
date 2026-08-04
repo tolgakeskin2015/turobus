@@ -129,6 +129,7 @@ export default function PlatformCompanyDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [applyingPlan, setApplyingPlan] = useState(false);
   const [togglingModuleId, setTogglingModuleId] = useState("");
 
   const [errorMessage, setErrorMessage] = useState("");
@@ -283,6 +284,36 @@ export default function PlatformCompanyDetailPage() {
         (companyModule) => companyModule.module_id === module.id
       )?.is_enabled ?? false
     );
+  }
+
+  async function applyPlan() {
+    if (!form || !companyId) return;
+
+    setApplyingPlan(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    const { error } = await supabase.rpc(
+      "apply_subscription_plan",
+      {
+        target_company_id: companyId,
+        target_plan_key: form.subscription_plan,
+      }
+    );
+
+    if (error) {
+      console.error(error);
+      setErrorMessage(error.message);
+      setApplyingPlan(false);
+      return;
+    }
+
+    setSuccessMessage(
+      `${planLabels[form.subscription_plan]} paketi başarıyla uygulandı.`
+    );
+
+    setApplyingPlan(false);
+    await loadData();
   }
 
   async function saveCompany(event: FormEvent<HTMLFormElement>) {
@@ -723,14 +754,30 @@ export default function PlatformCompanyDetailPage() {
             </label>
           </div>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="mt-6 flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 font-black disabled:opacity-50"
-          >
-            <FaSave />
-            {saving ? "Kaydediliyor..." : "Şirket Ayarlarını Kaydet"}
-          </button>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="submit"
+              disabled={saving || applyingPlan}
+              className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 font-black disabled:opacity-50"
+            >
+              <FaSave />
+              {saving
+                ? "Kaydediliyor..."
+                : "Şirket Ayarlarını Kaydet"}
+            </button>
+
+            <button
+              type="button"
+              onClick={applyPlan}
+              disabled={saving || applyingPlan}
+              className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-8 font-black text-emerald-400 disabled:opacity-50"
+            >
+              <FaCheckCircle />
+              {applyingPlan
+                ? "Paket uygulanıyor..."
+                : "Paketi ve Modülleri Uygula"}
+            </button>
+          </div>
         </form>
 
         <section className="mt-8 rounded-[32px] border border-white/10 bg-slate-900 p-6 lg:p-8">
