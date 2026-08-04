@@ -15,6 +15,7 @@ import {
   FaStar,
   FaTimes,
   FaUserCircle,
+  FaUsers,
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 import {
@@ -155,6 +156,17 @@ const menuItems: MenuItem[] = [
       "sales",
       "accounting",
       "guide",
+    ],
+  },
+  {
+    href: "/dashboard/crm",
+    label: "CRM",
+    icon: FaUsers,
+    roles: [
+      "super_admin",
+      "company_owner",
+      "operation_manager",
+      "sales",
     ],
   },
   {
