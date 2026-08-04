@@ -63,6 +63,44 @@ type CompanyModule = {
   settings: Record<string, unknown>;
 };
 
+type PlatformVertical = {
+  id: string;
+  vertical_key: string;
+  vertical_name: string;
+  description: string | null;
+  icon_key: string | null;
+  sort_order: number;
+  is_active: boolean;
+};
+
+type CompanyVertical = {
+  id: string;
+  company_id: string;
+  vertical_id: string;
+  is_primary: boolean;
+  is_enabled: boolean;
+  settings: Record<string, unknown>;
+};
+
+type PlatformVertical = {
+  id: string;
+  vertical_key: string;
+  vertical_name: string;
+  description: string | null;
+  icon_key: string | null;
+  sort_order: number;
+  is_active: boolean;
+};
+
+type CompanyVertical = {
+  id: string;
+  company_id: string;
+  vertical_id: string;
+  is_primary: boolean;
+  is_enabled: boolean;
+  settings: Record<string, unknown>;
+};
+
 type CompanyForm = {
   name: string;
   slug: string;
@@ -123,6 +161,15 @@ export default function PlatformCompanyDetailPage() {
   const [platformModules, setPlatformModules] = useState<PlatformModule[]>([]);
   const [companyModules, setCompanyModules] = useState<CompanyModule[]>([]);
 
+  const [platformVerticals, setPlatformVerticals] =
+    useState<PlatformVertical[]>([]);
+
+  const [companyVerticals, setCompanyVerticals] =
+    useState<CompanyVertical[]>([]);
+
+  const [togglingVerticalId, setTogglingVerticalId] =
+    useState("");
+
   const [memberCount, setMemberCount] = useState(0);
   const [vehicleCount, setVehicleCount] = useState(0);
   const [reservationCount, setReservationCount] = useState(0);
@@ -144,6 +191,8 @@ export default function PlatformCompanyDetailPage() {
       { data: companyData, error: companyError },
       { data: platformModuleData, error: platformModuleError },
       { data: companyModuleData, error: companyModuleError },
+      { data: platformVerticalData, error: platformVerticalError },
+      { data: companyVerticalData, error: companyVerticalError },
       { count: activeMemberCount, error: memberError },
       { count: activeVehicleCount, error: vehicleError },
       { count: totalReservationCount, error: reservationError },
@@ -168,6 +217,21 @@ export default function PlatformCompanyDetailPage() {
       supabase
         .from("company_modules")
         .select("id, company_id, module_id, is_enabled, settings")
+        .eq("company_id", companyId),
+
+      supabase
+        .from("platform_verticals")
+        .select(
+          "id, vertical_key, vertical_name, description, icon_key, sort_order, is_active"
+        )
+        .eq("is_active", true)
+        .order("sort_order"),
+
+      supabase
+        .from("company_verticals")
+        .select(
+          "id, company_id, vertical_id, is_primary, is_enabled, settings"
+        )
         .eq("company_id", companyId),
 
       supabase
@@ -201,6 +265,8 @@ export default function PlatformCompanyDetailPage() {
       companyError ??
       platformModuleError ??
       companyModuleError ??
+      platformVerticalError ??
+      companyVerticalError ??
       memberError ??
       vehicleError ??
       reservationError;
@@ -235,6 +301,14 @@ export default function PlatformCompanyDetailPage() {
 
     setPlatformModules((platformModuleData ?? []) as PlatformModule[]);
     setCompanyModules((companyModuleData ?? []) as CompanyModule[]);
+
+    setPlatformVerticals(
+      (platformVerticalData ?? []) as PlatformVertical[]
+    );
+
+    setCompanyVerticals(
+      (companyVerticalData ?? []) as CompanyVertical[]
+    );
 
     setMemberCount(activeMemberCount ?? 0);
     setVehicleCount(activeVehicleCount ?? 0);
@@ -371,6 +445,262 @@ export default function PlatformCompanyDetailPage() {
     setSuccessMessage("Şirket bilgileri başarıyla güncellendi.");
     setSaving(false);
 
+    await loadData();
+  }
+
+  function verticalEnabled(vertical: PlatformVertical) {
+    return (
+      companyVerticals.find(
+        (companyVertical) =>
+          companyVertical.vertical_id === vertical.id
+      )?.is_enabled ?? false
+    );
+  }
+
+  function verticalPrimary(vertical: PlatformVertical) {
+    return (
+      companyVerticals.find(
+        (companyVertical) =>
+          companyVertical.vertical_id === vertical.id
+      )?.is_primary ?? false
+    );
+  }
+
+  async function toggleVertical(vertical: PlatformVertical) {
+    if (!companyId) return;
+
+    setTogglingVerticalId(vertical.id);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    const currentRecord = companyVerticals.find(
+      (companyVertical) =>
+        companyVertical.vertical_id === vertical.id
+    );
+
+    const nextEnabled = !currentRecord?.is_enabled;
+
+    const { error } = await supabase
+      .from("company_verticals")
+      .upsert(
+        {
+          company_id: companyId,
+          vertical_id: vertical.id,
+          is_enabled: nextEnabled,
+          is_primary:
+            currentRecord?.is_primary ?? false,
+          enabled_at: nextEnabled
+            ? new Date().toISOString()
+            : currentRecord?.is_enabled
+              ? new Date().toISOString()
+              : null,
+          disabled_at: nextEnabled
+            ? null
+            : new Date().toISOString(),
+          settings: currentRecord?.settings ?? {},
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "company_id,vertical_id",
+        }
+      );
+
+    if (error) {
+      setErrorMessage(error.message);
+      setTogglingVerticalId("");
+      return;
+    }
+
+    setSuccessMessage(
+      `${vertical.vertical_name} işletme türü ${
+        nextEnabled ? "açıldı" : "kapatıldı"
+      }.`
+    );
+
+    setTogglingVerticalId("");
+    await loadData();
+  }
+
+  async function makePrimaryVertical(
+    vertical: PlatformVertical
+  ) {
+    if (!companyId || !verticalEnabled(vertical)) return;
+
+    setTogglingVerticalId(vertical.id);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    const { error: clearError } = await supabase
+      .from("company_verticals")
+      .update({
+        is_primary: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("company_id", companyId);
+
+    if (clearError) {
+      setErrorMessage(clearError.message);
+      setTogglingVerticalId("");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("company_verticals")
+      .upsert(
+        {
+          company_id: companyId,
+          vertical_id: vertical.id,
+          is_enabled: true,
+          is_primary: true,
+          enabled_at: new Date().toISOString(),
+          disabled_at: null,
+          settings: {},
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "company_id,vertical_id",
+        }
+      );
+
+    if (error) {
+      setErrorMessage(error.message);
+      setTogglingVerticalId("");
+      return;
+    }
+
+    setSuccessMessage(
+      `${vertical.vertical_name} ana işletme türü yapıldı.`
+    );
+
+    setTogglingVerticalId("");
+    await loadData();
+  }
+
+  function verticalEnabled(vertical: PlatformVertical) {
+    return (
+      companyVerticals.find(
+        (companyVertical) =>
+          companyVertical.vertical_id === vertical.id
+      )?.is_enabled ?? false
+    );
+  }
+
+  function verticalPrimary(vertical: PlatformVertical) {
+    return (
+      companyVerticals.find(
+        (companyVertical) =>
+          companyVertical.vertical_id === vertical.id
+      )?.is_primary ?? false
+    );
+  }
+
+  async function toggleVertical(vertical: PlatformVertical) {
+    if (!companyId) return;
+
+    setTogglingVerticalId(vertical.id);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    const currentRecord = companyVerticals.find(
+      (companyVertical) =>
+        companyVertical.vertical_id === vertical.id
+    );
+
+    const nextEnabled = !currentRecord?.is_enabled;
+
+    const { error } = await supabase
+      .from("company_verticals")
+      .upsert(
+        {
+          company_id: companyId,
+          vertical_id: vertical.id,
+          is_enabled: nextEnabled,
+          is_primary:
+            currentRecord?.is_primary ?? false,
+          enabled_at: nextEnabled
+            ? new Date().toISOString()
+            : currentRecord?.is_enabled
+              ? new Date().toISOString()
+              : null,
+          disabled_at: nextEnabled
+            ? null
+            : new Date().toISOString(),
+          settings: currentRecord?.settings ?? {},
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "company_id,vertical_id",
+        }
+      );
+
+    if (error) {
+      setErrorMessage(error.message);
+      setTogglingVerticalId("");
+      return;
+    }
+
+    setSuccessMessage(
+      `${vertical.vertical_name} işletme türü ${
+        nextEnabled ? "açıldı" : "kapatıldı"
+      }.`
+    );
+
+    setTogglingVerticalId("");
+    await loadData();
+  }
+
+  async function makePrimaryVertical(
+    vertical: PlatformVertical
+  ) {
+    if (!companyId || !verticalEnabled(vertical)) return;
+
+    setTogglingVerticalId(vertical.id);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    const { error: clearError } = await supabase
+      .from("company_verticals")
+      .update({
+        is_primary: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("company_id", companyId);
+
+    if (clearError) {
+      setErrorMessage(clearError.message);
+      setTogglingVerticalId("");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("company_verticals")
+      .upsert(
+        {
+          company_id: companyId,
+          vertical_id: vertical.id,
+          is_enabled: true,
+          is_primary: true,
+          enabled_at: new Date().toISOString(),
+          disabled_at: null,
+          settings: {},
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "company_id,vertical_id",
+        }
+      );
+
+    if (error) {
+      setErrorMessage(error.message);
+      setTogglingVerticalId("");
+      return;
+    }
+
+    setSuccessMessage(
+      `${vertical.vertical_name} ana işletme türü yapıldı.`
+    );
+
+    setTogglingVerticalId("");
     await loadData();
   }
 
@@ -779,6 +1109,180 @@ export default function PlatformCompanyDetailPage() {
             </button>
           </div>
         </form>
+
+        <section className="mt-8 rounded-[32px] border border-white/10 bg-slate-900 p-6 lg:p-8">
+          <div className="flex items-center gap-3">
+            <FaBuilding className="text-orange-400" />
+
+            <div>
+              <h2 className="text-2xl font-black">
+                İşletme Türleri
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Şirketin faaliyet alanlarını açıp kapatın.
+                Ana işletme türü, varsayılan panel yapısını belirler.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {platformVerticals.map((vertical) => {
+              const enabled = verticalEnabled(vertical);
+              const primary = verticalPrimary(vertical);
+              const changing =
+                togglingVerticalId === vertical.id;
+
+              return (
+                <article
+                  key={vertical.id}
+                  className={`rounded-3xl border p-5 ${
+                    enabled
+                      ? "border-orange-500/20 bg-orange-500/10"
+                      : "border-white/10 bg-slate-950"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-black">
+                        {vertical.vertical_name}
+                      </h3>
+
+                      <p className="mt-2 text-sm text-slate-500">
+                        {vertical.description}
+                      </p>
+                    </div>
+
+                    {primary && (
+                      <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-black text-emerald-400">
+                        Ana Tür
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={changing}
+                    onClick={() =>
+                      void toggleVertical(vertical)
+                    }
+                    className={`mt-5 min-h-11 w-full rounded-xl text-sm font-black ${
+                      enabled
+                        ? "bg-orange-500 text-white"
+                        : "bg-white/[0.06] text-slate-300"
+                    } disabled:opacity-50`}
+                  >
+                    {changing
+                      ? "Güncelleniyor..."
+                      : enabled
+                        ? "İşletme Türü Açık"
+                        : "İşletme Türünü Aç"}
+                  </button>
+
+                  {enabled && !primary && (
+                    <button
+                      type="button"
+                      disabled={changing}
+                      onClick={() =>
+                        void makePrimaryVertical(vertical)
+                      }
+                      className="mt-3 min-h-11 w-full rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-sm font-black text-emerald-400 disabled:opacity-50"
+                    >
+                      Ana İşletme Türü Yap
+                    </button>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-[32px] border border-white/10 bg-slate-900 p-6 lg:p-8">
+          <div className="flex items-center gap-3">
+            <FaBuilding className="text-orange-400" />
+
+            <div>
+              <h2 className="text-2xl font-black">
+                İşletme Türleri
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Şirketin faaliyet alanlarını açıp kapatın.
+                Ana işletme türü, varsayılan panel yapısını belirler.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {platformVerticals.map((vertical) => {
+              const enabled = verticalEnabled(vertical);
+              const primary = verticalPrimary(vertical);
+              const changing =
+                togglingVerticalId === vertical.id;
+
+              return (
+                <article
+                  key={vertical.id}
+                  className={`rounded-3xl border p-5 ${
+                    enabled
+                      ? "border-orange-500/20 bg-orange-500/10"
+                      : "border-white/10 bg-slate-950"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-black">
+                        {vertical.vertical_name}
+                      </h3>
+
+                      <p className="mt-2 text-sm text-slate-500">
+                        {vertical.description}
+                      </p>
+                    </div>
+
+                    {primary && (
+                      <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-black text-emerald-400">
+                        Ana Tür
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={changing}
+                    onClick={() =>
+                      void toggleVertical(vertical)
+                    }
+                    className={`mt-5 min-h-11 w-full rounded-xl text-sm font-black ${
+                      enabled
+                        ? "bg-orange-500 text-white"
+                        : "bg-white/[0.06] text-slate-300"
+                    } disabled:opacity-50`}
+                  >
+                    {changing
+                      ? "Güncelleniyor..."
+                      : enabled
+                        ? "İşletme Türü Açık"
+                        : "İşletme Türünü Aç"}
+                  </button>
+
+                  {enabled && !primary && (
+                    <button
+                      type="button"
+                      disabled={changing}
+                      onClick={() =>
+                        void makePrimaryVertical(vertical)
+                      }
+                      className="mt-3 min-h-11 w-full rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-sm font-black text-emerald-400 disabled:opacity-50"
+                    >
+                      Ana İşletme Türü Yap
+                    </button>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
 
         <section className="mt-8 rounded-[32px] border border-white/10 bg-slate-900 p-6 lg:p-8">
           <div className="flex items-center gap-3">
