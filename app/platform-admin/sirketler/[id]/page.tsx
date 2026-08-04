@@ -82,24 +82,9 @@ type CompanyVertical = {
   settings: Record<string, unknown>;
 };
 
-type PlatformVertical = {
-  id: string;
-  vertical_key: string;
-  vertical_name: string;
-  description: string | null;
-  icon_key: string | null;
-  sort_order: number;
-  is_active: boolean;
-};
 
-type CompanyVertical = {
-  id: string;
-  company_id: string;
-  vertical_id: string;
-  is_primary: boolean;
-  is_enabled: boolean;
-  settings: Record<string, unknown>;
-};
+
+
 
 type CompanyForm = {
   name: string;
@@ -576,133 +561,9 @@ export default function PlatformCompanyDetailPage() {
     await loadData();
   }
 
-  function verticalEnabled(vertical: PlatformVertical) {
-    return (
-      companyVerticals.find(
-        (companyVertical) =>
-          companyVertical.vertical_id === vertical.id
-      )?.is_enabled ?? false
-    );
-  }
 
-  function verticalPrimary(vertical: PlatformVertical) {
-    return (
-      companyVerticals.find(
-        (companyVertical) =>
-          companyVertical.vertical_id === vertical.id
-      )?.is_primary ?? false
-    );
-  }
 
-  async function toggleVertical(vertical: PlatformVertical) {
-    if (!companyId) return;
 
-    setTogglingVerticalId(vertical.id);
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    const currentRecord = companyVerticals.find(
-      (companyVertical) =>
-        companyVertical.vertical_id === vertical.id
-    );
-
-    const nextEnabled = !currentRecord?.is_enabled;
-
-    const { error } = await supabase
-      .from("company_verticals")
-      .upsert(
-        {
-          company_id: companyId,
-          vertical_id: vertical.id,
-          is_enabled: nextEnabled,
-          is_primary:
-            currentRecord?.is_primary ?? false,
-          enabled_at: nextEnabled
-            ? new Date().toISOString()
-            : currentRecord?.is_enabled
-              ? new Date().toISOString()
-              : null,
-          disabled_at: nextEnabled
-            ? null
-            : new Date().toISOString(),
-          settings: currentRecord?.settings ?? {},
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: "company_id,vertical_id",
-        }
-      );
-
-    if (error) {
-      setErrorMessage(error.message);
-      setTogglingVerticalId("");
-      return;
-    }
-
-    setSuccessMessage(
-      `${vertical.vertical_name} işletme türü ${
-        nextEnabled ? "açıldı" : "kapatıldı"
-      }.`
-    );
-
-    setTogglingVerticalId("");
-    await loadData();
-  }
-
-  async function makePrimaryVertical(
-    vertical: PlatformVertical
-  ) {
-    if (!companyId || !verticalEnabled(vertical)) return;
-
-    setTogglingVerticalId(vertical.id);
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    const { error: clearError } = await supabase
-      .from("company_verticals")
-      .update({
-        is_primary: false,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("company_id", companyId);
-
-    if (clearError) {
-      setErrorMessage(clearError.message);
-      setTogglingVerticalId("");
-      return;
-    }
-
-    const { error } = await supabase
-      .from("company_verticals")
-      .upsert(
-        {
-          company_id: companyId,
-          vertical_id: vertical.id,
-          is_enabled: true,
-          is_primary: true,
-          enabled_at: new Date().toISOString(),
-          disabled_at: null,
-          settings: {},
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: "company_id,vertical_id",
-        }
-      );
-
-    if (error) {
-      setErrorMessage(error.message);
-      setTogglingVerticalId("");
-      return;
-    }
-
-    setSuccessMessage(
-      `${vertical.vertical_name} ana işletme türü yapıldı.`
-    );
-
-    setTogglingVerticalId("");
-    await loadData();
-  }
 
   async function toggleModule(module: PlatformModule) {
     if (!companyId || module.is_core) return;

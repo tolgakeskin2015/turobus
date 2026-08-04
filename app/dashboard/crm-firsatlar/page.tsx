@@ -488,29 +488,52 @@ export default function CrmDealsPage() {
       }
 
       if (form.customer_id) {
-        await supabase.from("crm_timeline").insert({
-          company_id: membership.company_id,
-          customer_id: form.customer_id,
-          event_type: "offer",
-          title: form.title.trim(),
-          description: `${stageLabels[form.stage]} · ${money(
-            calculation.revenue
-          )}`,
-          created_by: user?.id ?? null,
-        });
+        const { error: timelineError } = await supabase
+          .from("crm_timeline")
+          .insert({
+            company_id: membership.company_id,
+            customer_id: form.customer_id,
+            event_type: "offer",
+            title: form.title.trim(),
+            description: `${stageLabels[form.stage]} · ${money(
+              calculation.revenue
+            )}`,
+            created_by: user?.id ?? null,
+          });
+
+        if (timelineError) {
+          console.error("CRM timeline hatası:", timelineError);
+        }
       }
 
       setForm(emptyForm);
       setEditingId("");
 
       await loadData(membership.company_id);
-    } catch (error) {
-      console.error(error);
+    } catch (error: unknown) {
+      const supabaseError =
+        error && typeof error === "object"
+          ? (error as {
+              message?: string;
+              details?: string;
+              hint?: string;
+              code?: string;
+            })
+          : null;
+
+      const parts = [
+        supabaseError?.message,
+        supabaseError?.details,
+        supabaseError?.hint,
+        supabaseError?.code
+          ? `Kod: ${supabaseError.code}`
+          : null,
+      ].filter(Boolean);
 
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Satış fırsatı kaydedilemedi."
+        parts.length > 0
+          ? parts.join(" · ")
+          : "Satış fırsatı kaydedilemedi. Bilinmeyen veritabanı hatası."
       );
     } finally {
       setSaving(false);
