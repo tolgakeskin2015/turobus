@@ -93,6 +93,18 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    href: "/dashboard/hotel/rezervasyonlar",
+    label: "Hotel Rezervasyonları",
+    icon: FaClipboardList,
+    roles: [
+      "super_admin",
+      "company_owner",
+      "operation_manager",
+      "sales",
+      "accounting",
+    ],
+  },
+  {
     href: "/dashboard/araclar",
     label: "Araçlar",
     icon: FaBus,
