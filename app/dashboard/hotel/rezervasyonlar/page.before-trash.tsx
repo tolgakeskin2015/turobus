@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   FormEvent,
   useCallback,
@@ -34,16 +33,13 @@ import ReservationForm, {
   ReservationStatus,
 } from "@/components/hotel/reservations/ReservationForm";
 import {
+  deleteReservation,
   getReservationErrorMessage,
   getReservations,
   ReservationPayload,
   ReservationRecord,
   saveReservation,
 } from "@/lib/hotel/reservations/reservation-service";
-
-import {
-  softDeleteReservation,
-} from "@/lib/hotel/reservations/reservation-trash-service";
 
 type HotelOption = {
   id: string;
@@ -322,11 +318,6 @@ export default function HotelReservationsPage() {
     useState("");
 
   const [
-    focusedReservationNo,
-    setFocusedReservationNo,
-  ] = useState("");
-
-  const [
     hotelFilter,
     setHotelFilter,
   ] = useState("");
@@ -530,54 +521,6 @@ export default function HotelReservationsPage() {
 
     void initialize();
   }, [loadData]);
-
-  useEffect(() => {
-    const parameters =
-      new URLSearchParams(
-        window.location.search
-      );
-
-    const reservationNumber =
-      parameters
-        .get("reservation")
-        ?.trim();
-
-    if (!reservationNumber) {
-      return;
-    }
-
-    setSearch(
-      reservationNumber
-    );
-
-    setFocusedReservationNo(
-      reservationNumber
-    );
-
-    setHotelFilter("");
-    setStatusFilter("");
-    setSourceFilter("");
-    setQuickFilter("all");
-    setViewMode("table");
-    setDateFrom("");
-    setDateTo("");
-
-    const timer =
-      window.setTimeout(() => {
-        const listElement =
-          document.getElementById(
-            "reservation-pro-list"
-          );
-
-        listElement?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 500);
-
-    return () =>
-      window.clearTimeout(timer);
-  }, []);
 
   const today = localDateText();
 
@@ -1137,20 +1080,9 @@ export default function HotelReservationsPage() {
     setSuccessMessage("");
 
     try {
-      const deletionReason =
-        window.prompt(
-          "Rezervasyonu neden siliyorsunuz?",
-          "Yanlış veya iptal edilmiş kayıt"
-        );
-
-      if (deletionReason === null) {
-        return;
-      }
-
-      await softDeleteReservation(
+      await deleteReservation(
         membership.company_id,
-        reservation.id,
-        deletionReason
+        reservation.id
       );
 
       if (
@@ -1337,10 +1269,9 @@ export default function HotelReservationsPage() {
         const reservationId of
         selectedIds
       ) {
-        await softDeleteReservation(
+        await deleteReservation(
           membership.company_id,
-          reservationId,
-          "Toplu silme işlemi"
+          reservationId
         );
       }
 
@@ -1543,14 +1474,6 @@ export default function HotelReservationsPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link
-              href="/dashboard/hotel/rezervasyonlar/cop-kutusu"
-              className="flex min-h-12 items-center gap-2 rounded-xl border border-white/10 px-5 font-black text-slate-300 transition hover:border-orange-400/50 hover:text-orange-400"
-            >
-              <FaTrash />
-              Çöp Kutusu ve Geçmiş
-            </Link>
-
             <button
               type="button"
               onClick={exportCsv}
@@ -1723,47 +1646,6 @@ export default function HotelReservationsPage() {
             onCancel={resetForm}
           />
         </div>
-
-        {focusedReservationNo && (
-          <div className="mt-5 flex flex-col justify-between gap-4 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 sm:flex-row sm:items-center">
-            <div>
-              <p className="font-black text-blue-400">
-                Rezervasyon otomatik olarak bulundu
-              </p>
-
-              <p className="mt-1 text-sm text-blue-200/70">
-                {focusedReservationNo} numaralı rezervasyon görüntüleniyor.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setSearch("");
-                setFocusedReservationNo("");
-
-                const url =
-                  new URL(
-                    window.location.href
-                  );
-
-                url.searchParams.delete(
-                  "reservation"
-                );
-
-                window.history.replaceState(
-                  {},
-                  "",
-                  url.pathname +
-                    url.search
-                );
-              }}
-              className="min-h-10 rounded-xl bg-blue-500 px-4 text-sm font-black"
-            >
-              Tüm Rezervasyonları Göster
-            </button>
-          </div>
-        )}
 
         {errorMessage && (
           <div className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 font-bold text-red-400">
@@ -2092,10 +1974,7 @@ export default function HotelReservationsPage() {
         </section>
 
         {viewMode === "table" ? (
-          <section
-            id="reservation-pro-list"
-            className="mt-5 scroll-mt-6 overflow-hidden rounded-[30px] border border-white/10 bg-slate-900"
-          >
+          <section className="mt-5 overflow-hidden rounded-[30px] border border-white/10 bg-slate-900">
             <div className="overflow-x-auto">
               <table className="min-w-[1450px] w-full">
                 <thead className="bg-slate-950 text-left text-xs uppercase tracking-wider text-slate-500">

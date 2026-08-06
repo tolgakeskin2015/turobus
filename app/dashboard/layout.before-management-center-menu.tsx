@@ -16,7 +16,7 @@ import {
   FaTimes,
   FaUserCircle,
   FaUsers,
-  FaHotel,} from "react-icons/fa";
+} from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 import {
   AppRole,
@@ -92,20 +92,6 @@ const menuItems: MenuItem[] = [
       "accounting",
     ],
   },
-  {
-    href: "/dashboard/hotel/yonetim-merkezi",
-    label: "🏨 Yönetim Merkezi",
-    icon: FaHotel,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-      "accounting",
-    ],
-  },
-
-
   {
     href: "/dashboard/hotel/rezervasyonlar",
     label: "Hotel Rezervasyonları",

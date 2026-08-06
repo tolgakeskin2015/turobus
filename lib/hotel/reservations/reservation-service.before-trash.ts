@@ -160,7 +160,6 @@ export async function getReservations(
       )
     `)
     .eq("company_id", companyId)
-    .is("deleted_at", null)
     .order("created_at", {
       ascending: false,
     });
