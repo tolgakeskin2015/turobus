@@ -7,6 +7,7 @@ import { checkHotelAvailability } from "@/lib/hotel/availability-engine";
 
 export type ReservationPayload = {
   company_id: string;
+  customer_id?: string | null;
   hotel_id: string;
   room_type_id: string;
   room_id: string | null;
@@ -61,6 +62,29 @@ export type ReservationRecord = ReservationPayload & {
     | {
         id: string;
         room_number: string;
+      }[]
+    | null;
+
+  customer?:
+    | {
+        id: string;
+        customer_code: string | null;
+        full_name: string;
+        phone: string | null;
+        whatsapp_phone: string | null;
+        email: string | null;
+        vip_level: string;
+        lifecycle_stage: string;
+      }
+    | {
+        id: string;
+        customer_code: string | null;
+        full_name: string;
+        phone: string | null;
+        whatsapp_phone: string | null;
+        email: string | null;
+        vip_level: string;
+        lifecycle_stage: string;
       }[]
     | null;
 };
@@ -122,55 +146,188 @@ export function getReservationErrorMessage(
 export async function getReservations(
   companyId: string
 ): Promise<ReservationRecord[]> {
-  const { data, error } = await supabase
-    .from("hotel_reservations")
-    .select(`
+  const fullSelect = `
+    id,
+    company_id,
+    customer_id,
+    hotel_id,
+    room_type_id,
+    room_id,
+    reservation_no,
+    source,
+    status,
+    check_in,
+    check_out,
+    adults,
+    children,
+    nights,
+    currency,
+    base_price,
+    total_price,
+    balance,
+    notes,
+    created_at,
+    created_by,
+    updated_at,
+    hotel:hotels (
       id,
-      company_id,
-      hotel_id,
-      room_type_id,
-      room_id,
-      reservation_no,
-      source,
-      status,
-      check_in,
-      check_out,
-      adults,
-      children,
-      nights,
-      currency,
-      base_price,
-      total_price,
-      balance,
-      notes,
-      created_at,
-      created_by,
-      updated_at,
-      hotel:hotels (
+      name
+    ),
+    room_type:hotel_room_types (
+      id,
+      name
+    ),
+    room:hotel_rooms (
+      id,
+      room_number
+    ),
+      customer:crm_customers (
         id,
-        name
-      ),
-      room_type:hotel_room_types (
-        id,
-        name
-      ),
-      room:hotel_rooms (
-        id,
-        room_number
+        customer_code,
+        full_name,
+        phone,
+        whatsapp_phone,
+        email,
+        vip_level,
+        lifecycle_stage
       )
-    `)
-    .eq("company_id", companyId)
-    .is("deleted_at", null)
-    .order("created_at", {
-      ascending: false,
-    });
+  `;
 
-  if (error) {
-    throw error;
+  const legacySelect = `
+    id,
+    company_id,
+    hotel_id,
+    room_type_id,
+    room_id,
+    reservation_no,
+    source,
+    status,
+    check_in,
+    check_out,
+    adults,
+    children,
+    nights,
+    currency,
+    base_price,
+    total_price,
+    balance,
+    notes,
+    created_at,
+    created_by,
+    updated_at,
+    hotel:hotels (
+      id,
+      name
+    ),
+    room_type:hotel_room_types (
+      id,
+      name
+    ),
+    room:hotel_rooms (
+      id,
+      room_number
+    ),
+      customer:crm_customers (
+        id,
+        customer_code,
+        full_name,
+        phone,
+        whatsapp_phone,
+        email,
+        vip_level,
+        lifecycle_stage
+      )
+  `;
+
+  let result = await supabase
+    .from("hotel_reservations")
+    .select(fullSelect)
+    .eq(
+      "company_id",
+      companyId
+    )
+    .is(
+      "deleted_at",
+      null
+    )
+    .order(
+      "created_at",
+      {
+        ascending: false,
+      }
+    );
+
+  if (
+    result.error &&
+    /customer_id.*does not exist|column.*customer_id/i.test(
+      result.error.message
+    )
+  ) {
+    const legacyResult =
+      await supabase
+        .from(
+          "hotel_reservations"
+        )
+        .select(
+          legacySelect
+        )
+        .eq(
+          "company_id",
+          companyId
+        )
+        .is(
+          "deleted_at",
+          null
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          }
+        );
+
+    if (legacyResult.error) {
+      throw legacyResult.error;
+    }
+
+    return (
+      legacyResult.data ??
+      []
+    ).map(
+      (row) => ({
+        ...row,
+        customer_id: null,
+      })
+    ) as unknown as ReservationRecord[];
+  }
+
+  if (result.error) {
+    throw result.error;
   }
 
   return (
-    (data ?? []) as unknown as ReservationRecord[]
+    result.data ??
+    []
+  ) as unknown as ReservationRecord[];
+}
+
+function withoutCustomerId(
+  payload: ReservationPayload
+) {
+  const copy = {
+    ...payload,
+  };
+
+  delete copy.customer_id;
+
+  return copy;
+}
+
+function isMissingCustomerColumn(
+  message: string
+) {
+  return /customer_id.*does not exist|column.*customer_id/i.test(
+    message
   );
 }
 
@@ -260,25 +417,87 @@ export async function saveReservation(
   }
 
   if (editingId) {
-    const { error } = await supabase
-      .from("hotel_reservations")
-      .update(payload)
-      .eq("id", editingId)
-      .eq("company_id", payload.company_id);
+    let updateResult =
+      await supabase
+        .from(
+          "hotel_reservations"
+        )
+        .update(payload)
+        .eq(
+          "id",
+          editingId
+        )
+        .eq(
+          "company_id",
+          payload.company_id
+        );
 
-    if (error) {
-      throw error;
+    if (
+      updateResult.error &&
+      isMissingCustomerColumn(
+        updateResult.error.message
+      )
+    ) {
+      updateResult =
+        await supabase
+          .from(
+            "hotel_reservations"
+          )
+          .update(
+            withoutCustomerId(
+              payload
+            )
+          )
+          .eq(
+            "id",
+            editingId
+          )
+          .eq(
+            "company_id",
+            payload.company_id
+          );
+    }
+
+    if (updateResult.error) {
+      throw updateResult.error;
     }
 
     return;
   }
 
-  const { error } = await supabase
-    .from("hotel_reservations")
-    .insert({
-      ...payload,
-      created_by: createdBy,
-    });
+  let insertResult =
+    await supabase
+      .from(
+        "hotel_reservations"
+      )
+      .insert({
+        ...payload,
+        created_by:
+          createdBy,
+      });
+
+  if (
+    insertResult.error &&
+    isMissingCustomerColumn(
+      insertResult.error.message
+    )
+  ) {
+    insertResult =
+      await supabase
+        .from(
+          "hotel_reservations"
+        )
+        .insert({
+          ...withoutCustomerId(
+            payload
+          ),
+          created_by:
+            createdBy,
+        });
+  }
+
+  const { error } =
+    insertResult;
 
   /*
    * Supabase trigger müsaitlik yoksa burada

@@ -30,6 +30,7 @@ import {
 } from "@/lib/current-user";
 import ReservationForm, {
   ReservationFormState,
+  ReservationCustomerOption,
   ReservationSource,
   ReservationStatus,
 } from "@/components/hotel/reservations/ReservationForm";
@@ -153,6 +154,7 @@ function createReservationNumber(): string {
 
 function createEmptyForm(): ReservationFormState {
   return {
+    customer_id: "",
     hotel_id: "",
     room_type_id: "",
     room_id: "",
@@ -295,6 +297,9 @@ export default function HotelReservationsPage() {
     useState<CurrentMembership | null>(
       null
     );
+
+  const [crmCustomers, setCrmCustomers] =
+    useState<ReservationCustomerOption[]>([]);
 
   const [hotels, setHotels] =
     useState<HotelOption[]>([]);
@@ -449,6 +454,37 @@ export default function HotelReservationsPage() {
           .order("room_number"),
       ]);
 
+
+      const {
+        data: crmCustomerData,
+        error: crmCustomerError,
+      } = await supabase
+        .from("crm_customers")
+        .select(`
+          id,
+          customer_code,
+          full_name,
+          phone,
+          whatsapp_phone,
+          email,
+          vip_level,
+          lifecycle_stage,
+          whatsapp_consent,
+          marketing_consent
+        `)
+        .eq("company_id", companyId)
+        .eq("is_active", true)
+        .order("full_name", {
+          ascending: true,
+        });
+
+      if (crmCustomerError) {
+        console.error(
+          "CRM müşterileri yüklenemedi:",
+          crmCustomerError
+        );
+      }
+
       const optionError =
         hotelError ??
         roomTypeError ??
@@ -462,6 +498,11 @@ export default function HotelReservationsPage() {
         await getReservations(
           companyId
         );
+
+      setCrmCustomers(
+        (crmCustomerData ??
+          []) as ReservationCustomerOption[]
+      );
 
       setHotels(
         (hotelData ??
@@ -695,8 +736,18 @@ export default function HotelReservationsPage() {
               reservation.room
             );
 
+          const customer =
+            firstRelation(
+              reservation.customer
+            );
+
           return [
             reservation.reservation_no,
+            customer?.full_name,
+            customer?.customer_code,
+            customer?.phone,
+            customer?.whatsapp_phone,
+            customer?.email,
             hotel?.name,
             roomType?.name,
             room?.room_number,
@@ -895,6 +946,9 @@ export default function HotelReservationsPage() {
     );
 
     setForm({
+      customer_id:
+        reservation.customer_id ?? "",
+
       hotel_id:
         reservation.hotel_id,
 
@@ -999,6 +1053,9 @@ export default function HotelReservationsPage() {
         {
           company_id:
             membership.company_id,
+
+          customer_id:
+            form.customer_id || null,
 
           hotel_id:
             form.hotel_id,
@@ -1396,9 +1453,28 @@ export default function HotelReservationsPage() {
               reservation.room
             );
 
+          const customer =
+            firstRelation(
+              reservation.customer
+            );
+
           return {
             Rezervasyon:
               reservation.reservation_no,
+
+            Musteri:
+              customer?.full_name ?? "",
+
+            MusteriKodu:
+              customer?.customer_code ?? "",
+
+            Telefon:
+              customer?.phone ??
+              customer?.whatsapp_phone ??
+              "",
+
+            Vip:
+              customer?.vip_level ?? "",
 
             Otel:
               hotel?.name ?? "",
@@ -1710,6 +1786,7 @@ export default function HotelReservationsPage() {
 
         <div className="mt-8">
           <ReservationForm
+            customers={crmCustomers}
             hotels={hotels}
             roomTypes={roomTypes}
             rooms={rooms}
@@ -2151,6 +2228,16 @@ export default function HotelReservationsPage() {
                           reservation.room
                         );
 
+                      const customer =
+                        firstRelation(
+                          reservation.customer
+                        );
+
+                      const customerPhone =
+                        customer?.whatsapp_phone ||
+                        customer?.phone ||
+                        "";
+
                       const isDeleting =
                         deletingId ===
                         reservation.id;
@@ -2224,19 +2311,65 @@ export default function HotelReservationsPage() {
                           </td>
 
                           <td className="p-4">
-                            <p className="font-black">
-                              {
-                                reservation.adults
-                              }{" "}
-                              yetişkin
-                            </p>
+                            {customer ? (
+                              <div className="min-w-[210px]">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="font-black text-white">
+                                    {customer.full_name}
+                                  </p>
 
-                            <p className="mt-1 text-sm text-slate-500">
-                              {
-                                reservation.children
-                              }{" "}
-                              çocuk
-                            </p>
+                                  {customer.vip_level !==
+                                    "standard" && (
+                                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase text-amber-400">
+                                      {
+                                        customer.vip_level
+                                      }
+                                    </span>
+                                  )}
+                                </div>
+
+                                {customer.customer_code && (
+                                  <p className="mt-1 text-xs font-bold text-orange-400">
+                                    {
+                                      customer.customer_code
+                                    }
+                                  </p>
+                                )}
+
+                                <p className="mt-2 text-sm text-slate-400">
+                                  {customerPhone ||
+                                    "Telefon belirtilmedi"}
+                                </p>
+
+                                <p className="mt-1 text-xs text-slate-600">
+                                  {
+                                    reservation.adults
+                                  }{" "}
+                                  yetişkin ·{" "}
+                                  {
+                                    reservation.children
+                                  }{" "}
+                                  çocuk
+                                </p>
+                              </div>
+                            ) : (
+                              <div>
+                                <p className="font-black text-slate-400">
+                                  CRM bağlı değil
+                                </p>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                  {
+                                    reservation.adults
+                                  }{" "}
+                                  yetişkin ·{" "}
+                                  {
+                                    reservation.children
+                                  }{" "}
+                                  çocuk
+                                </p>
+                              </div>
+                            )}
                           </td>
 
                           <td className="p-4">
@@ -2341,6 +2474,16 @@ export default function HotelReservationsPage() {
                     reservation.room
                   );
 
+                const customer =
+                  firstRelation(
+                    reservation.customer
+                  );
+
+                const customerPhone =
+                  customer?.whatsapp_phone ||
+                  customer?.phone ||
+                  "";
+
                 const isDeleting =
                   deletingId ===
                   reservation.id;
@@ -2398,6 +2541,89 @@ export default function HotelReservationsPage() {
                           ]
                         }
                       </span>
+                    </div>
+
+                    <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950 p-4">
+                      {customer ? (
+                        <>
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-black uppercase tracking-wider text-orange-400">
+                                CRM MÜŞTERİSİ
+                              </p>
+
+                              <p className="mt-1 text-lg font-black text-white">
+                                {
+                                  customer.full_name
+                                }
+                              </p>
+
+                              {customer.customer_code && (
+                                <p className="mt-1 text-xs font-bold text-slate-500">
+                                  {
+                                    customer.customer_code
+                                  }
+                                </p>
+                              )}
+                            </div>
+
+                            {customer.vip_level !==
+                              "standard" && (
+                              <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-black uppercase text-amber-400">
+                                {
+                                  customer.vip_level
+                                }
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="mt-3 space-y-1 text-sm text-slate-400">
+                            <p>
+                              {customerPhone ||
+                                "Telefon belirtilmedi"}
+                            </p>
+
+                            {customer.email && (
+                              <p>
+                                {customer.email}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <a
+                              href="/dashboard/crm"
+                              className="rounded-lg bg-orange-500/10 px-3 py-2 text-xs font-black text-orange-400"
+                            >
+                              CRM Aç
+                            </a>
+
+                            {customerPhone && (
+                              <a
+                                href={`https://wa.me/${customerPhone.replace(
+                                  /\D/g,
+                                  ""
+                                )}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-lg bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-400"
+                              >
+                                WhatsApp
+                              </a>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs font-black uppercase tracking-wider text-slate-600">
+                            CRM
+                          </p>
+
+                          <p className="mt-1 font-black text-slate-400">
+                            Müşteri bağlı değil
+                          </p>
+                        </>
+                      )}
                     </div>
 
                     <div className="mt-5 space-y-2 text-sm text-slate-400">
