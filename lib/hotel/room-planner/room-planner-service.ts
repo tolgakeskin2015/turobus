@@ -252,82 +252,19 @@ export async function assignReservationToRoom(
   reservation: PlannerReservation,
   room: PlannerRoom
 ): Promise<void> {
-  if (
-    room.hotel_id !== reservation.hotel_id
-  ) {
-    throw new Error(
-      "Rezervasyon farklı bir otele ait odaya atanamaz."
-    );
-  }
-
-  if (
-    room.room_type_id !==
-    reservation.room_type_id
-  ) {
-    throw new Error(
-      "Rezervasyon yalnızca aynı oda tipindeki bir odaya atanabilir."
-    );
-  }
-
-  if (
-    room.room_status === "maintenance" ||
-    room.room_status === "out_of_order"
-  ) {
-    throw new Error(
-      "Bakımda veya kullanım dışı olan odaya rezervasyon atanamaz."
-    );
-  }
-
-  let conflictQuery = supabase
-    .from("hotel_reservations")
-    .select(`
-      id,
-      reservation_no,
-      check_in,
-      check_out
-    `)
-    .eq("company_id", companyId)
-    .eq("room_id", room.id)
-    .in("status", [
-      "pending",
-      "confirmed",
-      "checked_in",
-    ])
-    .lt("check_in", reservation.check_out)
-    .gt("check_out", reservation.check_in)
-    .neq("id", reservation.id)
-    .limit(1);
-
-  const {
-    data: conflictData,
-    error: conflictError,
-  } = await conflictQuery;
-
-  if (conflictError) {
-    throw new Error(
-      getErrorMessage(conflictError)
-    );
-  }
-
-  if (conflictData?.length) {
-    const conflict = conflictData[0];
-
-    throw new Error(
-      `Oda ${room.room_number}, ${conflict.reservation_no} numaralı rezervasyon nedeniyle bu tarihlerde dolu.`
-    );
-  }
-
-  const { error } = await supabase
-    .from("hotel_reservations")
-    .update({
-      room_id: room.id,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", reservation.id)
-    .eq("company_id", companyId);
+  const { error } = await supabase.rpc(
+    "hotel_assign_reservation_room",
+    {
+      p_company_id: companyId,
+      p_reservation_id: reservation.id,
+      p_room_id: room.id,
+    }
+  );
 
   if (error) {
-    throw new Error(getErrorMessage(error));
+    throw new Error(
+      getErrorMessage(error)
+    );
   }
 }
 
@@ -335,17 +272,18 @@ export async function unassignReservationRoom(
   companyId: string,
   reservationId: string
 ): Promise<void> {
-  const { error } = await supabase
-    .from("hotel_reservations")
-    .update({
-      room_id: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", reservationId)
-    .eq("company_id", companyId);
+  const { error } = await supabase.rpc(
+    "hotel_unassign_reservation_room",
+    {
+      p_company_id: companyId,
+      p_reservation_id: reservationId,
+    }
+  );
 
   if (error) {
-    throw new Error(getErrorMessage(error));
+    throw new Error(
+      getErrorMessage(error)
+    );
   }
 }
 

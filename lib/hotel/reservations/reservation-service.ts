@@ -4,6 +4,7 @@ import {
   ReservationStatus,
 } from "@/components/hotel/reservations/ReservationForm";
 import { checkHotelAvailability } from "@/lib/hotel/availability-engine";
+import { notifyReservationChannelSync, type ReservationChannelImpact } from "@/lib/hotel/channel-manager/reservation-sync";
 
 export type ReservationPayload = {
   company_id: string;
@@ -331,6 +332,7 @@ function isMissingCustomerColumn(
   );
 }
 
+
 export async function saveReservation(
   input: ReservationSaveInput
 ): Promise<void> {
@@ -417,6 +419,22 @@ export async function saveReservation(
   }
 
   if (editingId) {
+    const {
+      data: previousReservation,
+      error: previousReservationError,
+    } = await supabase
+      .from("hotel_reservations")
+      .select(
+        "hotel_id,room_type_id,check_in,check_out"
+      )
+      .eq("id", editingId)
+      .eq("company_id", payload.company_id)
+      .maybeSingle();
+
+    if (previousReservationError) {
+      throw previousReservationError;
+    }
+
     let updateResult =
       await supabase
         .from(
@@ -462,6 +480,29 @@ export async function saveReservation(
       throw updateResult.error;
     }
 
+    const impacts: ReservationChannelImpact[] = [];
+
+    if (previousReservation) {
+      impacts.push({
+        hotelId: previousReservation.hotel_id,
+        roomTypeId: previousReservation.room_type_id,
+        checkIn: previousReservation.check_in,
+        checkOut: previousReservation.check_out,
+      });
+    }
+
+    impacts.push({
+      hotelId: payload.hotel_id,
+      roomTypeId: payload.room_type_id,
+      checkIn: payload.check_in,
+      checkOut: payload.check_out,
+    });
+
+    await notifyReservationChannelSync(
+      payload.company_id,
+      impacts
+    );
+
     return;
   }
 
@@ -506,12 +547,44 @@ export async function saveReservation(
   if (error) {
     throw error;
   }
+
+  await notifyReservationChannelSync(
+    payload.company_id,
+    [
+      {
+        hotelId: payload.hotel_id,
+        roomTypeId: payload.room_type_id,
+        checkIn: payload.check_in,
+        checkOut: payload.check_out,
+      },
+    ]
+  );
 }
 
 export async function deleteReservation(
   companyId: string,
   reservationId: string
 ): Promise<void> {
+  /*
+   * Silmeden önce rezervasyonun hangi oda tipi ve
+   * geceleri etkilediğini saklıyoruz.
+   */
+  const {
+    data: previousReservation,
+    error: previousError,
+  } = await supabase
+    .from("hotel_reservations")
+    .select(
+      "hotel_id,room_type_id,check_in,check_out"
+    )
+    .eq("id", reservationId)
+    .eq("company_id", companyId)
+    .maybeSingle();
+
+  if (previousError) {
+    throw previousError;
+  }
+
   const { error } = await supabase
     .from("hotel_reservations")
     .delete()
@@ -521,4 +594,64 @@ export async function deleteReservation(
   if (error) {
     throw error;
   }
+
+  /*
+   * Rezervasyon artık veritabanında olmadığı için
+   * reservation-sync müsaitliği yeniden hesaplar
+   * ve OTA kuyruğuna yeni inventory değerini yollar.
+   */
+  if (previousReservation) {
+    await notifyReservationChannelSync(
+      companyId,
+      [
+        {
+          hotelId: previousReservation.hotel_id,
+          roomTypeId: previousReservation.room_type_id,
+          checkIn: previousReservation.check_in,
+          checkOut: previousReservation.check_out,
+        },
+      ]
+    );
+  }
 }
+
+export type HotelCheckInResult = {
+  success: boolean;
+  already_checked_in: boolean;
+  reservation_id: string;
+  reservation_no: string;
+  status: "checked_in";
+  room_id: string;
+  room_number?: string | null;
+};
+
+export async function checkInHotelReservation(
+  companyId: string,
+  reservationId: string
+): Promise<HotelCheckInResult> {
+  const { data, error } = await supabase.rpc(
+    "hotel_check_in_reservation",
+    {
+      p_company_id: companyId,
+      p_reservation_id: reservationId,
+    }
+  );
+
+  if (error) {
+    const message =
+      error && typeof error === "object" && "message" in error
+        ? String(error.message)
+        : "Check-in işlemi tamamlanamadı.";
+
+    throw new Error(message);
+  }
+
+  if (!data) {
+    throw new Error(
+      "Check-in işlemi tamamlandı ancak sunucudan sonuç alınamadı."
+    );
+  }
+
+  return data as HotelCheckInResult;
+}
+

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { notifyReservationChannelSync } from "@/lib/hotel/channel-manager/reservation-sync";
 
 export type DeletedReservation = {
   id: string;
@@ -97,19 +98,44 @@ export async function softDeleteReservation(
   reservationId: string,
   reason?: string | null
 ): Promise<void> {
+  const {
+    data: reservation,
+    error: reservationError,
+  } = await supabase
+    .from("hotel_reservations")
+    .select("hotel_id,room_type_id,check_in,check_out")
+    .eq("company_id", companyId)
+    .eq("id", reservationId)
+    .maybeSingle();
+
+  if (reservationError) {
+    throw new Error(errorMessage(reservationError));
+  }
+
   const { error } = await supabase.rpc(
     "soft_delete_hotel_reservation",
     {
       p_company_id: companyId,
-      p_reservation_id:
-        reservationId,
+      p_reservation_id: reservationId,
       p_reason: reason ?? null,
     }
   );
 
   if (error) {
-    throw new Error(
-      errorMessage(error)
+    throw new Error(errorMessage(error));
+  }
+
+  if (reservation) {
+    await notifyReservationChannelSync(
+      companyId,
+      [
+        {
+          hotelId: reservation.hotel_id,
+          roomTypeId: reservation.room_type_id,
+          checkIn: reservation.check_in,
+          checkOut: reservation.check_out,
+        },
+      ]
     );
   }
 }
@@ -211,18 +237,43 @@ export async function restoreReservation(
   companyId: string,
   reservationId: string
 ): Promise<void> {
+  const {
+    data: reservation,
+    error: reservationError,
+  } = await supabase
+    .from("hotel_reservations")
+    .select("hotel_id,room_type_id,check_in,check_out")
+    .eq("company_id", companyId)
+    .eq("id", reservationId)
+    .maybeSingle();
+
+  if (reservationError) {
+    throw new Error(errorMessage(reservationError));
+  }
+
   const { error } = await supabase.rpc(
     "restore_hotel_reservation",
     {
       p_company_id: companyId,
-      p_reservation_id:
-        reservationId,
+      p_reservation_id: reservationId,
     }
   );
 
   if (error) {
-    throw new Error(
-      errorMessage(error)
+    throw new Error(errorMessage(error));
+  }
+
+  if (reservation) {
+    await notifyReservationChannelSync(
+      companyId,
+      [
+        {
+          hotelId: reservation.hotel_id,
+          roomTypeId: reservation.room_type_id,
+          checkIn: reservation.check_in,
+          checkOut: reservation.check_out,
+        },
+      ]
     );
   }
 }

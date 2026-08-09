@@ -673,41 +673,6 @@ export default function FrontOfficeProPage() {
       return;
     }
 
-    const room =
-      firstRelation(
-        reservation.room
-      );
-
-    if (!reservation.room_id || !room) {
-      setErrorMessage(
-        "Check-in yapmadan önce rezervasyona oda atanmalıdır."
-      );
-
-      return;
-    }
-
-    if (
-      room.housekeeping_status !==
-        "clean" &&
-      room.housekeeping_status !==
-        "inspected"
-    ) {
-      setErrorMessage(
-        `Oda ${room.room_number} henüz hazır değil. Housekeeping durumu: ${housekeepingLabel(
-          room.housekeeping_status
-        )}.`
-      );
-
-      return;
-    }
-
-    const approved =
-      window.confirm(
-        `${reservation.reservation_no} için Oda ${room.room_number} odasına check-in yapılsın mı?`
-      );
-
-    if (!approved) return;
-
     setProcessingId(
       reservation.id
     );
@@ -715,24 +680,148 @@ export default function FrontOfficeProPage() {
     setSuccessMessage("");
 
     try {
-      const { error } =
-        await supabase.rpc(
-          "hotel_check_in",
+      const {
+        data: availableRooms,
+        error: roomError,
+      } = await supabase
+        .from("hotel_rooms")
+        .select(`
+          id,
+          room_number,
+          room_status,
+          housekeeping_status
+        `)
+        .eq(
+          "company_id",
+          membership.company_id
+        )
+        .eq(
+          "hotel_id",
+          reservation.hotel_id
+        )
+        .eq(
+          "room_type_id",
+          reservation.room_type_id
+        )
+        .eq(
+          "is_active",
+          true
+        )
+        .in(
+          "housekeeping_status",
+          ["clean", "inspected"]
+        )
+        .neq(
+          "room_status",
+          "occupied"
+        )
+        .order(
+          "room_number",
           {
-            p_reservation_id:
-              reservation.id,
-
-            p_company_id:
-              membership.company_id,
+            ascending: true,
           }
         );
 
-      if (error) throw error;
+      if (roomError) {
+        throw roomError;
+      }
+
+      const rooms =
+        availableRooms ?? [];
+
+      if (rooms.length === 0) {
+        throw new Error(
+          "Bu oda tipinde check-in için hazır boş fiziksel oda bulunamadı."
+        );
+      }
+
+      const currentRoom =
+        reservation.room_id
+          ? rooms.find(
+              (item) =>
+                item.id ===
+                reservation.room_id
+            )
+          : null;
+
+      let selectedRoom =
+        currentRoom ?? null;
+
+      if (!selectedRoom) {
+        const roomList =
+          rooms
+            .map(
+              (item, index) =>
+                `${index + 1}. Oda ${item.room_number}`
+            )
+            .join("\n");
+
+        const selection =
+          window.prompt(
+            `${reservation.reservation_no}\n\nCheck-in için oda seçin:\n\n${roomList}\n\nOda sıra numarasını yazın:`,
+            "1"
+          );
+
+        if (selection === null) {
+          return;
+        }
+
+        const selectedIndex =
+          Number(selection) - 1;
+
+        if (
+          !Number.isInteger(
+            selectedIndex
+          ) ||
+          selectedIndex < 0 ||
+          selectedIndex >=
+            rooms.length
+        ) {
+          throw new Error(
+            "Geçerli bir oda sıra numarası seçmelisiniz."
+          );
+        }
+
+        selectedRoom =
+          rooms[selectedIndex];
+      }
+
+      const approved =
+        window.confirm(
+          `${reservation.reservation_no} için Oda ${selectedRoom.room_number} odasına check-in yapılsın mı?`
+        );
+
+      if (!approved) {
+        return;
+      }
+
+      const { error } =
+        await supabase.rpc(
+          "hotel_check_in_with_room",
+          {
+            p_company_id:
+              membership.company_id,
+
+            p_reservation_id:
+              reservation.id,
+
+            p_room_id:
+              selectedRoom.id,
+          }
+        );
+
+      if (error) {
+        throw error;
+      }
 
       await refresh();
 
       setSuccessMessage(
-        `${reservation.reservation_no} için check-in tamamlandı. Oda ${room.room_number} konaklıyor durumuna geçti.`
+        `${reservation.reservation_no} için check-in tamamlandı. Oda ${selectedRoom.room_number} atandı ve konaklıyor durumuna geçti.`
+      );
+
+      setSelectedReservationId(
+        ""
       );
     } catch (error: unknown) {
       setErrorMessage(
@@ -787,7 +876,7 @@ export default function FrontOfficeProPage() {
     try {
       const { error } =
         await supabase.rpc(
-          "hotel_check_out",
+          "hotel_check_out_v2",
           {
             p_reservation_id:
               reservation.id,

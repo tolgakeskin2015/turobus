@@ -101,10 +101,10 @@ const modules: ModuleCard[] = [
     category: "finance",
   },
   {
-    title: "Channel Manager",
+    title: "Channel Operations",
     description:
-      "Kanal bağlantılarını ve senkronizasyon kuyruğunu yönetin.",
-    href: "/dashboard/hotel/channel-manager",
+      "Kanal sağlığı, senkronizasyon kuyruğu, hatalar ve OTA operasyonlarını yönetin.",
+    href: "/dashboard/hotel/channel-operations",
     status: "active",
     icon: FaCloud,
     category: "distribution",

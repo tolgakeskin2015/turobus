@@ -739,7 +739,13 @@ export default function HotelReservationsPage() {
           const customer =
             firstRelation(
               reservation.customer
-            );
+            ) ??
+            crmCustomers.find(
+              (item) =>
+                item.id ===
+                reservation.customer_id
+            ) ??
+            null;
 
           return [
             reservation.reservation_no,
@@ -1063,8 +1069,7 @@ export default function HotelReservationsPage() {
           room_type_id:
             form.room_type_id,
 
-          room_id:
-            form.room_id || null,
+          room_id: null,
 
           reservation_no:
             form.reservation_no.trim(),
@@ -1456,7 +1461,13 @@ export default function HotelReservationsPage() {
           const customer =
             firstRelation(
               reservation.customer
-            );
+            ) ??
+            crmCustomers.find(
+              (item) =>
+                item.id ===
+                reservation.customer_id
+            ) ??
+            null;
 
           return {
             Rezervasyon:
@@ -2231,7 +2242,13 @@ export default function HotelReservationsPage() {
                       const customer =
                         firstRelation(
                           reservation.customer
-                        );
+                        ) ??
+                        crmCustomers.find(
+                          (item) =>
+                            item.id ===
+                            reservation.customer_id
+                        ) ??
+                        null;
 
                       const customerPhone =
                         customer?.whatsapp_phone ||
@@ -2477,7 +2494,13 @@ export default function HotelReservationsPage() {
                 const customer =
                   firstRelation(
                     reservation.customer
-                  );
+                  ) ??
+                  crmCustomers.find(
+                    (item) =>
+                      item.id ===
+                      reservation.customer_id
+                  ) ??
+                  null;
 
                 const customerPhone =
                   customer?.whatsapp_phone ||

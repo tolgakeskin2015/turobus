@@ -44,3 +44,8 @@ next-env.d.ts
 *.bak
 *.backup
 *.backup-*
+
+backups/
+*.before-*
+*.save
+*.backup*

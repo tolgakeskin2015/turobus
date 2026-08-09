@@ -966,7 +966,7 @@ export default function HotelManagementCenterPage() {
       description:
         "Satış kanalları ve envanter",
       href:
-        "/dashboard/hotel/channel-manager",
+        "/dashboard/hotel/channel-operations",
       icon: FaSyncAlt,
     },
   ];

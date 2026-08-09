@@ -139,12 +139,6 @@ export default function ReservationForm({
       roomType.hotel_id === form.hotel_id
   );
 
-  const filteredRooms = rooms.filter(
-    (room) =>
-      room.hotel_id === form.hotel_id &&
-      room.room_type_id === form.room_type_id
-  );
-
   const selectedCustomer =
     customers.find(
       (customer) =>
@@ -448,36 +442,22 @@ export default function ReservationForm({
           </select>
         </label>
 
-        <label>
+        <div>
           <span className="text-sm font-black">
-            Oda
+            Fiziksel Oda
           </span>
 
-          <select
-            disabled={!form.room_type_id}
-            value={form.room_id}
-            onChange={(event) =>
-              onChange(
-                "room_id",
-                event.target.value
-              )
-            }
-            className="mt-2 min-h-14 w-full rounded-2xl bg-white px-5 font-bold text-slate-950 disabled:opacity-50"
-          >
-            <option value="">
-              Sonra ata
-            </option>
-
-            {filteredRooms.map((room) => (
-              <option
-                key={room.id}
-                value={room.id}
-              >
-                Oda {room.room_number}
-              </option>
-            ))}
-          </select>
-        </label>
+          <div className="mt-2 flex min-h-14 items-center rounded-2xl border border-white/10 bg-slate-950 px-5">
+            <div>
+              <p className="font-black text-slate-200">
+                Check-in sırasında atanacak
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Rezervasyon oda tipine bağlanır. Oda numarası Front Office veya Room Planner üzerinden atanır.
+              </p>
+            </div>
+          </div>
+        </div>
 
         <label>
           <span className="text-sm font-black">
