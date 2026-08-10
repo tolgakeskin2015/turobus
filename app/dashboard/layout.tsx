@@ -8,6 +8,7 @@ import {
   FaBuilding,
   FaBus,
   FaChartLine,
+  FaChevronDown,
   FaClipboardList,
   FaMapMarkedAlt,
   FaPlusCircle,
@@ -35,6 +36,11 @@ type MenuItem = {
   roles: AppRole[];
 };
 
+type MenuGroup = {
+  title: string;
+  items: MenuItem[];
+};
+
 const allRoles: AppRole[] = [
   "super_admin",
   "company_owner",
@@ -45,205 +51,488 @@ const allRoles: AppRole[] = [
   "driver",
 ];
 
-const menuItems: MenuItem[] = [
+const menuGroups: MenuGroup[] = [
   {
-    href: "/dashboard",
-    label: "Genel Bakış",
-    icon: FaChartLine,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-      "accounting",
-    ],
-  },
-  {
-    href: "/dashboard/command-center",
-    label: "Command Center",
-    icon: FaMapMarkedAlt,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-    ],
-  },
-  {
-    href: "/dashboard/operasyon",
-    label: "Operasyon",
-    icon: FaBus,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "guide",
-      "driver",
-    ],
-  },
-  {
-    href: "/dashboard/rezervasyonlar",
-    label: "Rezervasyonlar",
-    icon: FaClipboardList,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-      "accounting",
-    ],
-  },
-  {
-    href: "/dashboard/hotel/yonetim-merkezi",
-    label: "🏨 Yönetim Merkezi",
-    icon: FaHotel,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-      "accounting",
+    title: "ANA MERKEZ",
+    items: [
+      {
+        href: "/dashboard",
+        label: "Genel Bakış",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/command-center",
+        label: "Command Center",
+        icon: FaMapMarkedAlt,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
     ],
   },
 
+  {
+    title: "TUR & OPERASYON",
+    items: [
+      {
+        href: "/dashboard/operasyon",
+        label: "Operasyon Merkezi",
+        icon: FaBus,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "guide",
+          "driver",
+        ],
+      },
+      {
+        href: "/dashboard/manifest",
+        label: "Tur Çıkış & Manifest",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "guide",
+          "driver",
+        ],
+      },
+      {
+        href: "/dashboard/rezervasyonlar",
+        label: "Tur Rezervasyonları",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/turlar",
+        label: "Turlar",
+        icon: FaBus,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/tur-ekle",
+        label: "Yeni Tur",
+        icon: FaPlusCircle,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/araclar",
+        label: "Araç & Transfer",
+        icon: FaBus,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/gorev-atama",
+        label: "Görev Atama",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/tedarikciler",
+        label: "Tedarikçiler",
+        icon: FaBuilding,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/urunler",
+        label: "Ürün Kataloğu",
+        icon: FaPlusCircle,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/ek-satis",
+        label: "Ek Satış",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+          "guide",
+        ],
+      },
+    ],
+  },
 
   {
-    href: "/dashboard/hotel/rezervasyonlar",
-    label: "Hotel Rezervasyonları",
-    icon: FaClipboardList,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-      "accounting",
+    title: "OTEL PMS",
+    items: [
+      {
+        href: "/dashboard/hotel/yonetim-merkezi",
+        label: "Yönetim Merkezi",
+        icon: FaHotel,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/ceo-dashboard",
+        label: "CEO Dashboard",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/front-office",
+        label: "Front Office",
+        icon: FaHotel,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/rezervasyonlar",
+        label: "Otel Rezervasyonları",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/housekeeping",
+        label: "Housekeeping",
+        icon: FaHotel,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/folio",
+        label: "Folio & Tahsilat",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/invoices",
+        label: "Fatura Merkezi",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/reports",
+        label: "Otel Rapor Merkezi",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/cashier",
+        label: "Kasa & Vardiya",
+        icon: FaBuilding,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/room-planner",
+        label: "Oda Planı",
+        icon: FaHotel,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/odalar",
+        label: "Odalar",
+        icon: FaHotel,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/oda-tipleri",
+        label: "Oda Tipleri",
+        icon: FaHotel,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/misafirler",
+        label: "Misafirler / Guest 360",
+        icon: FaUsers,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/night-audit",
+        label: "Night Audit / Gün Sonu",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/maintenance",
+        label: "Bakım & Arıza",
+        icon: FaBuilding,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/revenue-dashboard",
+        label: "Revenue Dashboard",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/revenue",
+        label: "Revenue Management",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/revenue/simulator",
+        label: "Fiyat Simülatörü",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
     ],
   },
+
   {
-    href: "/dashboard/araclar",
-    label: "Araçlar",
-    icon: FaBus,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
+    title: "KANAL & DAĞITIM",
+    items: [
+      {
+        href: "/dashboard/hotel/distribution-center",
+        label: "Distribution Center",
+        icon: FaMapMarkedAlt,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/channel-manager",
+        label: "Channel Manager",
+        icon: FaMapMarkedAlt,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/channel-mapping",
+        label: "Kanal Eşleştirme",
+        icon: FaMapMarkedAlt,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/channel-operations",
+        label: "Kanal Operasyonları",
+        icon: FaMapMarkedAlt,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/fiyatlar",
+        label: "Fiyatlar",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/hotel/kontenjan",
+        label: "Kontenjan",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
     ],
   },
+
   {
-    href: "/dashboard/personel",
-    label: "Personel",
-    icon: FaUserCircle,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
+    title: "CRM & SATIŞ",
+    items: [
+      {
+        href: "/dashboard/crm",
+        label: "CRM",
+        icon: FaUsers,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/yorumlar",
+        label: "Yorumlar",
+        icon: FaStar,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
     ],
   },
+
   {
-    href: "/dashboard/gorev-atama",
-    label: "Görev Atama",
-    icon: FaClipboardList,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
+    title: "FİNANS & YÖNETİM",
+    items: [
+      {
+        href: "/dashboard/giderler",
+        label: "Gider Yönetimi",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/personel",
+        label: "Personel",
+        icon: FaUserCircle,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
     ],
   },
+
   {
-    href: "/dashboard/tedarikciler",
-    label: "Tedarikçiler",
-    icon: FaBuilding,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "accounting",
+    title: "HESAP",
+    items: [
+      {
+        href: "/dashboard/hesabim",
+        label: "Hesabım",
+        icon: FaUserCircle,
+        roles: allRoles,
+      },
     ],
-  },
-  {
-    href: "/dashboard/urunler",
-    label: "Ürün Kataloğu",
-    icon: FaPlusCircle,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-      "accounting",
-    ],
-  },
-  {
-    href: "/dashboard/ek-satis",
-    label: "Ek Satış",
-    icon: FaClipboardList,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-      "accounting",
-      "guide",
-    ],
-  },
-  {
-    href: "/dashboard/crm",
-    label: "CRM",
-    icon: FaUsers,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-    ],
-  },
-  {
-    href: "/dashboard/giderler",
-    label: "Gider Yönetimi",
-    icon: FaChartLine,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "accounting",
-    ],
-  },
-  {
-    href: "/dashboard/turlar",
-    label: "Turlar",
-    icon: FaBus,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-    ],
-  },
-  {
-    href: "/dashboard/tur-ekle",
-    label: "Tur Ekle",
-    icon: FaPlusCircle,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-    ],
-  },
-  {
-    href: "/dashboard/yorumlar",
-    label: "Yorumlar",
-    icon: FaStar,
-    roles: [
-      "super_admin",
-      "company_owner",
-      "operation_manager",
-      "sales",
-    ],
-  },
-  {
-    href: "/dashboard/hesabim",
-    label: "Hesabım",
-    icon: FaUserCircle,
-    roles: allRoles,
   },
 ];
 
@@ -261,9 +550,13 @@ function isAllowedPath(
   pathname: string,
   role: AppRole
 ) {
-  const matchedItem = menuItems
+  const matchedItem = menuGroups
+    .flatMap((group) => group.items)
     .filter((item) => pathname.startsWith(item.href))
-    .sort((first, second) => second.href.length - first.href.length)[0];
+    .sort(
+      (first, second) =>
+        second.href.length - first.href.length
+    )[0];
 
   if (!matchedItem) return true;
 
@@ -280,6 +573,17 @@ export default function DashboardLayout({
     useState<CurrentMembership | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const [openMenuGroups, setOpenMenuGroups] = useState<
+    Set<string>
+  >(
+    () =>
+      new Set([
+        "ANA MERKEZ",
+        "TUR & OPERASYON",
+        "OTEL PMS",
+      ])
+  );
   const [errorMessage, setErrorMessage] = useState("");
 
   const loadSession = useCallback(async () => {
@@ -335,13 +639,54 @@ export default function DashboardLayout({
     setMobileOpen(false);
   }, [pathname]);
 
-  const visibleMenuItems = useMemo(() => {
+  const visibleMenuGroups = useMemo(() => {
     if (!membership) return [];
 
-    return menuItems.filter((item) =>
-      item.roles.includes(membership.role)
-    );
+    return menuGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          item.roles.includes(membership.role)
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
   }, [membership]);
+
+  function toggleMenuGroup(title: string) {
+    setOpenMenuGroups((current) => {
+      const next = new Set(current);
+
+      if (next.has(title)) {
+        next.delete(title);
+      } else {
+        next.add(title);
+      }
+
+      return next;
+    });
+  }
+
+  useEffect(() => {
+    const activeGroup = menuGroups.find((group) =>
+      group.items.some((item) =>
+        item.href === "/dashboard"
+          ? pathname === "/dashboard"
+          : pathname.startsWith(item.href)
+      )
+    );
+
+    if (!activeGroup) return;
+
+    setOpenMenuGroups((current) => {
+      if (current.has(activeGroup.title)) {
+        return current;
+      }
+
+      const next = new Set(current);
+      next.add(activeGroup.title);
+      return next;
+    });
+  }, [pathname]);
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -426,30 +771,108 @@ export default function DashboardLayout({
             </div>
           </div>
 
-          <nav className="flex-1 space-y-2 overflow-y-auto p-4">
-            {visibleMenuItems.map((item) => {
-              const Icon = item.icon;
+          <nav className="flex-1 overflow-y-auto px-3 py-4">
+            <div className="space-y-3">
+              {visibleMenuGroups.map((group) => {
+                const isOpen =
+                  openMenuGroups.has(group.title);
 
-              const isActive =
-                item.href === "/dashboard"
-                  ? pathname === "/dashboard"
-                  : pathname.startsWith(item.href);
+                const hasActiveItem =
+                  group.items.some((item) =>
+                    item.href === "/dashboard"
+                      ? pathname === "/dashboard"
+                      : pathname.startsWith(
+                          item.href
+                        )
+                  );
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex min-h-12 items-center gap-3 rounded-xl px-4 text-sm font-black transition ${
-                    isActive
-                      ? "bg-orange-500 text-white"
-                      : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
-                  }`}
-                >
-                  <Icon />
-                  {item.label}
-                </Link>
-              );
-            })}
+                return (
+                  <section
+                    key={group.title}
+                    className="rounded-2xl"
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        toggleMenuGroup(group.title)
+                      }
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition ${
+                        hasActiveItem
+                          ? "bg-white/[0.04]"
+                          : "hover:bg-white/[0.03]"
+                      }`}
+                    >
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-[0.22em] ${
+                          hasActiveItem
+                            ? "text-orange-400"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        {group.title}
+                      </span>
+
+                      <FaChevronDown
+                        className={`text-xs transition-transform duration-200 ${
+                          isOpen
+                            ? "rotate-180 text-orange-400"
+                            : "text-slate-600"
+                        }`}
+                      />
+                    </button>
+
+                    <div
+                      className={`grid transition-all duration-200 ${
+                        isOpen
+                          ? "grid-rows-[1fr] opacity-100"
+                          : "grid-rows-[0fr] opacity-0"
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="mt-1 space-y-1 pb-1">
+                          {group.items.map((item) => {
+                            const Icon = item.icon;
+
+                            const isActive =
+                              item.href === "/dashboard"
+                                ? pathname === "/dashboard"
+                                : pathname.startsWith(
+                                    item.href
+                                  );
+
+                            return (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold transition ${
+                                  isActive
+                                    ? "bg-orange-500 text-white shadow-lg shadow-orange-500/10"
+                                    : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
+                                }`}
+                              >
+                                <span
+                                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                                    isActive
+                                      ? "bg-white/15"
+                                      : "bg-slate-950 group-hover:bg-white/[0.06]"
+                                  }`}
+                                >
+                                  <Icon className="text-sm" />
+                                </span>
+
+                                <span className="truncate">
+                                  {item.label}
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
           </nav>
 
           <div className="border-t border-white/10 p-4">

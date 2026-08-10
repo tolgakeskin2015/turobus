@@ -1,44 +1,23 @@
-export type ChannelOperationRequest = {
-  channelCode: string;
-  operationType: string;
-  endpointUrl?: string | null;
-  payload: Record<string, unknown>;
-};
+import {
+  getChannelProvider,
+} from "./providers/provider-registry";
 
-export type ChannelOperationResult = {
-  success: boolean;
-  simulated: boolean;
-  statusCode?: number;
-  responsePayload: Record<string, unknown>;
-};
+import type {
+  ProviderOperationRequest,
+  ProviderOperationResult,
+} from "./providers/types";
+
+export type ChannelOperationRequest =
+  ProviderOperationRequest;
+
+export type ChannelOperationResult =
+  ProviderOperationResult;
 
 export async function sendChannelOperation(
   input: ChannelOperationRequest
 ): Promise<ChannelOperationResult> {
-  /*
-   * Gerçek OTA kimlik bilgileri geldiğinde:
-   *
-   * booking
-   * expedia
-   * hotelbeds
-   * airbnb
-   *
-   * adapterları burada ayrıştırılacak.
-   *
-   * Şimdilik production mimarisini bozmadan
-   * güvenli simülasyon çalışır.
-   */
+  const provider =
+    getChannelProvider(input.channelCode);
 
-  return {
-    success: true,
-    simulated: true,
-    responsePayload: {
-      channel: input.channelCode,
-      operation: input.operationType,
-      accepted: true,
-      simulation: true,
-      processed_at:
-        new Date().toISOString(),
-    },
-  };
+  return provider.send(input);
 }

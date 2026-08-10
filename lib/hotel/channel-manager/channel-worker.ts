@@ -1,4 +1,7 @@
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import {
+  sendChannelOperation,
+} from "@/lib/hotel/channel-manager/provider-adapter";
 
 type QueueRow = {
   id: string;
@@ -98,18 +101,63 @@ export async function processNextChannelQueueItem() {
     };
   }
 
-  /*
-   * ŞİMDİLİK GERÇEK OTA'YA HTTP İSTEĞİ YOK.
-   *
-   * Bu worker önce kuyruk mekanizmasını güvenli şekilde
-   * doğruluyor. Booking / Expedia / Hotelbeds adapterları
-   * bir sonraki aşamada buraya bağlanacak.
-   */
+  let adapterResult;
+
+  try {
+    adapterResult = await sendChannelOperation({
+      channelCode: connection.channel_code,
+      operationType: item.operation_type,
+      endpointUrl: connection.endpoint_url,
+      payload: item.payload ?? {},
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Provider adapter işlemi başarısız.";
+
+    await failQueueItem(
+      supabase,
+      item,
+      message,
+      startedAt
+    );
+
+    return {
+      processed: true,
+      success: false,
+      queueId: item.id,
+      channel: connection.channel_code,
+      operation: item.operation_type,
+    };
+  }
+
+  if (!adapterResult.success) {
+    const message =
+      typeof adapterResult.responsePayload?.error === "string"
+        ? adapterResult.responsePayload.error
+        : "Provider işlemi başarısız.";
+
+    await failQueueItem(
+      supabase,
+      item,
+      message,
+      startedAt
+    );
+
+    return {
+      processed: true,
+      success: false,
+      queueId: item.id,
+      channel: connection.channel_code,
+      operation: item.operation_type,
+    };
+  }
+
   const responsePayload = {
-    simulation: true,
-    channel: connection.channel_code,
-    operation: item.operation_type,
-    message: "Server-side worker simülasyonu başarıyla tamamlandı.",
+    ...adapterResult.responsePayload,
+    simulated: adapterResult.simulated,
+    status_code: adapterResult.statusCode ?? null,
   };
 
   const completedAt = new Date().toISOString();
@@ -149,7 +197,9 @@ export async function processNextChannelQueueItem() {
     status: "success",
     request_payload: item.payload,
     response_payload: responsePayload,
-    message: "Worker simülasyonu başarıyla tamamlandı.",
+    message: adapterResult.simulated
+      ? "Provider adapter simülasyonu başarıyla tamamlandı."
+      : "Provider işlemi başarıyla tamamlandı.",
     duration_ms: Date.now() - startedAt,
   });
 

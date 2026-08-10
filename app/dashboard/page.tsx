@@ -9,11 +9,8 @@ import {
   FaCalendarCheck,
   FaChartLine,
   FaClock,
-  FaHome,
   FaPlus,
-  FaSignOutAlt,
   FaTicketAlt,
-  FaUser,
 } from "react-icons/fa";
 
 type Tour = {
@@ -170,74 +167,7 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <div className="flex min-h-screen">
-        <aside className="hidden min-h-screen w-72 shrink-0 border-r border-white/10 bg-slate-900 p-6 lg:block">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-xl font-black">
-              T
-            </div>
-
-            <div>
-              <div className="text-2xl font-black">TUROBUS</div>
-
-              <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-orange-400">
-                Yönetim Paneli
-              </div>
-            </div>
-          </Link>
-
-          <nav className="mt-12 space-y-2">
-            <Link
-              href="/dashboard"
-              className="flex min-h-12 items-center gap-3 rounded-2xl bg-orange-500 px-4 font-black text-white"
-            >
-              <FaHome />
-              Genel Bakış
-            </Link>
-
-            <Link
-              href="/dashboard/turlar"
-              className="flex min-h-12 items-center gap-3 rounded-2xl px-4 font-bold text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
-            >
-              <FaBus />
-              Turlarım
-            </Link>
-
-            <Link
-              href="/dashboard/tur-ekle"
-              className="flex min-h-12 items-center gap-3 rounded-2xl px-4 font-bold text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
-            >
-              <FaPlus />
-              Tur Ekle
-            </Link>
-
-            <a
-              href="#rezervasyonlar"
-              className="flex min-h-12 items-center gap-3 rounded-2xl px-4 font-bold text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
-            >
-              <FaTicketAlt />
-              Rezervasyonlar
-            </a>
-
-            <Link
-              href="/"
-              className="flex min-h-12 items-center gap-3 rounded-2xl px-4 font-bold text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
-            >
-              <FaUser />
-              Siteye Dön
-            </Link>
-          </nav>
-
-          <button
-            type="button"
-            className="mt-12 flex min-h-12 w-full items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 font-bold text-red-400 transition hover:bg-red-500 hover:text-white"
-          >
-            <FaSignOutAlt />
-            Çıkış Yap
-          </button>
-        </aside>
-
-        <section className="min-w-0 flex-1 px-5 py-8 lg:px-10 lg:py-10">
+      <section className="px-5 py-8 lg:px-10 lg:py-10">
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
               <div>
@@ -378,8 +308,7 @@ export default function Dashboard() {
               <ReservationsList />
             </div>
           </div>
-        </section>
-      </div>
+      </section>
     </main>
   );
 }

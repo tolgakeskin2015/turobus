@@ -368,6 +368,8 @@ export async function addFolioPayment(
   if (error) {
     throw new Error(message(error));
   }
+
+
 }
 
 export async function deleteFolioCharge(
