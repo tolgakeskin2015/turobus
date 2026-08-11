@@ -555,6 +555,22 @@ export async function getChannelRuntimeStatus(
   mode:
     | "simulation"
     | "live";
+
+  connections: Array<{
+    id: string;
+    status: ConnectionStatus;
+    endpointConfigured: boolean;
+    credentialsConfigured: boolean;
+    lastSuccessAt:
+      | string
+      | null;
+    lastErrorAt:
+      | string
+      | null;
+    lastErrorMessage:
+      | string
+      | null;
+  }>;
 }> {
   const {
     data: { session },
@@ -608,6 +624,13 @@ export async function getChannelRuntimeStatus(
       "live"
         ? "live"
         : "simulation",
+
+    connections:
+      Array.isArray(
+        result.connections
+      )
+        ? result.connections
+        : [],
   };
 }
 
@@ -635,8 +658,7 @@ export async function activateChannelConnection(
   const response = await fetch(
     "/api/channel-manager/connections",
     {
-      method:
-        "POST",
+      method: "POST",
 
       headers: {
         "Content-Type":
@@ -646,14 +668,13 @@ export async function activateChannelConnection(
           `Bearer ${token}`,
       },
 
-      body:
-        JSON.stringify({
-          action:
-            "activate_connection",
+      body: JSON.stringify({
+        action:
+          "activate_connection",
 
-          companyId,
-          connectionId,
-        }),
+        companyId,
+        connectionId,
+      }),
     }
   );
 
@@ -674,8 +695,7 @@ export async function activateChannelConnection(
 
   return {
     mode:
-      result.mode ===
-      "live"
+      result.mode === "live"
         ? "live"
         : "simulation",
   };

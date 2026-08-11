@@ -199,6 +199,28 @@ export default function ChannelManagerPage() {
       "simulation" | "live"
     >("simulation");
 
+  const [
+    connectionHealth,
+    setConnectionHealth,
+  ] = useState<
+    Record<
+      string,
+      {
+        endpointConfigured: boolean;
+        credentialsConfigured: boolean;
+        lastSuccessAt:
+          | string
+          | null;
+        lastErrorAt:
+          | string
+          | null;
+        lastErrorMessage:
+          | string
+          | null;
+      }
+    >
+  >({});
+
   const [form, setForm] = useState({
     hotelId: "",
     channelCode:
@@ -231,6 +253,32 @@ export default function ChannelManagerPage() {
 
         setRuntimeMode(
           runtime.mode
+        );
+
+        setConnectionHealth(
+          Object.fromEntries(
+            runtime.connections.map(
+              (item) => [
+                item.id,
+                {
+                  endpointConfigured:
+                    item.endpointConfigured,
+
+                  credentialsConfigured:
+                    item.credentialsConfigured,
+
+                  lastSuccessAt:
+                    item.lastSuccessAt,
+
+                  lastErrorAt:
+                    item.lastErrorAt,
+
+                  lastErrorMessage:
+                    item.lastErrorMessage,
+                },
+              ]
+            )
+          )
         );
       } catch {
         setRuntimeMode(
@@ -924,6 +972,89 @@ export default function ChannelManagerPage() {
             </button>
           </div>
         </form>
+        {selectedConnection && (
+          <section className="mt-8 rounded-[30px] border border-white/10 bg-slate-900 p-6">
+            <h2 className="text-2xl font-black">
+              Bağlantı Sağlığı
+            </h2>
+
+            {(() => {
+              const health =
+                connectionHealth[
+                  selectedConnection.id
+                ];
+
+              return (
+                <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-2xl bg-slate-950 p-4">
+                    <p className="text-xs uppercase tracking-wider text-slate-500">
+                      Credentials
+                    </p>
+
+                    <p className={
+                      health?.credentialsConfigured
+                        ? "mt-2 font-black text-emerald-400"
+                        : "mt-2 font-black text-red-400"
+                    }>
+                      {health?.credentialsConfigured
+                        ? "Hazır"
+                        : "Eksik"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-slate-950 p-4">
+                    <p className="text-xs uppercase tracking-wider text-slate-500">
+                      Endpoint
+                    </p>
+
+                    <p className={
+                      health?.endpointConfigured
+                        ? "mt-2 font-black text-emerald-400"
+                        : "mt-2 font-black text-red-400"
+                    }>
+                      {health?.endpointConfigured
+                        ? "Hazır"
+                        : "Eksik"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-slate-950 p-4">
+                    <p className="text-xs uppercase tracking-wider text-slate-500">
+                      Son Başarılı Test
+                    </p>
+
+                    <p className="mt-2 font-black">
+                      {health?.lastSuccessAt
+                        ? dateTime(
+                            health.lastSuccessAt
+                          )
+                        : "Henüz yok"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-slate-950 p-4">
+                    <p className="text-xs uppercase tracking-wider text-slate-500">
+                      Son Hata
+                    </p>
+
+                    <p className={
+                      health?.lastErrorAt
+                        ? "mt-2 font-black text-red-400"
+                        : "mt-2 font-black text-emerald-400"
+                    }>
+                      {health?.lastErrorAt
+                        ? dateTime(
+                            health.lastErrorAt
+                          )
+                        : "Hata yok"}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+          </section>
+        )}
+
         {selectedConnection && (
           <section className="mt-8 rounded-[30px] border border-white/10 bg-slate-900 p-6">
             <h2 className="flex items-center gap-3 text-2xl font-black">

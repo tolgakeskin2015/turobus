@@ -261,12 +261,22 @@ async function failQueueItem(
     );
   }
 
+  const terminalFailure =
+    !retryable;
+
   await supabase
     .from("hotel_channel_connections")
     .update({
       last_sync_at: nowIso,
       last_error_at: nowIso,
       last_error_message: message,
+
+      ...(terminalFailure
+        ? {
+            status: "error",
+          }
+        : {}),
+
       updated_at: nowIso,
     })
     .eq("id", item.connection_id);

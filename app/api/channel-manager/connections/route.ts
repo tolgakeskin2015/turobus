@@ -211,20 +211,79 @@ export async function GET(
     return auth.response;
   }
 
+  const liveMode =
+    process.env.CHANNEL_LIVE_MODE ===
+    "true";
+
+  const {
+    data: connections,
+    error: connectionError,
+  } = await auth.admin
+    .from("hotel_channel_connections")
+    .select(
+      "id,status,endpoint_url,credentials,last_success_at,last_error_at,last_error_message"
+    )
+    .eq(
+      "company_id",
+      companyId
+    );
+
+  if (connectionError) {
+    throw new Error(
+      connectionError.message
+    );
+  }
+
   return NextResponse.json({
     ok: true,
 
     runtime: {
-      liveMode:
-        process.env.CHANNEL_LIVE_MODE ===
-        "true",
-
+      liveMode,
       mode:
-        process.env.CHANNEL_LIVE_MODE ===
-        "true"
+        liveMode
           ? "live"
           : "simulation",
     },
+
+    connections:
+      (connections ?? []).map(
+        (item) => {
+          const credentials =
+            asRecord(
+              item.credentials
+            );
+
+          return {
+            id:
+              item.id,
+
+            status:
+              item.status,
+
+            endpointConfigured:
+              Boolean(
+                item.endpoint_url
+              ),
+
+            credentialsConfigured:
+              Object.keys(
+                credentials
+              ).length > 0,
+
+            lastSuccessAt:
+              item.last_success_at ??
+              null,
+
+            lastErrorAt:
+              item.last_error_at ??
+              null,
+
+            lastErrorMessage:
+              item.last_error_message ??
+              null,
+          };
+        }
+      ),
   });
 }
 
