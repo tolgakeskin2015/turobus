@@ -24,6 +24,9 @@ type TripItem = {
   supplier_status: string;
   customer_status: string;
 
+  activity_slot_id: string | null;
+  activity_requires_slot: boolean;
+
   voucher_code: string | null;
   voucher_token: string | null;
   voucher_status: string | null;
@@ -364,6 +367,27 @@ export default function TripWalletPage() {
                           ✓ Kullanıldı
                         </span>
                       )}
+
+                      {item.item_type ===
+                        "activity" &&
+                        item.activity_requires_slot &&
+                        item.customer_status !==
+                          "used" &&
+                        item.customer_status !==
+                          "cancelled" && (
+                          <Link
+                            href={`/seyahat/${token}/aktivite/${item.id}`}
+                            className={
+                              item.activity_slot_id
+                                ? "rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-300"
+                                : "rounded-xl bg-cyan-500 px-4 py-2 text-sm font-black text-black"
+                            }
+                          >
+                            {item.activity_slot_id
+                              ? "Saati Değiştir"
+                              : "Saat Seç"}
+                          </Link>
+                        )}
 
                       {item.voucher_token &&
                         item.voucher_status !==
