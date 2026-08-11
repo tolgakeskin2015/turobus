@@ -112,7 +112,7 @@ export async function getChannelHealthSummary(
         head: true,
       })
       .eq("company_id", companyId)
-      .eq("status", "dead"),
+      .eq("status", "failed"),
   ]);
 
   const firstError =

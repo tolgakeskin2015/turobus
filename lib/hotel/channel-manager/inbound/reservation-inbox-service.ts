@@ -147,6 +147,34 @@ export async function receiveChannelReservation(input: {
       .single();
 
   if (insertError) {
+    if (insertError.code === "23505") {
+      const {
+        data: racedDuplicate,
+        error: racedError,
+      } = await supabase
+        .from("hotel_channel_reservation_inbox")
+        .select("id,processing_status")
+        .eq("connection_id", connection.id)
+        .eq("event_fingerprint", fingerprint)
+        .maybeSingle();
+
+      if (racedError) {
+        throw new Error(
+          racedError.message
+        );
+      }
+
+      if (racedDuplicate) {
+        return {
+          duplicate: true,
+          inboxId: racedDuplicate.id,
+          status:
+            racedDuplicate.processing_status,
+          mappingFound: Boolean(mapping),
+        };
+      }
+    }
+
     throw new Error(insertError.message);
   }
 

@@ -17,14 +17,11 @@ type QueueRow = {
 export async function processNextChannelQueueItem() {
   const supabase = getSupabaseAdmin();
 
-  const { data: queueItem, error: queueError } = await supabase
-    .from("hotel_channel_sync_queue")
-    .select("*")
-    .eq("status", "pending")
-    .lte("available_at", new Date().toISOString())
-    .order("priority", { ascending: true })
-    .order("created_at", { ascending: true })
-    .limit(1)
+  const {
+    data: queueItem,
+    error: queueError,
+  } = await supabase
+    .rpc("claim_hotel_channel_queue_item")
     .maybeSingle();
 
   if (queueError) {
@@ -40,22 +37,6 @@ export async function processNextChannelQueueItem() {
 
   const item = queueItem as QueueRow;
   const startedAt = Date.now();
-
-  const { error: processingError } = await supabase
-    .from("hotel_channel_sync_queue")
-    .update({
-      status: "processing",
-      attempt_count: item.attempt_count + 1,
-      started_at: new Date().toISOString(),
-      error_message: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", item.id)
-    .eq("status", "pending");
-
-  if (processingError) {
-    throw new Error(processingError.message);
-  }
 
   const { data: connection, error: connectionError } =
     await supabase
@@ -218,40 +199,82 @@ async function failQueueItem(
   message: string,
   startedAt: number
 ) {
-  const now = new Date().toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
 
-  await supabase
-    .from("hotel_channel_sync_queue")
-    .update({
-      status: "failed",
-      completed_at: now,
-      error_message: message,
-      updated_at: now,
-    })
-    .eq("id", item.id);
+  const attemptsUsed = Math.max(
+    1,
+    Number(item.attempt_count || 1)
+  );
+
+  const maxAttempts = Math.max(
+    1,
+    Number(item.max_attempts || 1)
+  );
+
+  const retryable =
+    isRetryableChannelError(message) &&
+    attemptsUsed < maxAttempts;
+
+  const retryAt = new Date(
+    now.getTime() +
+      getRetryDelayMs(attemptsUsed)
+  ).toISOString();
+
+  const { error: queueUpdateError } =
+    await supabase
+      .from("hotel_channel_sync_queue")
+      .update(
+        retryable
+          ? {
+              status: "pending",
+              available_at: retryAt,
+              completed_at: null,
+              error_message: message,
+              updated_at: nowIso,
+            }
+          : {
+              status: "failed",
+              completed_at: nowIso,
+              error_message: message,
+              updated_at: nowIso,
+            }
+      )
+      .eq("id", item.id);
+
+  if (queueUpdateError) {
+    throw new Error(
+      queueUpdateError.message
+    );
+  }
 
   await supabase
     .from("hotel_channel_connections")
     .update({
-      last_sync_at: now,
-      last_error_at: now,
+      last_sync_at: nowIso,
+      last_error_at: nowIso,
       last_error_message: message,
-      updated_at: now,
+      updated_at: nowIso,
     })
     .eq("id", item.connection_id);
 
-  await supabase.from("hotel_channel_sync_logs").insert({
-    company_id: item.company_id,
-    hotel_id: item.hotel_id,
-    connection_id: item.connection_id,
-    queue_id: item.id,
-    direction: "outbound",
-    event_type: item.operation_type,
-    status: "error",
-    request_payload: item.payload,
-    message,
-    duration_ms: Date.now() - startedAt,
-  });
+  await supabase
+    .from("hotel_channel_sync_logs")
+    .insert({
+      company_id: item.company_id,
+      hotel_id: item.hotel_id,
+      connection_id: item.connection_id,
+      queue_id: item.id,
+      direction: "outbound",
+      event_type: item.operation_type,
+      status: "error",
+      request_payload: item.payload,
+      message: retryable
+        ? `${message} | Retry ${attemptsUsed}/${maxAttempts} -> ${retryAt}`
+        : `${message} | Terminal ${attemptsUsed}/${maxAttempts}`,
+      duration_ms:
+        Date.now() - startedAt,
+    });
 }
 
 export async function processChannelQueueBatch(
@@ -320,6 +343,10 @@ export function isRetryableChannelError(
     "forbidden",
     "invalid credentials",
     "unsupported provider",
+    "kanal bağlantısı bulunamadı",
+    "kanal bağlantısı aktif değil",
+    "mapping bulunamadı",
+    "eşleştirme bulunamadı",
   ];
 
   return !permanentPatterns.some(

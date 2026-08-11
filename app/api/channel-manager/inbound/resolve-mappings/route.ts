@@ -1,9 +1,48 @@
-import { NextResponse } from "next/server";
-import { resolveWaitingInboundMappings } from "@/lib/hotel/channel-manager/inbound/mapping-auto-ready";
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
+
+import {
+  resolveWaitingInboundMappings,
+} from "@/lib/hotel/channel-manager/inbound/mapping-auto-ready";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function authorized(
+  request: NextRequest
+): boolean {
+  const secret =
+    process.env.CHANNEL_WORKER_SECRET;
+
+  if (!secret) return false;
+
+  return (
+    request.headers.get(
+      "x-worker-secret"
+    ) === secret ||
+    request.headers.get(
+      "authorization"
+    ) === `Bearer ${secret}`
+  );
+}
 
 export async function POST(
-  request: Request
+  request: NextRequest
 ) {
+  if (!authorized(request)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Yetkisiz istek.",
+      },
+      {
+        status: 401,
+      }
+    );
+  }
+
   try {
     const body =
       await request.json().catch(

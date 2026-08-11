@@ -33,16 +33,17 @@ function reservationNo(channel: string, externalId: string) {
 export async function processNextInboundReservation() {
   const supabase = getSupabaseAdmin();
 
-  const { data: inbox, error: inboxError } = await supabase
-    .from("hotel_channel_reservation_inbox")
-    .select("*")
-    .eq("processing_status", "ready")
-    .order("received_at", { ascending: true })
-    .limit(1)
+  const {
+    data: inbox,
+    error: inboxError,
+  } = await supabase
+    .rpc("claim_hotel_channel_inbox_item")
     .maybeSingle();
 
   if (inboxError) {
-    throw new Error(inboxError.message);
+    throw new Error(
+      inboxError.message
+    );
   }
 
   if (!inbox) {
@@ -53,15 +54,6 @@ export async function processNextInboundReservation() {
   }
 
   const item = inbox as InboxRow;
-
-  await supabase
-    .from("hotel_channel_reservation_inbox")
-    .update({
-      processing_status: "processing",
-      error_message: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", item.id);
 
   try {
     if (!item.room_type_id) {
