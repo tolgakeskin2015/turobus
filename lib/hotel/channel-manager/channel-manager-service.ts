@@ -611,6 +611,76 @@ export async function getChannelRuntimeStatus(
   };
 }
 
+export async function activateChannelConnection(
+  companyId: string,
+  connectionId: string
+): Promise<{
+  mode:
+    | "simulation"
+    | "live";
+}> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const token =
+    session?.access_token;
+
+  if (!token) {
+    throw new Error(
+      "Oturum gerekli."
+    );
+  }
+
+  const response = await fetch(
+    "/api/channel-manager/connections",
+    {
+      method:
+        "POST",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+
+        Authorization:
+          `Bearer ${token}`,
+      },
+
+      body:
+        JSON.stringify({
+          action:
+            "activate_connection",
+
+          companyId,
+          connectionId,
+        }),
+    }
+  );
+
+  const result =
+    await response.json();
+
+  if (
+    !response.ok ||
+    !result.ok
+  ) {
+    throw new Error(
+      String(
+        result.error ??
+        "Kanal bağlantısı aktif edilemedi."
+      )
+    );
+  }
+
+  return {
+    mode:
+      result.mode ===
+      "live"
+        ? "live"
+        : "simulation",
+  };
+}
+
 export async function updateConnectionStatus(
   companyId: string,
   connectionId: string,

@@ -29,6 +29,7 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 import {
+  activateChannelConnection,
   cancelQueueItem,
   ChannelCode,
   ChannelConnection,
@@ -454,6 +455,28 @@ export default function ChannelManagerPage() {
     setSuccessMessage("");
 
     try {
+      if (
+        status ===
+        "active"
+      ) {
+        const result =
+          await activateChannelConnection(
+            membership.company_id,
+            connection.id
+          );
+
+        await refresh();
+
+        setSuccessMessage(
+          result.mode ===
+          "live"
+            ? `${connection.connection_name} canlı OTA modunda aktif edildi.`
+            : `${connection.connection_name} simülasyon modunda aktif edildi.`
+        );
+
+        return;
+      }
+
       await updateConnectionStatus(
         membership.company_id,
         connection.id,

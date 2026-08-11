@@ -431,7 +431,7 @@ export async function POST(
         "hotel_channel_connections"
       )
       .select(
-        "id,company_id,hotel_id,channel_code,status,endpoint_url,external_hotel_id,credentials,settings"
+        "id,company_id,hotel_id,channel_code,status,endpoint_url,external_hotel_id,credentials,settings,last_success_at"
       )
       .eq(
         "company_id",
@@ -460,6 +460,131 @@ export async function POST(
           status: 404,
         }
       );
+    }
+
+    if (
+      action ===
+      "activate_connection"
+    ) {
+      const credentials =
+        asRecord(
+          connection.credentials
+        );
+
+      const settings =
+        asRecord(
+          connection.settings
+        );
+
+      const liveMode =
+        process.env.CHANNEL_LIVE_MODE ===
+        "true";
+
+      if (
+        Object.keys(
+          credentials
+        ).length === 0
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Bağlantı aktif edilemez: credentials eksik.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      if (
+        !connection.endpoint_url
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Bağlantı aktif edilemez: provider endpoint eksik.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      validateProviderEndpoint(
+        connection.endpoint_url
+      );
+
+      if (
+        liveMode &&
+        !connection.last_success_at
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Canlı modda bağlantıyı aktif etmeden önce başarılı bağlantı testi gereklidir.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      const {
+        error: updateError,
+      } = await admin
+        .from(
+          "hotel_channel_connections"
+        )
+        .update({
+          status:
+            "active",
+
+          settings: {
+            ...settings,
+
+            activation_checked_at:
+              new Date()
+                .toISOString(),
+
+            activation_mode:
+              liveMode
+                ? "live"
+                : "simulation",
+          },
+
+          updated_at:
+            new Date()
+              .toISOString(),
+        })
+        .eq(
+          "company_id",
+          companyId
+        )
+        .eq(
+          "id",
+          connectionId
+        );
+
+      if (updateError) {
+        throw new Error(
+          updateError.message
+        );
+      }
+
+      return NextResponse.json({
+        ok: true,
+
+        activated:
+          true,
+
+        mode:
+          liveMode
+            ? "live"
+            : "simulation",
+      });
     }
 
     if (
