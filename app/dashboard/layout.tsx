@@ -534,6 +534,17 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
+        href: "/dashboard/package-os/vouchers",
+        label: "Voucher & QR",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
         href: "/dashboard/package-os/hotels",
         label: "Paket Otelleri",
         icon: FaHotel,

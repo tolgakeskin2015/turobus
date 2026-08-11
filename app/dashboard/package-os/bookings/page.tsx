@@ -19,6 +19,7 @@ import {
 type Booking = {
   id: string;
   booking_code: string;
+  public_token: string;
 
   customer_name: string;
   customer_phone: string | null;
@@ -148,6 +149,7 @@ export default function PackageBookingsPage() {
           .select(`
             id,
             booking_code,
+            public_token,
             customer_name,
             customer_phone,
             package_type,
@@ -608,6 +610,15 @@ export default function PackageBookingsPage() {
                           booking.payment_status
                         )}
                       </p>
+
+                      <a
+                        href={`/seyahat/${booking.public_token}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-3 inline-block rounded-lg border border-orange-500/30 px-3 py-2 text-xs font-black text-orange-400"
+                      >
+                        Müşteri Seyahat Sayfası
+                      </a>
                     </td>
                   </tr>
                 )
