@@ -17,6 +17,7 @@ import { supabase } from "@/lib/supabase";
 
 type CustomerLiveMapProps = {
   reservationId: string;
+  reservationCode?: string | null;
 };
 
 type LiveLocation = {
@@ -43,6 +44,7 @@ function minutesSince(date: string) {
 
 export default function CustomerLiveMap({
   reservationId,
+  reservationCode,
 }: CustomerLiveMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -54,49 +56,53 @@ export default function CustomerLiveMap({
   const [errorMessage, setErrorMessage] = useState("");
 
   const loadLocation = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("tour_live_locations")
-      .select(
-        "reservation_id, latitude, longitude, accuracy_meters, speed_kmh, heading_degrees, location_name, sharing_active, captured_at, updated_at"
-      )
-      .eq("reservation_id", reservationId)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Müşteri canlı konum hatası:", error);
-      setErrorMessage("Araç konumu yüklenemedi.");
+    if (!reservationCode) {
+      setLocation(null);
       setLoading(false);
       return;
     }
 
-    setLocation((data as LiveLocation | null) ?? null);
+    const { data, error } = await supabase.rpc(
+      "get_public_tour_tracking",
+      {
+        p_code: reservationCode,
+      }
+    );
+
+    if (error) {
+      console.error(
+        "Müşteri canlı konum hatası:",
+        error
+      );
+      setErrorMessage(
+        "Araç konumu yüklenemedi."
+      );
+      setLoading(false);
+      return;
+    }
+
+    const payload = data as {
+      live_location: LiveLocation | null;
+    } | null;
+
+    setLocation(
+      payload?.live_location ?? null
+    );
     setErrorMessage("");
     setLoading(false);
-  }, [reservationId]);
+  }, [reservationCode]);
 
   useEffect(() => {
-    loadLocation();
+    void loadLocation();
 
-    const channel = supabase
-      .channel(`customer-live-map-${reservationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tour_live_locations",
-          filter: `reservation_id=eq.${reservationId}`,
-        },
-        () => {
-          loadLocation();
-        }
-      )
-      .subscribe();
+    const timer = window.setInterval(() => {
+      void loadLocation();
+    }, 10000);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.clearInterval(timer);
     };
-  }, [loadLocation, reservationId]);
+  }, [loadLocation]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) {

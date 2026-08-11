@@ -326,6 +326,7 @@ export default function PublicTrackingPage() {
         <div className="mt-8">
           <CustomerLiveMap
             reservationId={reservation.id}
+            reservationCode={reservation.reservation_code}
           />
         </div>
 
