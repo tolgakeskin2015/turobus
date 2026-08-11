@@ -389,13 +389,17 @@ export async function deleteFolioCharge(
 
 export async function deleteFolioPayment(
   companyId: string,
-  paymentId: string
+  paymentId: string,
+  reason?: string | null
 ): Promise<void> {
-  const { error } = await supabase
-    .from("hotel_folio_payments")
-    .delete()
-    .eq("company_id", companyId)
-    .eq("id", paymentId);
+  const { error } = await supabase.rpc(
+    "cancel_hotel_folio_payment",
+    {
+      p_company_id: companyId,
+      p_payment_id: paymentId,
+      p_reason: reason ?? null,
+    }
+  );
 
   if (error) {
     throw new Error(message(error));

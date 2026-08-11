@@ -579,7 +579,7 @@ export default function FolioPage() {
 
     if (
       !window.confirm(
-        "Bu ödeme hareketi kalıcı olarak silinsin mi?"
+        "Bu ödeme hareketi iptal edilsin mi? Finansal kayıt silinmeyecek ve işlem geçmişinde korunacaktır."
       )
     ) {
       return;
@@ -596,13 +596,13 @@ export default function FolioPage() {
       await refreshDetail();
 
       setSuccessMessage(
-        "Ödeme hareketi silindi."
+        "Ödeme hareketi iptal edildi."
       );
     } catch (error: unknown) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Ödeme silinemedi."
+          : "Ödeme iptal edilemedi."
       );
     } finally {
       setProcessing(false);
