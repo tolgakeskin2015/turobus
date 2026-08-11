@@ -73,9 +73,12 @@ export async function getHotelReportData(
 
     supabase
       .from("hotel_folio_payments")
-      .select("amount, exchange_rate, payment_type")
+      .select(
+        "base_amount, payment_type, transaction_type, status, payment_date"
+      )
       .eq("company_id", companyId)
-      .eq("hotel_id", hotelId),
+      .eq("hotel_id", hotelId)
+      .eq("status", "completed"),
 
     supabase
       .from("hotel_maintenance_requests")
@@ -132,10 +135,9 @@ export async function getHotelReportData(
     payments.reduce(
       (total, item) => {
         const amount =
-          Number(item.amount || 0);
+          Number(item.base_amount || 0);
 
-        const rate =
-          Number(item.exchange_rate || 1);
+        const rate = 1;
 
         if (
           item.payment_type === "refund"

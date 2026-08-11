@@ -171,18 +171,17 @@ export async function runNightAudit(
 
 export async function reopenNightAudit(
   companyId: string,
-  auditId: string
+  auditId: string,
+  reason?: string | null
 ): Promise<void> {
-  const { error } = await supabase
-    .from("hotel_night_audits")
-    .update({
-      status: "reopened",
-      completed_at: null,
-      updated_at:
-        new Date().toISOString(),
-    })
-    .eq("company_id", companyId)
-    .eq("id", auditId);
+  const { error } = await supabase.rpc(
+    "reopen_hotel_night_audit",
+    {
+      p_company_id: companyId,
+      p_audit_id: auditId,
+      p_reason: reason ?? null,
+    }
+  );
 
   if (error) {
     throw new Error(
