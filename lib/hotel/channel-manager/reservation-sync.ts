@@ -37,3 +37,37 @@ export async function notifyReservationChannelSync(
     );
   }
 }
+
+
+export function normalizeExternalReservationCode(
+  value: unknown
+): string {
+  return String(value ?? "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .toUpperCase();
+}
+
+export function normalizeGuestEmail(
+  value: unknown
+): string | null {
+  const email = String(value ?? "")
+    .trim()
+    .toLowerCase();
+
+  return email.includes("@")
+    ? email
+    : null;
+}
+
+export function normalizeGuestPhone(
+  value: unknown
+): string | null {
+  const phone = String(value ?? "")
+    .replace(/[^0-9+]/g, "")
+    .trim();
+
+  return phone.length >= 7
+    ? phone
+    : null;
+}

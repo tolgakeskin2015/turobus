@@ -1,3 +1,5 @@
+import { supabase } from "@/lib/supabase";
+
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function getChannelEngineStatus() {
@@ -44,5 +46,106 @@ export async function getChannelEngineStatus() {
       completed: completed.count ?? 0,
     },
     checkedAt: new Date().toISOString(),
+  };
+}
+
+
+export type ChannelHealthSummary = {
+  activeConnections: number;
+  pendingJobs: number;
+  processingJobs: number;
+  failedJobs: number;
+  deadJobs: number;
+  healthy: boolean;
+};
+
+export async function getChannelHealthSummary(
+  companyId: string
+): Promise<ChannelHealthSummary> {
+  const [
+    connectionsResult,
+    pendingResult,
+    processingResult,
+    failedResult,
+    deadResult,
+  ] = await Promise.all([
+    supabase
+      .from("hotel_channel_connections")
+      .select("id", {
+        count: "exact",
+        head: true,
+      })
+      .eq("company_id", companyId)
+      .eq("is_active", true),
+
+    supabase
+      .from("hotel_channel_sync_queue")
+      .select("id", {
+        count: "exact",
+        head: true,
+      })
+      .eq("company_id", companyId)
+      .eq("status", "pending"),
+
+    supabase
+      .from("hotel_channel_sync_queue")
+      .select("id", {
+        count: "exact",
+        head: true,
+      })
+      .eq("company_id", companyId)
+      .eq("status", "processing"),
+
+    supabase
+      .from("hotel_channel_sync_queue")
+      .select("id", {
+        count: "exact",
+        head: true,
+      })
+      .eq("company_id", companyId)
+      .eq("status", "failed"),
+
+    supabase
+      .from("hotel_channel_sync_queue")
+      .select("id", {
+        count: "exact",
+        head: true,
+      })
+      .eq("company_id", companyId)
+      .eq("status", "dead"),
+  ]);
+
+  const firstError =
+    connectionsResult.error ??
+    pendingResult.error ??
+    processingResult.error ??
+    failedResult.error ??
+    deadResult.error;
+
+  if (firstError) {
+    throw new Error(
+      firstError.message ||
+        "Channel Manager sağlık durumu alınamadı."
+    );
+  }
+
+  const summary = {
+    activeConnections:
+      connectionsResult.count ?? 0,
+    pendingJobs:
+      pendingResult.count ?? 0,
+    processingJobs:
+      processingResult.count ?? 0,
+    failedJobs:
+      failedResult.count ?? 0,
+    deadJobs:
+      deadResult.count ?? 0,
+  };
+
+  return {
+    ...summary,
+    healthy:
+      summary.deadJobs === 0 &&
+      summary.failedJobs < 10,
   };
 }

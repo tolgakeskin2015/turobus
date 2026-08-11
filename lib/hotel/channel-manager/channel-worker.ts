@@ -284,3 +284,45 @@ export async function processChannelQueueBatch(
     results,
   };
 }
+
+
+export function getRetryDelayMs(
+  attempt: number
+): number {
+  const normalizedAttempt = Math.max(
+    1,
+    Number(attempt || 1)
+  );
+
+  const baseMs = 30_000;
+  const maxMs = 30 * 60_000;
+
+  return Math.min(
+    baseMs * 2 ** (normalizedAttempt - 1),
+    maxMs
+  );
+}
+
+export function isRetryableChannelError(
+  error: unknown
+): boolean {
+  if (!error) return false;
+
+  const message =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : String(error).toLowerCase();
+
+  const permanentPatterns = [
+    "invalid mapping",
+    "mapping not found",
+    "unauthorized",
+    "forbidden",
+    "invalid credentials",
+    "unsupported provider",
+  ];
+
+  return !permanentPatterns.some(
+    (pattern) => message.includes(pattern)
+  );
+}
