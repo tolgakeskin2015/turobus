@@ -19,6 +19,7 @@ import {
 type Booking = {
   id: string;
   booking_code: string;
+  public_token: string;
 
   customer_name: string;
   customer_phone: string | null;
@@ -212,6 +213,7 @@ export default function PackagePaymentsPage() {
           .select(`
             id,
             booking_code,
+            public_token,
             customer_name,
             customer_phone,
             destination,
@@ -1058,6 +1060,29 @@ export default function PackagePaymentsPage() {
                           booking.payment_status
                         )}
                       </span>
+
+                      {Number(
+                        booking.balance_amount
+                      ) > 0 && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const url =
+                              `${window.location.origin}/odeme/${booking.public_token}`;
+
+                            await navigator.clipboard.writeText(
+                              url
+                            );
+
+                            setSuccessMessage(
+                              "Online ödeme linki kopyalandı."
+                            );
+                          }}
+                          className="ml-2 rounded-lg border border-orange-500/30 px-3 py-1 text-xs font-black text-orange-400"
+                        >
+                          Ödeme Linki
+                        </button>
+                      )}
                     </td>
                   </tr>
                 )
