@@ -472,6 +472,92 @@ const menuGroups: MenuGroup[] = [
   },
 
   {
+    title: "PAKET SATIŞ MERKEZİ",
+    items: [
+      {
+        href: "/dashboard/package-os",
+        label: "Genel Bakış",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/package-os/builder",
+        label: "Paket Oluştur",
+        icon: FaPlusCircle,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/package-os/quotes",
+        label: "Teklifler",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/package-os/bookings",
+        label: "Paket Rezervasyonları",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/package-os/hotels",
+        label: "Paket Otelleri",
+        icon: FaHotel,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/package-os/activities",
+        label: "Paket Aktiviteleri",
+        icon: FaBus,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/tedarikciler",
+        label: "Tedarikçiler",
+        icon: FaBuilding,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+    ],
+  },
+
+  {
     title: "CRM & SATIŞ",
     items: [
       {
@@ -588,6 +674,7 @@ export default function DashboardLayout({
       new Set([
         "ANA MERKEZ",
         "TUR & OPERASYON",
+        "PAKET SATIŞ MERKEZİ",
         "OTEL PMS",
       ])
   );
