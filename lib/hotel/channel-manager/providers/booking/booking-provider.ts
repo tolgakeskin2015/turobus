@@ -1,3 +1,7 @@
+import {
+  buildProviderRuntimeConfig,
+} from "../runtime/provider-runtime";
+
 import type {
   ChannelProviderAdapter,
   ProviderOperationRequest,
@@ -97,3 +101,17 @@ export const bookingProvider: ChannelProviderAdapter = {
     };
   },
 };
+
+
+export function getBookingRuntime(
+  input: {
+    endpointUrl?: string | null;
+    externalHotelId?: string | null;
+    credentials?: unknown;
+    settings?: unknown;
+  }
+) {
+  return buildProviderRuntimeConfig(
+    input
+  );
+}

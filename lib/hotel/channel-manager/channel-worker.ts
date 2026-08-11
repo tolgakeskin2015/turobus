@@ -42,7 +42,7 @@ export async function processNextChannelQueueItem() {
     await supabase
       .from("hotel_channel_connections")
       .select(
-        "id, company_id, hotel_id, channel_code, connection_name, status, external_hotel_id, endpoint_url"
+        "id, company_id, hotel_id, channel_code, connection_name, status, external_hotel_id, endpoint_url, credentials, settings"
       )
       .eq("id", item.connection_id)
       .eq("company_id", item.company_id)
@@ -90,6 +90,19 @@ export async function processNextChannelQueueItem() {
       operationType: item.operation_type,
       endpointUrl: connection.endpoint_url,
       payload: item.payload ?? {},
+      connection: {
+        connectionId: connection.id,
+        companyId: connection.company_id,
+        hotelId: connection.hotel_id,
+        endpointUrl:
+          connection.endpoint_url,
+        externalHotelId:
+          connection.external_hotel_id,
+        credentials:
+          connection.credentials ?? {},
+        settings:
+          connection.settings ?? {},
+      },
     });
   } catch (error) {
     const message =

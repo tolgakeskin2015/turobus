@@ -3,6 +3,7 @@ export type ProviderOperationRequest = {
   operationType: string;
   endpointUrl?: string | null;
   payload: Record<string, unknown>;
+  connection?: ProviderConnectionContext;
 };
 
 export type ProviderOperationResult = {
@@ -19,3 +20,24 @@ export interface ChannelProviderAdapter {
     input: ProviderOperationRequest
   ): Promise<ProviderOperationResult>;
 }
+
+
+export type ProviderConnectionContext = {
+  connectionId?: string;
+  companyId?: string;
+  hotelId?: string;
+
+  endpointUrl?: string | null;
+
+  externalHotelId?: string | null;
+
+  credentials?: Record<
+    string,
+    unknown
+  >;
+
+  settings?: Record<
+    string,
+    unknown
+  >;
+};

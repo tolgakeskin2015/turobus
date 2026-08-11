@@ -1,3 +1,7 @@
+import {
+  buildProviderRuntimeConfig,
+} from "../runtime/provider-runtime";
+
 import type {
   ChannelProviderAdapter,
   ProviderOperationRequest,
@@ -25,3 +29,17 @@ export const expediaProvider: ChannelProviderAdapter = {
     };
   },
 };
+
+
+export function getExpediaRuntime(
+  input: {
+    endpointUrl?: string | null;
+    externalHotelId?: string | null;
+    credentials?: unknown;
+    settings?: unknown;
+  }
+) {
+  return buildProviderRuntimeConfig(
+    input
+  );
+}

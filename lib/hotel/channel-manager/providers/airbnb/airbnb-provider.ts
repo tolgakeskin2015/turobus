@@ -1,3 +1,7 @@
+import {
+  buildProviderRuntimeConfig,
+} from "../runtime/provider-runtime";
+
 import type {
   ChannelProviderAdapter,
   ProviderOperationRequest,
@@ -25,3 +29,17 @@ export const airbnbProvider: ChannelProviderAdapter = {
     };
   },
 };
+
+
+export function getAirbnbRuntime(
+  input: {
+    endpointUrl?: string | null;
+    externalHotelId?: string | null;
+    credentials?: unknown;
+    settings?: unknown;
+  }
+) {
+  return buildProviderRuntimeConfig(
+    input
+  );
+}

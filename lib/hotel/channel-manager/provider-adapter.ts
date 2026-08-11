@@ -3,12 +3,15 @@ import {
 } from "./providers/provider-registry";
 
 import type {
+  ProviderConnectionContext,
   ProviderOperationRequest,
   ProviderOperationResult,
 } from "./providers/types";
 
 export type ChannelOperationRequest =
-  ProviderOperationRequest;
+  ProviderOperationRequest & {
+    connection?: ProviderConnectionContext;
+  };
 
 export type ChannelOperationResult =
   ProviderOperationResult;
