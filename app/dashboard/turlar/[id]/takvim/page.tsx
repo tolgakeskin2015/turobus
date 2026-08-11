@@ -47,6 +47,9 @@ export default function TourCalendarPage() {
     status: "active",
   });
 
+  const [companyId, setCompanyId] =
+    useState<string | null>(null);
+
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -55,6 +58,44 @@ export default function TourCalendarPage() {
   async function loadData() {
     setLoading(true);
     setMessage(null);
+
+    const {
+      data: userData,
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !userData.user) {
+      setMessage({
+        type: "error",
+        text: "Oturum bulunamadı.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const {
+      data: membership,
+      error: membershipError,
+    } = await supabase
+      .from("company_members")
+      .select("company_id")
+      .eq("user_id", userData.user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (membershipError || !membership) {
+      setMessage({
+        type: "error",
+        text: "Firma üyeliği bulunamadı.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const currentCompanyId =
+      membership.company_id;
+
+    setCompanyId(currentCompanyId);
 
     const [
       { data: tourData, error: tourError },
@@ -70,6 +111,7 @@ export default function TourCalendarPage() {
         .from("tour_departures")
         .select("*")
         .eq("tour_id", params.id)
+        .eq("company_id", currentCompanyId)
         .order("departure_date", { ascending: true }),
     ]);
 
@@ -121,9 +163,19 @@ export default function TourCalendarPage() {
     setSaving(true);
     setMessage(null);
 
+    if (!companyId) {
+      setMessage({
+        type: "error",
+        text: "Şirket bilgisi bulunamadı.",
+      });
+      setSaving(false);
+      return;
+    }
+
     const { error } = await supabase
       .from("tour_departures")
       .insert({
+        company_id: companyId,
         tour_id: params.id,
         departure_date: form.departure_date,
         capacity: Number(form.capacity),
@@ -181,7 +233,8 @@ export default function TourCalendarPage() {
     const { error } = await supabase
       .from("tour_departures")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("company_id", companyId);
 
     if (error) {
       setMessage({
