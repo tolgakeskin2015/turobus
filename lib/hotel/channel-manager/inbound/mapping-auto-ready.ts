@@ -1,4 +1,6 @@
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import {
+  getSupabaseAdmin,
+} from "@/lib/supabase-admin";
 
 export async function resolveWaitingInboundMappings(
   input?: {
@@ -6,12 +8,15 @@ export async function resolveWaitingInboundMappings(
     connectionId?: string;
   }
 ) {
-  const supabase = getSupabaseAdmin();
+  const supabase =
+    getSupabaseAdmin();
 
   let query = supabase
-    .from("hotel_channel_reservation_inbox")
+    .from(
+      "hotel_channel_reservation_inbox"
+    )
     .select(
-      "id,company_id,connection_id,external_room_id"
+      "id,company_id,connection_id,external_room_id,external_rate_plan_id"
     )
     .eq(
       "processing_status",
@@ -32,22 +37,37 @@ export async function resolveWaitingInboundMappings(
     );
   }
 
-  const { data: inboxRows, error } =
-    await query.limit(100);
+  const {
+    data: inboxRows,
+    error,
+  } = await query.limit(100);
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(
+      error.message
+    );
   }
 
   let resolved = 0;
 
-  for (const inbox of inboxRows ?? []) {
-    if (!inbox.external_room_id) continue;
+  for (
+    const inbox of
+    inboxRows ?? []
+  ) {
+    if (
+      !inbox.external_room_id
+    ) {
+      continue;
+    }
 
-    const { data: mapping, error: mappingError } =
-      await supabase
-        .from("hotel_channel_room_mappings")
-        .select("room_type_id")
+    let mappingQuery =
+      supabase
+        .from(
+          "hotel_channel_room_mappings"
+        )
+        .select(
+          "room_type_id,rate_plan_id"
+        )
         .eq(
           "company_id",
           inbox.company_id
@@ -60,39 +80,93 @@ export async function resolveWaitingInboundMappings(
           "external_room_id",
           inbox.external_room_id
         )
-        .eq("is_active", true)
+        .eq(
+          "is_active",
+          true
+        );
+
+    if (
+      inbox.external_rate_plan_id
+    ) {
+      mappingQuery =
+        mappingQuery.eq(
+          "external_rate_plan_id",
+          inbox.external_rate_plan_id
+        );
+    } else {
+      mappingQuery =
+        mappingQuery.is(
+          "external_rate_plan_id",
+          null
+        );
+    }
+
+    const {
+      data: mapping,
+      error: mappingError,
+    } =
+      await mappingQuery
+        .limit(1)
         .maybeSingle();
 
     if (mappingError) {
-      throw new Error(mappingError.message);
+      throw new Error(
+        mappingError.message
+      );
     }
 
-    if (!mapping?.room_type_id) continue;
+    if (
+      !mapping?.room_type_id
+    ) {
+      continue;
+    }
 
-    const { error: updateError } =
-      await supabase
-        .from(
-          "hotel_channel_reservation_inbox"
-        )
-        .update({
-          room_type_id:
-            mapping.room_type_id,
-          processing_status: "ready",
-          error_message: null,
-          updated_at:
-            new Date().toISOString(),
-        })
-        .eq("id", inbox.id);
+    const {
+      error: updateError,
+    } = await supabase
+      .from(
+        "hotel_channel_reservation_inbox"
+      )
+      .update({
+        room_type_id:
+          mapping.room_type_id,
+
+        rate_plan_id:
+          mapping.rate_plan_id ??
+          null,
+
+        processing_status:
+          "ready",
+
+        error_message:
+          null,
+
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        "id",
+        inbox.id
+      )
+      .eq(
+        "processing_status",
+        "mapping_required"
+      );
 
     if (updateError) {
-      throw new Error(updateError.message);
+      throw new Error(
+        updateError.message
+      );
     }
 
     resolved += 1;
   }
 
   return {
-    checked: inboxRows?.length ?? 0,
+    checked:
+      inboxRows?.length ?? 0,
+
     resolved,
   };
 }

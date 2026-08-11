@@ -140,7 +140,7 @@ export async function getHotelReportData(
         const rate = 1;
 
         if (
-          item.payment_type === "refund"
+          item.transaction_type === "refund"
         ) {
           return total - amount * rate;
         }
