@@ -363,6 +363,13 @@ export default function PackageBookingsPage() {
             </Link>
 
             <Link
+              href="/dashboard/package-os/payments"
+              className="rounded-xl bg-orange-500 px-5 py-3 text-sm font-black text-black"
+            >
+              Ödeme & Tahsilat
+            </Link>
+
+            <Link
               href="/dashboard/package-os"
               className="rounded-xl border border-white/10 px-5 py-3 text-sm font-black"
             >
