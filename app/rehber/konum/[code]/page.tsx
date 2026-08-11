@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   FaArrowLeft,
   FaBus,
@@ -10,6 +10,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
+import { getCurrentMembership } from "@/lib/current-user";
 import LiveLocationShare from "@/components/tracking/LiveLocationShare";
 
 type Reservation = {
@@ -27,6 +28,8 @@ export default function GuideLocationPage() {
   const params = useParams<{ code: string }>();
   const code = decodeURIComponent(params.code);
 
+  const router = useRouter();
+
   const [reservation, setReservation] =
     useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,13 +39,36 @@ export default function GuideLocationPage() {
     setLoading(true);
     setErrorMessage("");
 
+    const {
+      data: userData,
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !userData.user) {
+      router.replace("/giris");
+      return;
+    }
+
+    const membership = await getCurrentMembership(
+      userData.user.id
+    );
+
+    if (!membership) {
+      setErrorMessage("Firma üyeliği bulunamadı.");
+      setLoading(false);
+      return;
+    }
+
+    const currentCompanyId = membership.company_id;
+
     const isUuid = /^[0-9a-f-]{36}$/i.test(code);
 
     let query = supabase
       .from("reservations")
       .select(
         "id, reservation_code, tour_title, tour_date, guests, full_name, status, payment_status"
-      );
+      )
+      .eq("company_id", currentCompanyId);
 
     query = isUuid
       ? query.eq("id", code)
@@ -59,7 +85,7 @@ export default function GuideLocationPage() {
 
     setReservation(data as Reservation);
     setLoading(false);
-  }, [code]);
+  }, [code, router]);
 
   useEffect(() => {
     loadReservation();

@@ -13,6 +13,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
+import { getCurrentMembership } from "@/lib/current-user";
 
 type Reservation = {
   id: string;
@@ -90,6 +91,29 @@ export default function CrewQrScannerPage() {
     await stopScanner();
 
     try {
+      const {
+        data: userData,
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !userData.user) {
+        throw new Error(
+          "QR işlemi için giriş yapmanız gerekiyor."
+        );
+      }
+
+      const membership = await getCurrentMembership(
+        userData.user.id
+      );
+
+      if (!membership) {
+        throw new Error(
+          "Firma üyeliği bulunamadı."
+        );
+      }
+
+      const currentCompanyId = membership.company_id;
+
       const code = extractReservationCode(rawValue);
       const isUuid = /^[0-9a-f-]{36}$/i.test(code);
 
@@ -97,7 +121,8 @@ export default function CrewQrScannerPage() {
         .from("reservations")
         .select(
           "id, reservation_code, tour_title, tour_date, full_name, guests, payment_status, status"
-        );
+        )
+        .eq("company_id", currentCompanyId);
 
       query = isUuid
         ? query.eq("id", code)

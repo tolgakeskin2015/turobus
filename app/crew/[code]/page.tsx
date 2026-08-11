@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   FaBus,
   FaCalendarAlt,
@@ -12,6 +12,7 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
+import { getCurrentMembership } from "@/lib/current-user";
 import LiveLocationShare from "@/components/tracking/LiveLocationShare";
 
 type OperationStatus =
@@ -139,6 +140,8 @@ export default function CrewPage() {
   const params = useParams<{ code: string }>();
   const code = decodeURIComponent(params.code);
 
+  const router = useRouter();
+
   const [reservation, setReservation] =
     useState<Reservation | null>(null);
   const [checkin, setCheckin] =
@@ -156,13 +159,36 @@ export default function CrewPage() {
     setLoading(true);
     setErrorMessage("");
 
+    const {
+      data: userData,
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !userData.user) {
+      router.replace("/giris");
+      return;
+    }
+
+    const membership = await getCurrentMembership(
+      userData.user.id
+    );
+
+    if (!membership) {
+      setErrorMessage("Firma üyeliği bulunamadı.");
+      setLoading(false);
+      return;
+    }
+
+    const currentCompanyId = membership.company_id;
+
     const isUuid = /^[0-9a-f-]{36}$/i.test(code);
 
     let query = supabase
       .from("reservations")
       .select(
         "id, reservation_code, tour_title, tour_date, guests, full_name, phone, email, payment_status"
-      );
+      )
+      .eq("company_id", currentCompanyId);
 
     query = isUuid
       ? query.eq("id", code)
@@ -206,6 +232,7 @@ export default function CrewPage() {
             current_status
           )
         `)
+        .eq("company_id", currentCompanyId)
         .eq("tour_title", data.tour_title)
         .eq("tour_date", data.tour_date)
         .neq("status", "cancelled")
@@ -222,7 +249,7 @@ export default function CrewPage() {
       (passengerData ?? []) as unknown as ManifestPassenger[]
     );
     setLoading(false);
-  }, [code]);
+  }, [code, router]);
 
   useEffect(() => {
     loadCrewData();

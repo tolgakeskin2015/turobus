@@ -108,108 +108,58 @@ export default function PublicTrackingPage() {
     setLoading(true);
     setErrorMessage("");
 
-    const isUuid = /^[0-9a-f-]{36}$/i.test(code);
+    const { data, error } = await supabase.rpc(
+      "get_public_tour_tracking",
+      {
+        p_code: code,
+      }
+    );
 
-    let query = supabase
-      .from("reservations")
-      .select(
-        "id, reservation_code, tour_title, tour_date, guests, full_name, status, payment_status"
-      );
+    if (error || !data) {
+      if (error) {
+        console.error(error);
+      }
 
-    query = isUuid
-      ? query.eq("id", code)
-      : query.eq("reservation_code", code);
-
-    const {
-      data: reservationData,
-      error: reservationError,
-    } = await query.maybeSingle();
-
-    if (reservationError || !reservationData) {
+      setReservation(null);
+      setCheckin(null);
+      setHistory([]);
       setErrorMessage("Takip bilgisi bulunamadı.");
       setLoading(false);
       return;
     }
 
-    setReservation(reservationData as Reservation);
+    const payload = data as {
+      reservation: Reservation;
+      checkin: Checkin | null;
+      history: HistoryItem[];
+    };
 
-    const [
-      { data: checkinData },
-      { data: historyData },
-    ] = await Promise.all([
-      supabase
-        .from("tour_checkins")
-        .select(
-          "checked_in, checked_in_at, current_status, status_note, last_location_name, last_updated_at"
-        )
-        .eq("reservation_id", reservationData.id)
-        .maybeSingle(),
+    if (!payload.reservation) {
+      setReservation(null);
+      setCheckin(null);
+      setHistory([]);
+      setErrorMessage("Takip bilgisi bulunamadı.");
+      setLoading(false);
+      return;
+    }
 
-      supabase
-        .from("tour_status_history")
-        .select(
-          "id, status, note, location_name, created_at"
-        )
-        .eq("reservation_id", reservationData.id)
-        .order("created_at", { ascending: false }),
-    ]);
-
-    setCheckin((checkinData as Checkin | null) ?? null);
-    setHistory((historyData as HistoryItem[] | null) ?? []);
+    setReservation(payload.reservation);
+    setCheckin(payload.checkin ?? null);
+    setHistory(payload.history ?? []);
     setLoading(false);
   }, [code]);
 
   useEffect(() => {
-    loadTracking();
+    void loadTracking();
 
-    if (!reservation?.id) {
-      return;
-    }
-
-    const channel = supabase
-      .channel(`public-tracking-${reservation.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tour_checkins",
-          filter: `reservation_id=eq.${reservation.id}`,
-        },
-        () => {
-          loadTracking();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "tour_status_history",
-          filter: `reservation_id=eq.${reservation.id}`,
-        },
-        () => {
-          loadTracking();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tour_live_locations",
-          filter: `reservation_id=eq.${reservation.id}`,
-        },
-        () => {
-          loadTracking();
-        }
-      )
-      .subscribe();
+    const timer = window.setInterval(() => {
+      void loadTracking();
+    }, 10000);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.clearInterval(timer);
     };
-  }, [loadTracking, reservation?.id]);
+  }, [loadTracking]);
 
   if (loading) {
     return (
