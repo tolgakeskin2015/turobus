@@ -713,9 +713,66 @@ export default function PackageQuotesPage() {
 
                     {quote.status ===
                       "accepted" && (
-                      <span className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-400">
-                        ✓ Müşteri Kabul Etti
-                      </span>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setErrorMessage("");
+                          setSuccessMessage("");
+
+                          try {
+                            const { data, error } =
+                              await supabase.rpc(
+                                "convert_package_quote_to_booking",
+                                {
+                                  p_quote_id: quote.id,
+                                }
+                              );
+
+                            if (error) {
+                              throw new Error(
+                                error.message
+                              );
+                            }
+
+                            const result = data as {
+                              booking_code?: string;
+                            };
+
+                            setSuccessMessage(
+                              result?.booking_code
+                                ? `Rezervasyon oluşturuldu: ${result.booking_code}`
+                                : "Rezervasyon oluşturuldu."
+                            );
+
+                            if (membership) {
+                              await loadQuotes(
+                                membership.company_id
+                              );
+                            }
+                          } catch (error) {
+                            console.error(error);
+
+                            setErrorMessage(
+                              error instanceof Error
+                                ? error.message
+                                : "Rezervasyon oluşturulamadı."
+                            );
+                          }
+                        }}
+                        className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-black text-black"
+                      >
+                        Rezervasyona Çevir
+                      </button>
+                    )}
+
+                    {quote.status ===
+                      "converted" && (
+                      <Link
+                        href="/dashboard/package-os/bookings"
+                        className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300"
+                      >
+                        Rezervasyonları Aç
+                      </Link>
                     )}
                   </div>
                 </div>
