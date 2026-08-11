@@ -101,6 +101,7 @@ export default function TourCalendarPage() {
         .from("tours")
         .select("id, title, adult_price, child_price")
         .eq("id", params.id)
+        .eq("company_id", currentCompanyId)
         .single(),
 
       supabase

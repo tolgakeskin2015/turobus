@@ -25,6 +25,7 @@ import {
   getUserMemberships,
   resolveActiveMembership,
   setActiveCompanyId,
+  clearActiveCompanyId,
 } from "@/lib/current-user";
 
 type DashboardLayoutProps = {
@@ -618,6 +619,7 @@ export default function DashboardLayout({
         );
 
       if (!currentMembership) {
+        clearActiveCompanyId();
         await supabase.auth.signOut();
         router.replace("/giris");
         return;
@@ -735,6 +737,7 @@ export default function DashboardLayout({
   }
 
   async function signOut() {
+    clearActiveCompanyId();
     await supabase.auth.signOut();
     router.replace("/giris");
     router.refresh();

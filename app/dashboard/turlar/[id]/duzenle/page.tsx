@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentMembership } from "@/lib/current-user";
 import {
   FaArrowLeft,
   FaCheckCircle,
@@ -67,6 +68,8 @@ export default function EditTourPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [companyId, setCompanyId] =
+    useState<string | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -77,10 +80,40 @@ export default function EditTourPage() {
       setLoading(true);
       setMessage(null);
 
+      const {
+        data: userData,
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !userData.user) {
+        setMessage({
+          type: "error",
+          text: "Oturum bulunamadı.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const membership = await getCurrentMembership(
+        userData.user.id
+      );
+
+      if (!membership) {
+        setMessage({
+          type: "error",
+          text: "Firma üyeliği bulunamadı.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      setCompanyId(membership.company_id);
+
       const { data, error } = await supabase
         .from("tours")
         .select("*")
         .eq("id", params.id)
+        .eq("company_id", membership.company_id)
         .single();
 
       if (error || !data) {
@@ -211,7 +244,8 @@ export default function EditTourPage() {
         status: form.status,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", params.id);
+      .eq("id", params.id)
+      .eq("company_id", companyId);
 
     if (error) {
       console.error(error);
@@ -253,7 +287,8 @@ export default function EditTourPage() {
     const { error } = await supabase
       .from("tours")
       .delete()
-      .eq("id", params.id);
+      .eq("id", params.id)
+      .eq("company_id", companyId);
 
     if (error) {
       console.error(error);

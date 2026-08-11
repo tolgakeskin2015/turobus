@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getCurrentMembership } from "@/lib/current-user";
 import {
   FaArrowLeft,
   FaCheckCircle,
@@ -106,7 +107,35 @@ export default function AddTourPage() {
       uploadedImageUrl = publicUrlData.publicUrl;
     }
 
+    const {
+      data: userData,
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !userData.user) {
+      setMessage({
+        type: "error",
+        text: "Oturum bulunamadı.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const membership = await getCurrentMembership(
+      userData.user.id
+    );
+
+    if (!membership) {
+      setMessage({
+        type: "error",
+        text: "Firma üyeliği bulunamadı.",
+      });
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.from("tours").insert({
+      company_id: membership.company_id,
       slug: form.slug || createSlug(form.title),
       title: form.title,
       short_description: form.short_description || null,

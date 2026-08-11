@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getCurrentMembership } from "@/lib/current-user";
 import ReservationsList from "./reservations-list";
 import {
   FaBus,
@@ -37,6 +38,27 @@ export default function Dashboard() {
       setLoading(true);
       setErrorMessage("");
 
+      const {
+        data: userData,
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !userData.user) {
+        setErrorMessage("Oturum bulunamadı.");
+        setLoading(false);
+        return;
+      }
+
+      const membership = await getCurrentMembership(
+        userData.user.id
+      );
+
+      if (!membership) {
+        setErrorMessage("Firma üyeliği bulunamadı.");
+        setLoading(false);
+        return;
+      }
+
       const [
         { data: tourData, error: tourError },
         { data: reservationData, error: reservationError },
@@ -44,11 +66,13 @@ export default function Dashboard() {
         supabase
           .from("tours")
           .select("id, status, created_at")
+          .eq("company_id", membership.company_id)
           .order("created_at", { ascending: false }),
 
         supabase
           .from("reservations")
           .select("id, status, total_price, created_at")
+          .eq("company_id", membership.company_id)
           .order("created_at", { ascending: false }),
       ]);
 

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getCurrentMembership } from "@/lib/current-user";
 import {
   FaArrowLeft,
   FaEdit,
@@ -53,9 +54,31 @@ export default function DashboardToursPage() {
       setLoading(true);
       setErrorMessage("");
 
+      const {
+        data: userData,
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !userData.user) {
+        setErrorMessage("Oturum bulunamadı.");
+        setLoading(false);
+        return;
+      }
+
+      const membership = await getCurrentMembership(
+        userData.user.id
+      );
+
+      if (!membership) {
+        setErrorMessage("Firma üyeliği bulunamadı.");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("tours")
         .select("*")
+        .eq("company_id", membership.company_id)
         .order("created_at", { ascending: false });
 
       if (error) {
