@@ -20,6 +20,7 @@ import {
 } from "react-icons/fa";
 
 import { supabase } from "@/lib/supabase";
+import { getCurrentMembership } from "@/lib/current-user";
 
 type ManifestStatus =
   | "waiting"
@@ -272,22 +273,10 @@ export default function ManifestPage() {
             );
           }
 
-          const {
-            data: membership,
-            error: membershipError,
-          } = await supabase
-            .from("company_members")
-            .select("company_id")
-            .eq(
-              "user_id",
+          const membership =
+            await getCurrentMembership(
               userData.user.id
-            )
-            .limit(1)
-            .maybeSingle();
-
-          if (membershipError) {
-            throw membershipError;
-          }
+            );
 
           if (!membership) {
             throw new Error(

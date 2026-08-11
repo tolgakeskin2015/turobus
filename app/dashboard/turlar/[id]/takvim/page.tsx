@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentMembership } from "@/lib/current-user";
 import {
   FaArrowLeft,
   FaCalendarAlt,
@@ -73,17 +74,12 @@ export default function TourCalendarPage() {
       return;
     }
 
-    const {
-      data: membership,
-      error: membershipError,
-    } = await supabase
-      .from("company_members")
-      .select("company_id")
-      .eq("user_id", userData.user.id)
-      .limit(1)
-      .maybeSingle();
+    const membership =
+      await getCurrentMembership(
+        userData.user.id
+      );
 
-    if (membershipError || !membership) {
+    if (!membership) {
       setMessage({
         type: "error",
         text: "Firma üyeliği bulunamadı.",

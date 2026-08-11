@@ -31,6 +31,9 @@ export type CurrentMembership = {
   };
 };
 
+export const ACTIVE_COMPANY_STORAGE_KEY =
+  "turobus_active_company_id";
+
 export async function getCurrentUser(): Promise<User | null> {
   const {
     data: { user },
@@ -38,17 +41,110 @@ export async function getCurrentUser(): Promise<User | null> {
   } = await supabase.auth.getUser();
 
   if (error) {
-    console.error("Kullanıcı alınamadı:", error);
+    console.error(
+      "Kullanıcı alınamadı:",
+      error
+    );
     return null;
   }
 
   return user;
 }
 
-export async function getCurrentMembership(
+function normalizeMembership(
+  rawValue: unknown
+): CurrentMembership | null {
+  if (
+    !rawValue ||
+    typeof rawValue !== "object"
+  ) {
+    return null;
+  }
+
+  const raw =
+    rawValue as Record<string, unknown>;
+
+  const rawCompany =
+    Array.isArray(raw.company)
+      ? raw.company[0]
+      : raw.company;
+
+  if (
+    !rawCompany ||
+    typeof rawCompany !== "object"
+  ) {
+    return null;
+  }
+
+  const membership = {
+    ...raw,
+    company: rawCompany,
+  } as unknown as CurrentMembership;
+
+  if (
+    !membership.company_id ||
+    !membership.company?.id
+  ) {
+    return null;
+  }
+
+  return membership;
+}
+
+export function getStoredActiveCompanyId():
+  | string
+  | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    return window.localStorage.getItem(
+      ACTIVE_COMPANY_STORAGE_KEY
+    );
+  } catch {
+    return null;
+  }
+}
+
+export function setActiveCompanyId(
+  companyId: string
+) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(
+      ACTIVE_COMPANY_STORAGE_KEY,
+      companyId
+    );
+  } catch {
+    // Storage kapalıysa fallback üyelik kullanılır.
+  }
+}
+
+export function clearActiveCompanyId() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(
+      ACTIVE_COMPANY_STORAGE_KEY
+    );
+  } catch {
+    // no-op
+  }
+}
+
+export async function getUserMemberships(
   userId: string
-): Promise<CurrentMembership | null> {
-  const { data, error } = await supabase
+): Promise<CurrentMembership[]> {
+  const {
+    data,
+    error,
+  } = await supabase
     .from("company_members")
     .select(`
       id,
@@ -70,25 +166,79 @@ export async function getCurrentMembership(
         is_active
       )
     `)
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .maybeSingle();
+    .eq(
+      "user_id",
+      userId
+    )
+    .eq(
+      "is_active",
+      true
+    );
 
   if (error) {
-    console.error("Firma üyeliği alınamadı:", error);
+    console.error(
+      "Firma üyelikleri alınamadı:",
+      error
+    );
     throw error;
   }
 
-  if (!data) return null;
+  return (data ?? [])
+    .map(normalizeMembership)
+    .filter(
+      (
+        item
+      ): item is CurrentMembership =>
+        Boolean(
+          item &&
+            item.company.is_active
+        )
+    );
+}
 
-  const rawCompany = Array.isArray(data.company)
-    ? data.company[0]
-    : data.company;
+export function resolveActiveMembership(
+  memberships: CurrentMembership[]
+): CurrentMembership | null {
+  if (!memberships.length) {
+    clearActiveCompanyId();
+    return null;
+  }
 
-  if (!rawCompany) return null;
+  const storedCompanyId =
+    getStoredActiveCompanyId();
 
-  return {
-    ...data,
-    company: rawCompany,
-  } as unknown as CurrentMembership;
+  if (storedCompanyId) {
+    const storedMembership =
+      memberships.find(
+        (item) =>
+          item.company_id ===
+          storedCompanyId
+      );
+
+    if (storedMembership) {
+      return storedMembership;
+    }
+  }
+
+  const fallback =
+    memberships[0];
+
+  setActiveCompanyId(
+    fallback.company_id
+  );
+
+  return fallback;
+}
+
+export async function getCurrentMembership(
+  userId: string
+): Promise<CurrentMembership | null> {
+  const memberships =
+    await getUserMemberships(
+      userId
+    );
+
+  return resolveActiveMembership(
+    memberships
+  );
 }

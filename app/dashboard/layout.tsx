@@ -22,7 +22,9 @@ import { supabase } from "@/lib/supabase";
 import {
   AppRole,
   CurrentMembership,
-  getCurrentMembership,
+  getUserMemberships,
+  resolveActiveMembership,
+  setActiveCompanyId,
 } from "@/lib/current-user";
 
 type DashboardLayoutProps = {
@@ -571,6 +573,10 @@ export default function DashboardLayout({
 
   const [membership, setMembership] =
     useState<CurrentMembership | null>(null);
+
+  const [memberships, setMemberships] =
+    useState<CurrentMembership[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -601,8 +607,15 @@ export default function DashboardLayout({
     }
 
     try {
+      const availableMemberships =
+        await getUserMemberships(
+          user.id
+        );
+
       const currentMembership =
-        await getCurrentMembership(user.id);
+        resolveActiveMembership(
+          availableMemberships
+        );
 
       if (!currentMembership) {
         await supabase.auth.signOut();
@@ -620,7 +633,12 @@ export default function DashboardLayout({
         return;
       }
 
-      setMembership(currentMembership);
+      setMemberships(
+        availableMemberships
+      );
+      setMembership(
+        currentMembership
+      );
       setLoading(false);
     } catch (membershipError) {
       console.error(membershipError);
@@ -688,6 +706,34 @@ export default function DashboardLayout({
     });
   }, [pathname]);
 
+  function changeActiveCompany(
+    companyId: string
+  ) {
+    if (
+      companyId ===
+      membership?.company_id
+    ) {
+      return;
+    }
+
+    const nextMembership =
+      memberships.find(
+        (item) =>
+          item.company_id ===
+          companyId
+      );
+
+    if (!nextMembership) {
+      return;
+    }
+
+    setActiveCompanyId(
+      companyId
+    );
+
+    window.location.reload();
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
     router.replace("/giris");
@@ -754,6 +800,41 @@ export default function DashboardLayout({
             <h2 className="mt-3 text-2xl font-black">
               {membership.company.name}
             </h2>
+
+            {memberships.length > 1 && (
+              <div className="mt-4">
+                <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                  Aktif Şirket
+                </label>
+
+                <select
+                  value={
+                    membership.company_id
+                  }
+                  onChange={(event) =>
+                    changeActiveCompany(
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 text-sm font-bold text-white outline-none transition focus:border-orange-500/50"
+                >
+                  {memberships.map(
+                    (item) => (
+                      <option
+                        key={item.id}
+                        value={
+                          item.company_id
+                        }
+                      >
+                        {
+                          item.company.name
+                        }
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+            )}
 
             <div className="mt-4 flex items-center gap-3 rounded-2xl bg-slate-950 p-4">
               <FaBuilding className="text-orange-400" />
