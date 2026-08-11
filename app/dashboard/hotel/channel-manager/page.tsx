@@ -37,6 +37,9 @@ import {
   ConnectionStatus,
   createConnection,
   deleteConnection,
+  getChannelRuntimeStatus,
+  saveConnectionCredentials,
+  testChannelConnection,
   enqueueSync,
   getChannelManagerData,
   simulateQueueItem,
@@ -190,6 +193,11 @@ export default function ChannelManagerPage() {
   const [successMessage, setSuccessMessage] =
     useState("");
 
+  const [runtimeMode, setRuntimeMode] =
+    useState<
+      "simulation" | "live"
+    >("simulation");
+
   const [form, setForm] = useState({
     hotelId: "",
     channelCode:
@@ -197,6 +205,7 @@ export default function ChannelManagerPage() {
     connectionName: "",
     externalHotelId: "",
     endpointUrl: "",
+    credentialsJson: "{}",
   });
 
   const loadData = useCallback(
@@ -212,6 +221,21 @@ export default function ChannelManagerPage() {
       );
       setQueue(data.queue);
       setLogs(data.logs);
+
+      try {
+        const runtime =
+          await getChannelRuntimeStatus(
+            companyId
+          );
+
+        setRuntimeMode(
+          runtime.mode
+        );
+      } catch {
+        setRuntimeMode(
+          "simulation"
+        );
+      }
     },
     []
   );
@@ -387,7 +411,6 @@ export default function ChannelManagerPage() {
         endpointUrl:
           form.endpointUrl.trim() ||
           null,
-        userId: user?.id ?? null,
       });
 
       setForm({
@@ -396,6 +419,7 @@ export default function ChannelManagerPage() {
         connectionName: "",
         externalHotelId: "",
         endpointUrl: "",
+        credentialsJson: "{}",
       });
 
       await refresh();
@@ -518,6 +542,27 @@ export default function ChannelManagerPage() {
     setSuccessMessage("");
 
     try {
+      if (
+        operationType ===
+        "connection_test"
+      ) {
+        const result =
+          await testChannelConnection(
+            membership.company_id,
+            connection.id
+          );
+
+        await refresh();
+
+        setSuccessMessage(
+          result.simulated
+            ? "Bağlantı testi simülasyon modunda başarılı."
+            : "Canlı OTA bağlantı testi başarılı."
+        );
+
+        return;
+      }
+
       const item =
         await enqueueSync({
           companyId:
@@ -530,13 +575,8 @@ export default function ChannelManagerPage() {
           payload: {
             requested_at:
               new Date().toISOString(),
-            simulation: true,
           },
-          priority:
-            operationType ===
-            "connection_test"
-              ? 10
-              : 100,
+          priority: 100,
         });
 
       await simulateQueueItem(
@@ -645,9 +685,25 @@ export default function ChannelManagerPage() {
               TUROS HOTEL PMS
             </p>
 
-            <h1 className="mt-3 text-4xl font-black md:text-5xl">
-              Channel Manager
-            </h1>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <h1 className="text-4xl font-black md:text-5xl">
+                Channel Manager
+              </h1>
+
+              <span
+                className={
+                  runtimeMode ===
+                  "live"
+                    ? "rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-black uppercase tracking-wider text-emerald-400"
+                    : "rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs font-black uppercase tracking-wider text-amber-400"
+                }
+              >
+                {runtimeMode ===
+                "live"
+                  ? "CANLI OTA MODU"
+                  : "SİMÜLASYON MODU"}
+              </span>
+            </div>
 
             <p className="mt-4 max-w-4xl text-slate-400">
               Kanal bağlantılarını,
@@ -845,6 +901,129 @@ export default function ChannelManagerPage() {
             </button>
           </div>
         </form>
+        {selectedConnection && (
+          <section className="mt-8 rounded-[30px] border border-white/10 bg-slate-900 p-6">
+            <h2 className="flex items-center gap-3 text-2xl font-black">
+              <FaCog className="text-orange-400" />
+              Güvenli OTA Credentials
+            </h2>
+
+            <p className="mt-3 max-w-3xl text-sm text-slate-400">
+              Credential bilgileri yalnız sunucuya gönderilir.
+              Kaydedilmiş gizli değerler tarayıcıya geri okunmaz.
+            </p>
+
+            <textarea
+              value={
+                form.credentialsJson
+              }
+              onChange={(event) =>
+                setForm(
+                  (current) => ({
+                    ...current,
+                    credentialsJson:
+                      event.target.value,
+                  })
+                )
+              }
+              rows={8}
+              placeholder='{"apiKey":"...","username":"...","password":"..."}'
+              className="mt-5 w-full rounded-2xl bg-slate-950 p-4 font-mono text-sm text-white outline-none ring-1 ring-white/10 focus:ring-orange-500"
+            />
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={processing}
+                onClick={() => {
+                  void (async () => {
+                    if (
+                      !membership ||
+                      !selectedConnection
+                    ) {
+                      return;
+                    }
+
+                    setProcessing(true);
+                    setErrorMessage("");
+                    setSuccessMessage("");
+
+                    try {
+                      const parsed =
+                        JSON.parse(
+                          form.credentialsJson
+                        );
+
+                      if (
+                        !parsed ||
+                        typeof parsed !==
+                          "object" ||
+                        Array.isArray(parsed)
+                      ) {
+                        throw new Error(
+                          "Credentials geçerli bir JSON object olmalıdır."
+                        );
+                      }
+
+                      await saveConnectionCredentials({
+                        companyId:
+                          membership.company_id,
+
+                        connectionId:
+                          selectedConnection.id,
+
+                        credentials:
+                          parsed,
+
+                        endpointUrl:
+                          selectedConnection.endpoint_url,
+                      });
+
+                      setForm(
+                        (current) => ({
+                          ...current,
+                          credentialsJson:
+                            "{}",
+                        })
+                      );
+
+                      setSuccessMessage(
+                        "Credentials güvenli şekilde kaydedildi. Gizli değerler ekranda tutulmadı."
+                      );
+                    } catch (error) {
+                      setErrorMessage(
+                        error instanceof Error
+                          ? error.message
+                          : "Credentials kaydedilemedi."
+                      );
+                    } finally {
+                      setProcessing(false);
+                    }
+                  })();
+                }}
+                className="rounded-2xl bg-orange-500 px-6 py-3 font-black disabled:opacity-50"
+              >
+                Credentials Kaydet
+              </button>
+
+              <button
+                type="button"
+                disabled={processing}
+                onClick={() => {
+                  void createQueueItem(
+                    selectedConnection,
+                    "connection_test"
+                  );
+                }}
+                className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-black disabled:opacity-50"
+              >
+                Bağlantıyı Test Et
+              </button>
+            </div>
+          </section>
+        )}
+
+
 
         <section className="mt-7 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {connections.map(

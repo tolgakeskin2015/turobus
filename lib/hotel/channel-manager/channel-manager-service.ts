@@ -314,34 +314,301 @@ export async function createConnection(
     connectionName: string;
     externalHotelId?: string | null;
     endpointUrl?: string | null;
-    userId?: string | null;
   }
 ): Promise<void> {
-  const { error } = await supabase
-    .from(
-      "hotel_channel_connections"
-    )
-    .insert({
-      company_id: input.companyId,
-      hotel_id: input.hotelId,
-      channel_code:
-        input.channelCode,
-      connection_name:
-        input.connectionName,
-      external_hotel_id:
-        input.externalHotelId ?? null,
-      endpoint_url:
-        input.endpointUrl ?? null,
-      status: "draft",
-      created_by:
-        input.userId ?? null,
-    });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (error) {
+  const token =
+    session?.access_token;
+
+  if (!token) {
     throw new Error(
-      getMessage(error)
+      "Oturum gerekli."
     );
   }
+
+  const response = await fetch(
+    "/api/channel-manager/connections",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+
+        Authorization:
+          `Bearer ${token}`,
+      },
+
+      body: JSON.stringify({
+        action:
+          "create_connection",
+
+        companyId:
+          input.companyId,
+
+        hotelId:
+          input.hotelId,
+
+        channelCode:
+          input.channelCode,
+
+        connectionName:
+          input.connectionName,
+
+        externalHotelId:
+          input.externalHotelId ??
+          null,
+
+        endpointUrl:
+          input.endpointUrl ??
+          null,
+      }),
+    }
+  );
+
+  const result =
+    await response.json();
+
+  if (
+    !response.ok ||
+    !result.ok
+  ) {
+    throw new Error(
+      String(
+        result.error ??
+        "Bağlantı oluşturulamadı."
+      )
+    );
+  }
+}
+
+export async function saveConnectionCredentials(
+  input: {
+    companyId: string;
+    connectionId: string;
+    credentials:
+      Record<string, unknown>;
+    settings?:
+      Record<string, unknown>;
+    endpointUrl?: string | null;
+  }
+): Promise<void> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const token =
+    session?.access_token;
+
+  if (!token) {
+    throw new Error(
+      "Oturum gerekli."
+    );
+  }
+
+  const response = await fetch(
+    "/api/channel-manager/connections",
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+
+        Authorization:
+          `Bearer ${token}`,
+      },
+
+      body: JSON.stringify({
+        action:
+          "save_credentials",
+
+        companyId:
+          input.companyId,
+
+        connectionId:
+          input.connectionId,
+
+        credentials:
+          input.credentials,
+
+        settings:
+          input.settings ?? {},
+
+        endpointUrl:
+          input.endpointUrl ??
+          null,
+      }),
+    }
+  );
+
+  const result =
+    await response.json();
+
+  if (
+    !response.ok ||
+    !result.ok
+  ) {
+    throw new Error(
+      String(
+        result.error ??
+        "Credential kaydedilemedi."
+      )
+    );
+  }
+}
+
+export async function testChannelConnection(
+  companyId: string,
+  connectionId: string
+): Promise<{
+  success: boolean;
+  simulated: boolean;
+  mode:
+    | "simulation"
+    | "live";
+  statusCode:
+    | number
+    | null;
+}> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const token =
+    session?.access_token;
+
+  if (!token) {
+    throw new Error(
+      "Oturum gerekli."
+    );
+  }
+
+  const response = await fetch(
+    "/api/channel-manager/connections",
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+
+        Authorization:
+          `Bearer ${token}`,
+      },
+
+      body: JSON.stringify({
+        action:
+          "test_connection",
+
+        companyId,
+        connectionId,
+      }),
+    }
+  );
+
+  const result =
+    await response.json();
+
+  if (
+    !response.ok ||
+    !result.ok
+  ) {
+    throw new Error(
+      String(
+        result.error ??
+        "Bağlantı testi başarısız."
+      )
+    );
+  }
+
+  return {
+    success:
+      Boolean(
+        result.success
+      ),
+
+    simulated:
+      Boolean(
+        result.simulated
+      ),
+
+    mode:
+      result.mode === "live"
+        ? "live"
+        : "simulation",
+
+    statusCode:
+      typeof result.statusCode ===
+      "number"
+        ? result.statusCode
+        : null,
+  };
+}
+
+export async function getChannelRuntimeStatus(
+  companyId: string
+): Promise<{
+  liveMode: boolean;
+  mode:
+    | "simulation"
+    | "live";
+}> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const token =
+    session?.access_token;
+
+  if (!token) {
+    throw new Error(
+      "Oturum gerekli."
+    );
+  }
+
+  const response = await fetch(
+    `/api/channel-manager/connections?companyId=${encodeURIComponent(companyId)}`,
+    {
+      headers: {
+        Authorization:
+          `Bearer ${token}`,
+      },
+
+      cache:
+        "no-store",
+    }
+  );
+
+  const result =
+    await response.json();
+
+  if (
+    !response.ok ||
+    !result.ok
+  ) {
+    throw new Error(
+      String(
+        result.error ??
+        "Runtime durumu alınamadı."
+      )
+    );
+  }
+
+  return {
+    liveMode:
+      Boolean(
+        result.runtime?.liveMode
+      ),
+
+    mode:
+      result.runtime?.mode ===
+      "live"
+        ? "live"
+        : "simulation",
+  };
 }
 
 export async function updateConnectionStatus(
