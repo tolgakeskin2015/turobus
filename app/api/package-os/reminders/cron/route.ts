@@ -115,22 +115,46 @@ async function run(
       );
 
 
-    const {
-      data,
-      error,
-    } =
-      await admin.rpc(
-        "run_package_supplier_reminders",
-        {
-          p_now:
-            new Date()
-              .toISOString(),
-        }
-      );
+    const executionTime =
+      new Date()
+        .toISOString();
 
 
-    if (error) {
-      throw error;
+    const [
+      reminderResult,
+      overdueResult,
+    ] =
+      await Promise.all([
+
+        admin.rpc(
+          "run_package_supplier_reminders",
+          {
+            p_now:
+              executionTime,
+          }
+        ),
+
+        admin.rpc(
+          "run_package_operation_overdue_alerts",
+          {
+            p_now:
+              executionTime,
+          }
+        ),
+      ]);
+
+
+    if (
+      reminderResult.error
+    ) {
+      throw reminderResult.error;
+    }
+
+
+    if (
+      overdueResult.error
+    ) {
+      throw overdueResult.error;
     }
 
 
@@ -138,12 +162,14 @@ async function run(
       ok:
         true,
 
-      result:
-        data,
+      reminders:
+        reminderResult.data,
+
+      overdue:
+        overdueResult.data,
 
       executedAt:
-        new Date()
-          .toISOString(),
+        executionTime,
     });
 
 

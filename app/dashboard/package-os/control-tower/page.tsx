@@ -177,6 +177,7 @@ type OperationRow = {
 type FilterType =
   | "all"
   | "critical"
+  | "overdue"
   | "unconfirmed"
   | "approaching"
   | "completed";
@@ -327,6 +328,24 @@ function isUnconfirmed(
 }
 
 
+function isOverdue(
+  row: OperationRow
+) {
+
+  const minutes =
+    minutesUntil(
+      row
+    );
+
+  return (
+    minutes !== null &&
+    minutes < 0 &&
+    !isCompleted(row) &&
+    row.status !== "cancelled"
+  );
+}
+
+
 function isApproaching(
   row: OperationRow
 ) {
@@ -440,6 +459,20 @@ export default function OperationsControlTowerPage() {
     setSavingId,
   ] =
     useState("");
+
+
+  const [
+    lastRefresh,
+    setLastRefresh,
+  ] =
+    useState(new Date());
+
+
+  const [
+    secondsToRefresh,
+    setSecondsToRefresh,
+  ] =
+    useState(30);
 
 
   const loadData =
@@ -1090,6 +1123,14 @@ export default function OperationsControlTowerPage() {
         }
 
 
+        setLastRefresh(
+          new Date()
+        );
+
+        setSecondsToRefresh(
+          30
+        );
+
         setLoading(
           false
         );
@@ -1102,6 +1143,36 @@ export default function OperationsControlTowerPage() {
   useEffect(() => {
 
     void loadData();
+
+  }, [
+    loadData,
+  ]);
+
+
+  useEffect(() => {
+
+    const AUTO_LIVE_REFRESH_11IK =
+      window.setInterval(
+        () => {
+          setSecondsToRefresh(
+            current => {
+              if (current <= 1) {
+                void loadData();
+                return 30;
+              }
+
+              return current - 1;
+            }
+          );
+        },
+        1000
+      );
+
+    return () => {
+      window.clearInterval(
+        AUTO_LIVE_REFRESH_11IK
+      );
+    };
 
   }, [
     loadData,
@@ -1122,6 +1193,11 @@ export default function OperationsControlTowerPage() {
               row =>
                 row.priority ===
                 "critical"
+            ).length,
+
+          overdue:
+            rows.filter(
+              isOverdue
             ).length,
 
           unconfirmed:
@@ -1167,6 +1243,17 @@ export default function OperationsControlTowerPage() {
                 "critical" &&
               row.priority !==
                 "critical"
+            ) {
+              return false;
+            }
+
+
+            if (
+              filter ===
+                "overdue" &&
+              !isOverdue(
+                row
+              )
             ) {
               return false;
             }
@@ -1405,6 +1492,19 @@ export default function OperationsControlTowerPage() {
 
             <div className="flex flex-wrap gap-2">
 
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-300">
+
+                <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400" />
+
+                CANLI
+
+                <span className="text-xs text-emerald-400/70">
+                  {secondsToRefresh}s
+                </span>
+
+              </div>
+
+
               <button
                 type="button"
                 onClick={() =>
@@ -1458,7 +1558,7 @@ export default function OperationsControlTowerPage() {
         }
 
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
 
           <StatCard
             title="Bugünkü Toplam"
@@ -1486,6 +1586,22 @@ export default function OperationsControlTowerPage() {
             onClick={() =>
               setFilter(
                 "critical"
+              )
+            }
+          />
+
+
+          <StatCard
+            title="Geciken"
+            value={stats.overdue}
+            tone="critical"
+            active={
+              filter ===
+              "overdue"
+            }
+            onClick={() =>
+              setFilter(
+                "overdue"
               )
             }
           />
@@ -1561,7 +1677,15 @@ export default function OperationsControlTowerPage() {
 
 
             <div className="flex items-center rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-bold text-slate-400">
-              Bugün · {todayLocal()}
+              Bugün · {todayLocal()} · Son güncelleme{" "}
+              {lastRefresh.toLocaleTimeString(
+                "tr-TR",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                }
+              )}
             </div>
 
           </div>
@@ -1574,6 +1698,12 @@ export default function OperationsControlTowerPage() {
           {
             filteredRows.map(
               row => {
+
+                const overdue =
+                  isOverdue(
+                    row
+                  );
+
 
                 const approaching =
                   isApproaching(
@@ -1605,9 +1735,10 @@ export default function OperationsControlTowerPage() {
                       row.id
                     }
                     className={`rounded-[26px] border p-5 md:p-6 ${
+                      overdue ||
                       row.priority ===
                         "critical"
-                        ? "border-red-500/30 bg-red-500/[0.07]"
+                        ? "border-red-500/40 bg-red-500/[0.09]"
                         : approaching
                           ? "border-amber-500/30 bg-amber-500/[0.05]"
                           : "border-white/10 bg-slate-900"
@@ -1637,15 +1768,22 @@ export default function OperationsControlTowerPage() {
 
 
                         {
-                          minutes !==
-                            null &&
-                          minutes > 0 &&
-                          minutes <= 180 &&
-                          (
-                            <p className="mt-2 text-xs font-black text-amber-300">
-                              {minutes} dk kaldı
-                            </p>
-                          )
+                          overdue &&
+                          minutes !== null
+                            ? (
+                              <p className="mt-2 text-xs font-black text-red-300">
+                                {Math.abs(minutes)} dk gecikti
+                              </p>
+                            )
+                            : minutes !== null &&
+                              minutes > 0 &&
+                              minutes <= 180
+                              ? (
+                                <p className="mt-2 text-xs font-black text-amber-300">
+                                  {minutes} dk kaldı
+                                </p>
+                              )
+                              : null
                         }
 
                       </div>
