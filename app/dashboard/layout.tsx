@@ -546,6 +546,17 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
+        href: "/dashboard/package-os/supplier-portals",
+        label: "Tedarikçi Portalları",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+      {
         href: "/dashboard/package-os/payables",
         label: "Tedarikçi Hakedişleri",
         icon: FaChartLine,

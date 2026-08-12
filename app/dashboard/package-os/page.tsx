@@ -44,6 +44,13 @@ const modules = [
     status: "Aktif",
   },
   {
+    title: "Tedarikçi Portalları",
+    description:
+      "Tedarikçilerin kendi günlük operasyonlarını ve hakedişlerini görebileceği güvenli portal bağlantılarını yönet.",
+    href: "/dashboard/package-os/supplier-portals",
+    status: "Aktif",
+  },
+  {
     title: "Tedarikçi Hakedişleri",
     description:
       "Otel, aktivite ve transfer firmalarına yapılacak ödemeleri tek ekrandan izle.",
