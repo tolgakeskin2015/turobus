@@ -407,6 +407,31 @@ export default function TripWalletPage() {
           </div>
         </section>
 
+        <section className="mt-7 overflow-hidden rounded-[28px] border border-orange-500/20 bg-gradient-to-r from-orange-500/10 to-slate-900 p-6">
+          <p className="text-xs font-black uppercase tracking-wider text-orange-400">
+            TATİLİNİ ZENGİNLEŞTİR
+          </p>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-5">
+            <div>
+              <h2 className="text-2xl font-black">
+                Ekstra Deneyimler
+              </h2>
+
+              <p className="mt-2 text-sm text-slate-400">
+                Paketine dahil olmayan aktiviteleri özel fiyatlarla ekle.
+              </p>
+            </div>
+
+            <Link
+              href={`/seyahat/${token}/ekstralar`}
+              className="rounded-xl bg-orange-500 px-5 py-4 font-black text-black"
+            >
+              Ekstraları Keşfet
+            </Link>
+          </div>
+        </section>
+
         <section className="mt-7 rounded-[28px] border border-white/10 bg-slate-900 p-6">
           <p className="text-xs font-black uppercase tracking-wider text-orange-400">
             ÖDEME DURUMU
