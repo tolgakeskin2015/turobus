@@ -37,6 +37,13 @@ const modules = [
     status: "Hazırlanıyor",
   },
   {
+    title: "Ekstra Siparişler",
+    description:
+      "Misafir uygulamasından satılan ekstra aktiviteleri, tahsilatı, operasyon durumunu ve kârlılığı yönet.",
+    href: "/dashboard/package-os/extra-orders",
+    status: "Aktif",
+  },
+  {
     title: "Tedarikçi Hakedişleri",
     description:
       "Otel, aktivite ve transfer firmalarına yapılacak ödemeleri tek ekrandan izle.",
