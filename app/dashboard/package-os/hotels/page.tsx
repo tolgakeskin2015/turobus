@@ -805,7 +805,7 @@ export default function PackageHotelsPage() {
                 className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
               >
                 <option value="">
-                  Tedarikçi seçilmedi
+                  Otel Direkt / Kaynak seçilmedi
                 </option>
 
                 {suppliers.map(
