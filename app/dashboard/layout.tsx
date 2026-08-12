@@ -546,6 +546,28 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
+        href: "/dashboard/package-os/payables",
+        label: "Tedarikçi Hakedişleri",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/package-os/operations",
+        label: "Günlük Operasyon",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
         href: "/dashboard/package-os/vouchers",
         label: "Voucher & QR",
         icon: FaClipboardList,
