@@ -20,9 +20,8 @@ import {
 
 type Booking = {
   id: string;
-  total_amount: number | null;
-  paid_amount: number | null;
-  currency: string | null;
+  sale_price: number;
+  currency: string;
   created_at: string;
 };
 
@@ -37,11 +36,28 @@ type Payable = {
 };
 
 
+type CustomerPayment = {
+  id: string;
+  booking_id: string;
+  amount: number;
+  status: string;
+  currency: string;
+  created_at: string;
+};
+
+
 type ExtraOrder = {
   id: string;
-  total_amount: number | null;
   status: string;
   created_at: string;
+};
+
+
+type ExtraItem = {
+  id: string;
+  order_id: string;
+  total_sale_price: number;
+  currency: string;
 };
 
 
@@ -72,6 +88,13 @@ export default function PackageFinancePage() {
 
 
   const [
+    payments,
+    setPayments,
+  ] =
+    useState<CustomerPayment[]>([]);
+
+
+  const [
     payables,
     setPayables,
   ] =
@@ -83,6 +106,13 @@ export default function PackageFinancePage() {
     setExtras,
   ] =
     useState<ExtraOrder[]>([]);
+
+
+  const [
+    extraItems,
+    setExtraItems,
+  ] =
+    useState<ExtraItem[]>([]);
 
 
   const [
@@ -165,8 +195,10 @@ export default function PackageFinancePage() {
 
         const [
           bookingResult,
+          paymentResult,
           payableResult,
           extraResult,
+          extraItemResult,
         ] =
           await Promise.all([
 
@@ -176,14 +208,34 @@ export default function PackageFinancePage() {
               )
               .select(`
                 id,
-                total_amount,
-                paid_amount,
+                sale_price,
                 currency,
                 created_at
               `)
               .eq(
                 "company_id",
                 companyId
+              ),
+
+            supabase
+              .from(
+                "package_customer_payments"
+              )
+              .select(`
+                id,
+                booking_id,
+                amount,
+                status,
+                currency,
+                created_at
+              `)
+              .eq(
+                "company_id",
+                companyId
+              )
+              .eq(
+                "status",
+                "completed"
               ),
 
             supabase
@@ -209,9 +261,23 @@ export default function PackageFinancePage() {
               )
               .select(`
                 id,
-                total_amount,
                 status,
                 created_at
+              `)
+              .eq(
+                "company_id",
+                companyId
+              ),
+
+            supabase
+              .from(
+                "package_extra_order_items"
+              )
+              .select(`
+                id,
+                order_id,
+                total_sale_price,
+                currency
               `)
               .eq(
                 "company_id",
@@ -227,6 +293,22 @@ export default function PackageFinancePage() {
 
           setErrorMessage(
             bookingResult.error.message
+          );
+
+          setLoading(
+            false
+          );
+
+          return;
+        }
+
+
+        if (
+          paymentResult.error
+        ) {
+
+          setErrorMessage(
+            paymentResult.error.message
           );
 
           setLoading(
@@ -269,11 +351,35 @@ export default function PackageFinancePage() {
         }
 
 
+        if (
+          extraItemResult.error
+        ) {
+
+          setErrorMessage(
+            extraItemResult.error.message
+          );
+
+          setLoading(
+            false
+          );
+
+          return;
+        }
+
+
         setBookings(
           (
             bookingResult.data ??
             []
           ) as Booking[]
+        );
+
+
+        setPayments(
+          (
+            paymentResult.data ??
+            []
+          ) as CustomerPayment[]
         );
 
 
@@ -290,6 +396,14 @@ export default function PackageFinancePage() {
             extraResult.data ??
             []
           ) as ExtraOrder[]
+        );
+
+
+        setExtraItems(
+          (
+            extraItemResult.data ??
+            []
+          ) as ExtraItem[]
         );
 
 
@@ -326,7 +440,7 @@ export default function PackageFinancePage() {
             ) =>
               total +
               Number(
-                row.total_amount ??
+                row.sale_price ??
                 0
               ),
             0
@@ -334,26 +448,42 @@ export default function PackageFinancePage() {
 
 
         const packageCollected =
-          bookings.reduce(
+          payments.reduce(
             (
               total,
               row
             ) =>
               total +
               Number(
-                row.paid_amount ??
+                row.amount ??
                 0
               ),
             0
           );
 
 
+        const paidExtraOrderIds =
+          new Set(
+            extras
+              .filter(
+                row =>
+                  row.status ===
+                  "paid"
+              )
+              .map(
+                row =>
+                  row.id
+              )
+          );
+
+
         const extraSales =
-          extras
+          extraItems
             .filter(
               row =>
-                row.status ===
-                "paid"
+                paidExtraOrderIds.has(
+                  row.order_id
+                )
             )
             .reduce(
               (
@@ -362,7 +492,7 @@ export default function PackageFinancePage() {
               ) =>
                 total +
                 Number(
-                  row.total_amount ??
+                  row.total_sale_price ??
                   0
                 ),
               0
@@ -440,8 +570,10 @@ export default function PackageFinancePage() {
       },
       [
         bookings,
+        payments,
         payables,
         extras,
+        extraItems,
       ]
     );
 
