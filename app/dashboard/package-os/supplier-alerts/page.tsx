@@ -47,6 +47,11 @@ type Notification = {
 
   notification_type: string;
 
+  priority:
+    | "normal"
+    | "high"
+    | "critical";
+
   status:
     NotificationStatus;
 
@@ -225,6 +230,7 @@ export default function SupplierAlertsPage() {
                   title,
                   message,
                   notification_type,
+                  priority,
                   status,
                   metadata,
                   created_at
@@ -406,6 +412,28 @@ export default function SupplierAlertsPage() {
       notification =>
         notification.status ===
         "unread"
+    ).length;
+
+
+  const criticalCount =
+    notifications.filter(
+      notification =>
+        notification.status ===
+          "unread"
+        &&
+        notification.priority ===
+          "critical"
+    ).length;
+
+
+  const highCount =
+    notifications.filter(
+      notification =>
+        notification.status ===
+          "unread"
+        &&
+        notification.priority ===
+          "high"
     ).length;
 
 
@@ -667,6 +695,32 @@ export default function SupplierAlertsPage() {
 
               <p className="mt-1 text-2xl font-black">
                 {unreadCount}
+              </p>
+
+            </div>
+
+
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4">
+
+              <p className="text-xs font-black uppercase text-red-300">
+                Kritik Uyarı
+              </p>
+
+              <p className="mt-1 text-2xl font-black text-red-200">
+                {criticalCount}
+              </p>
+
+            </div>
+
+
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-5 py-4">
+
+              <p className="text-xs font-black uppercase text-amber-300">
+                Yüksek Öncelik
+              </p>
+
+              <p className="mt-1 text-2xl font-black text-amber-200">
+                {highCount}
               </p>
 
             </div>
