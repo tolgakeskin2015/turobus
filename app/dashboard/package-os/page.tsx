@@ -44,6 +44,13 @@ const modules = [
     status: "Aktif",
   },
   {
+    title: "Tedarikçi Uyarıları",
+    description:
+      "Yeni atanan ve tedarikçiye bildirilmesi gereken operasyonları takip et.",
+    href: "/dashboard/package-os/supplier-alerts",
+    status: "Aktif",
+  },
+  {
     title: "Tedarikçi Portalları",
     description:
       "Tedarikçilerin kendi günlük operasyonlarını ve hakedişlerini görebileceği güvenli portal bağlantılarını yönet.",

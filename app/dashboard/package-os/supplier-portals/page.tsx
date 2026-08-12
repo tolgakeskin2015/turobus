@@ -36,6 +36,27 @@ type Supplier = {
 };
 
 
+function normalizePhone(
+  value: string
+) {
+  const digits =
+    value.replace(
+      /\D/g,
+      ""
+    );
+
+  if (digits.startsWith("90")) {
+    return digits;
+  }
+
+  if (digits.startsWith("0")) {
+    return `90${digits.slice(1)}`;
+  }
+
+  return `90${digits}`;
+}
+
+
 type PortalInfo = {
 
   supplier_id: string;
@@ -294,6 +315,104 @@ export default function SupplierPortalsPage() {
   }
 
 
+  async function sendPortalWhatsApp(
+    supplier:
+      Supplier
+  ) {
+
+    const phone =
+      supplier.whatsapp_phone ||
+      supplier.phone;
+
+
+    if (!phone) {
+
+      setMessage(
+        `${supplier.name} için WhatsApp/telefon bilgisi yok.`
+      );
+
+      return;
+    }
+
+
+    setSavingId(
+      supplier.id
+    );
+
+
+    const {
+      data,
+      error,
+    } =
+      await supabase.rpc(
+        "ensure_package_supplier_portal",
+        {
+          p_supplier_id:
+            supplier.id,
+        }
+      );
+
+
+    if (
+      error ||
+      !data
+    ) {
+
+      setMessage(
+        error?.message ||
+          "Portal bağlantısı hazırlanamadı."
+      );
+
+      setSavingId(
+        ""
+      );
+
+      return;
+    }
+
+
+    const portal =
+      data as PortalInfo;
+
+
+    const link =
+      `${window.location.origin}` +
+      `/tedarikci/${portal.portal_token}`;
+
+
+    const text =
+      [
+        `Merhaba ${supplier.name},`,
+        "",
+        "TUROBUS tedarikçi portalınız hazır.",
+        "",
+        "Operasyonlarınızı ve hakedişlerinizi takip etmek için:",
+        link,
+      ].join("\n");
+
+
+    window.open(
+      `https://wa.me/${normalizePhone(
+        phone
+      )}?text=${encodeURIComponent(
+        text
+      )}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+
+    setMessage(
+      `${supplier.name} WhatsApp mesajı hazırlandı.`
+    );
+
+
+    setSavingId(
+      ""
+    );
+  }
+
+
   async function rotatePortal(
     supplier:
       Supplier
@@ -474,6 +593,22 @@ export default function SupplierPortalsPage() {
                         className="rounded-xl bg-orange-500 px-5 py-3 text-sm font-black text-black disabled:opacity-40"
                       >
                         Portal Linkini Kopyala
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={
+                          savingId ===
+                          supplier.id
+                        }
+                        onClick={() =>
+                          void sendPortalWhatsApp(
+                            supplier
+                          )
+                        }
+                        className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black disabled:opacity-40"
+                      >
+                        WhatsApp Gönder
                       </button>
 
 
