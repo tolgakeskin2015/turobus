@@ -1582,6 +1582,14 @@ export default function OperationsControlTowerPage() {
 
 
               <Link
+                href="/dashboard/package-os/automation-health"
+                className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-300"
+              >
+                Otomasyon Sağlığı
+              </Link>
+
+
+              <Link
                 href="/dashboard/package-os/supplier-alerts"
                 className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-5 py-3 text-sm font-black text-orange-300"
               >
