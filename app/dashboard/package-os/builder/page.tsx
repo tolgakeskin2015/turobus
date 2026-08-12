@@ -761,85 +761,167 @@ export default function PackageBuilderPage() {
               </h2>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <input
-                  value={customerName}
-                  onChange={(e) =>
-                    setCustomerName(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Müşteri adı soyadı"
-                  className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
 
-                <input
-                  value={customerPhone}
-                  onChange={(e) =>
-                    setCustomerPhone(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Telefon"
-                  className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Müşteri Adı Soyadı
+                  </span>
 
-                <input
-                  type="date"
-                  value={checkIn}
-                  onChange={(e) =>
-                    setCheckIn(
-                      e.target.value
-                    )
-                  }
-                  className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                  <input
+                    type="text"
+                    value={customerName}
+                    onChange={(e) =>
+                      setCustomerName(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Örn: Ahmet Yılmaz"
+                    autoComplete="name"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 outline-none focus:border-orange-500/50"
+                  />
+                </label>
 
-                <input
-                  type="date"
-                  value={checkOut}
-                  onChange={(e) =>
-                    setCheckOut(
-                      e.target.value
-                    )
-                  }
-                  className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
 
-                <input
-                  type="number"
-                  min="1"
-                  value={adults}
-                  onChange={(e) =>
-                    setAdults(
-                      Math.max(
-                        1,
-                        Number(
-                          e.target.value
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Telefon Numarası
+                  </span>
+
+                  <input
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) =>
+                      setCustomerPhone(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Örn: 0532 123 45 67"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 outline-none focus:border-orange-500/50"
+                  />
+                </label>
+
+
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Giriş Tarihi
+                  </span>
+
+                  <input
+                    type="date"
+                    value={checkIn}
+                    onClick={(e) =>
+                      e.currentTarget
+                        .showPicker?.()
+                    }
+                    onChange={(e) => {
+                      const value =
+                        e.target.value;
+
+                      setCheckIn(
+                        value
+                      );
+
+                      if (
+                        checkOut &&
+                        value &&
+                        checkOut <= value
+                      ) {
+                        setCheckOut(
+                          ""
+                        );
+                      }
+                    }}
+                    className="w-full cursor-pointer rounded-xl border border-white/10 bg-slate-950 p-3 outline-none focus:border-orange-500/50 [color-scheme:dark]"
+                  />
+                </label>
+
+
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Çıkış Tarihi
+                  </span>
+
+                  <input
+                    type="date"
+                    value={checkOut}
+                    min={
+                      checkIn ||
+                      undefined
+                    }
+                    disabled={
+                      !checkIn
+                    }
+                    onClick={(e) =>
+                      e.currentTarget
+                        .showPicker?.()
+                    }
+                    onChange={(e) =>
+                      setCheckOut(
+                        e.target.value
+                      )
+                    }
+                    className="w-full cursor-pointer rounded-xl border border-white/10 bg-slate-950 p-3 outline-none focus:border-orange-500/50 disabled:cursor-not-allowed disabled:opacity-40 [color-scheme:dark]"
+                  />
+
+                  {!checkIn && (
+                    <span className="mt-2 block text-xs text-slate-500">
+                      Önce giriş tarihini seçin
+                    </span>
+                  )}
+                </label>
+
+
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Yetişkin Sayısı
+                  </span>
+
+                  <input
+                    type="number"
+                    min="1"
+                    value={adults}
+                    onChange={(e) =>
+                      setAdults(
+                        Math.max(
+                          1,
+                          Number(
+                            e.target.value
+                          )
                         )
                       )
-                    )
-                  }
-                  placeholder="Yetişkin"
-                  className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                    }
+                    inputMode="numeric"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 outline-none focus:border-orange-500/50"
+                  />
+                </label>
 
-                <input
-                  type="number"
-                  min="0"
-                  value={children}
-                  onChange={(e) =>
-                    setChildren(
-                      Math.max(
-                        0,
-                        Number(
-                          e.target.value
+
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Çocuk Sayısı
+                  </span>
+
+                  <input
+                    type="number"
+                    min="0"
+                    value={children}
+                    onChange={(e) =>
+                      setChildren(
+                        Math.max(
+                          0,
+                          Number(
+                            e.target.value
+                          )
                         )
                       )
-                    )
-                  }
-                  placeholder="Çocuk"
-                  className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                    }
+                    inputMode="numeric"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 outline-none focus:border-orange-500/50"
+                  />
+                </label>
+
               </div>
 
               <p className="mt-4 font-black text-orange-400">
