@@ -1582,6 +1582,14 @@ export default function OperationsControlTowerPage() {
 
 
               <Link
+                href="/dashboard/package-os/whatsapp-queue"
+                className="rounded-xl border border-green-500/30 bg-green-500/10 px-5 py-3 text-sm font-black text-green-300"
+              >
+                WhatsApp Kuyruğu
+              </Link>
+
+
+              <Link
                 href="/dashboard/package-os/automation-health"
                 className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-300"
               >
