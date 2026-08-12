@@ -546,6 +546,18 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
+        href: "/dashboard/package-os/control-tower",
+        label: "Operasyon Kontrol Kulesi",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
         href: "/dashboard/package-os/supplier-alerts",
         label: "Tedarikçi Uyarıları",
         icon: FaClipboardList,

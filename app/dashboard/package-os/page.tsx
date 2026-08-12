@@ -44,6 +44,13 @@ const modules = [
     status: "Aktif",
   },
   {
+    title: "Operasyon Kontrol Kulesi",
+    description:
+      "Bugünkü paket ve ekstra operasyonları, kritik uyarıları ve yaklaşan hizmetleri tek ekrandan yönet.",
+    href: "/dashboard/package-os/control-tower",
+    status: "Aktif",
+  },
+  {
     title: "Tedarikçi Uyarıları",
     description:
       "Yeni atanan ve tedarikçiye bildirilmesi gereken operasyonları takip et.",
