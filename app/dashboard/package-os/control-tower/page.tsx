@@ -1997,6 +1997,14 @@ export default function OperationsControlTowerPage() {
                         }
 
 
+                        <Link
+                          href={`/dashboard/package-os/control-tower/${row.source}/${row.raw_id}`}
+                          className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm font-black text-blue-300"
+                        >
+                          Notlar / Geçmiş
+                        </Link>
+
+
                         {
                           row.source ===
                             "package" &&
