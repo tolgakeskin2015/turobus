@@ -10,6 +10,7 @@ import Link from "next/link";
 
 import {
   useParams,
+  useSearchParams,
 } from "next/navigation";
 
 import {
@@ -50,6 +51,37 @@ type Extra = {
 };
 
 
+type ExtraOrderItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  unit_sale_price: number;
+  total_sale_price: number;
+  currency: string;
+  requires_slot: boolean;
+  voucher_code: string | null;
+  voucher_token: string | null;
+  voucher_status: string | null;
+};
+
+
+type ExtraOrder = {
+  order_token: string;
+  booking_token: string;
+  booking_code: string;
+  customer_name: string;
+  destination: string | null;
+  currency: string;
+  sale_price: number;
+  status: string;
+  operation_status: string;
+  service_date: string | null;
+  service_time: string | null;
+  payment_provider: string | null;
+  items: ExtraOrderItem[];
+};
+
+
 type ExtraPayload = {
   booking_code: string;
 
@@ -81,6 +113,9 @@ function money(
 
 
 export default function PackageExtrasPage() {
+  const searchParams =
+    useSearchParams();
+
   const params =
     useParams<{
       token: string;
@@ -101,6 +136,21 @@ export default function PackageExtrasPage() {
 
   const [loading, setLoading] =
     useState(true);
+
+  const [
+    activeOrder,
+    setActiveOrder,
+  ] =
+    useState<ExtraOrder | null>(
+      null
+    );
+
+  const [
+    paying,
+    setPaying,
+  ] =
+    useState(false);
+
 
   const [
     buyingId,
@@ -174,6 +224,166 @@ export default function PackageExtrasPage() {
     token,
     loadExtras,
   ]);
+
+
+  const loadOrder =
+    useCallback(
+      async (
+        orderToken: string
+      ) => {
+        if (!orderToken) {
+          setActiveOrder(
+            null
+          );
+
+          return;
+        }
+
+        const {
+          data,
+          error,
+        } =
+          await supabase.rpc(
+            "get_package_extra_order_public",
+            {
+              p_order_token:
+                orderToken,
+            }
+          );
+
+        if (
+          error ||
+          !data
+        ) {
+          setErrorMessage(
+            error?.message ||
+              "Ekstra sipariş bilgisi yüklenemedi."
+          );
+
+          setActiveOrder(
+            null
+          );
+
+          return;
+        }
+
+        setActiveOrder(
+          data as ExtraOrder
+        );
+      },
+      []
+    );
+
+
+  useEffect(() => {
+    const orderToken =
+      searchParams.get(
+        "order"
+      ) || "";
+
+    if (orderToken) {
+      void loadOrder(
+        orderToken
+      );
+    }
+  }, [
+    searchParams,
+    loadOrder,
+  ]);
+
+
+  useEffect(() => {
+    const payment =
+      searchParams.get(
+        "payment"
+      );
+
+    const message =
+      searchParams.get(
+        "message"
+      );
+
+    if (
+      payment ===
+      "success"
+    ) {
+      setSuccessMessage(
+        "Ödeme başarılı. Ekstra hizmet voucherın hazır."
+      );
+    }
+
+    if (
+      payment ===
+      "failed"
+    ) {
+      setErrorMessage(
+        message ||
+          "Ekstra ödeme tamamlanamadı."
+      );
+    }
+  }, [
+    searchParams,
+  ]);
+
+
+  async function startPayment() {
+    if (!activeOrder) {
+      return;
+    }
+
+    setPaying(true);
+    setErrorMessage("");
+
+    try {
+      const response =
+        await fetch(
+          "/api/package-extra-payments/iyzico/initialize",
+          {
+            method:
+              "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                orderToken:
+                  activeOrder.order_token,
+              }),
+          }
+        );
+
+      const result =
+        await response.json() as {
+          paymentPageUrl?: string;
+          error?: string;
+        };
+
+      if (
+        !response.ok ||
+        !result.paymentPageUrl
+      ) {
+        throw new Error(
+          result.error ||
+            "Ödeme başlatılamadı."
+        );
+      }
+
+      window.location.href =
+        result.paymentPageUrl;
+
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Ödeme başlatılamadı."
+      );
+
+      setPaying(false);
+    }
+  }
 
 
   async function createOrder(
@@ -327,6 +537,117 @@ export default function PackageExtrasPage() {
           {successMessage && (
             <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-300">
               {successMessage}
+            </div>
+          )}
+
+
+          {activeOrder && (
+            <div className="mt-8 rounded-[28px] border border-orange-500/20 bg-orange-500/5 p-6">
+
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-orange-400">
+                    Ekstra Siparişim
+                  </p>
+
+                  <h2 className="mt-2 text-2xl font-black">
+                    {activeOrder.items
+                      .map(
+                        item =>
+                          item.name
+                      )
+                      .join(", ")}
+                  </h2>
+
+                  <p className="mt-2 text-sm text-slate-400">
+                    Rezervasyon:
+                    {" "}
+                    {activeOrder.booking_code}
+                  </p>
+                </div>
+
+                <div className="lg:text-right">
+                  <p className="text-xs font-bold uppercase text-slate-500">
+                    Toplam
+                  </p>
+
+                  <p className="mt-1 text-3xl font-black text-orange-400">
+                    {money(
+                      Number(
+                        activeOrder.sale_price
+                      ),
+                      activeOrder.currency
+                    )}
+                  </p>
+                </div>
+
+              </div>
+
+
+              {activeOrder.status ===
+              "paid" ? (
+                <div className="mt-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5">
+
+                  <p className="font-black text-emerald-300">
+                    ✓ Ödeme Tamamlandı
+                  </p>
+
+                  <p className="mt-2 text-sm text-slate-400">
+                    Ekstra hizmetin onaylandı.
+                    Voucher ve QR kodunu aşağıdan açabilirsin.
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+
+                    {activeOrder.items
+                      .filter(
+                        item =>
+                          item.voucher_token
+                      )
+                      .map(
+                        item => (
+                          <Link
+                            key={
+                              item.id
+                            }
+                            href={`/voucher/${item.voucher_token}`}
+                            className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black"
+                          >
+                            {item.name}
+                            {" "}
+                            Voucher →
+                          </Link>
+                        )
+                      )}
+
+                  </div>
+
+                </div>
+              ) : (
+                <div className="mt-6">
+
+                  <button
+                    type="button"
+                    disabled={paying}
+                    onClick={() =>
+                      void startPayment()
+                    }
+                    className="w-full rounded-xl bg-orange-500 px-5 py-4 font-black text-black disabled:opacity-50 md:w-auto"
+                  >
+                    {paying
+                      ? "Güvenli ödeme açılıyor..."
+                      : "Güvenli Öde"}
+                  </button>
+
+                  <p className="mt-3 text-xs text-slate-500">
+                    Ödeme tutarı sistemde kayıtlı sipariş fiyatından alınır.
+                    Tarayıcıdan fiyat değiştirilemez.
+                  </p>
+
+                </div>
+              )}
+
             </div>
           )}
 
