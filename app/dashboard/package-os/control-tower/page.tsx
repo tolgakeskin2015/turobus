@@ -1326,6 +1326,71 @@ export default function OperationsControlTowerPage() {
     );
 
 
+  async function updateOperationStatus(
+    row: OperationRow,
+    status: string
+  ) {
+
+    setSavingId(
+      row.id
+    );
+
+    setActionMessage(
+      ""
+    );
+
+    setErrorMessage(
+      ""
+    );
+
+
+    const {
+      error,
+    } =
+      await supabase.rpc(
+        "update_package_operation_admin",
+        {
+
+          p_source:
+            row.source,
+
+          p_item_id:
+            row.raw_id,
+
+          p_status:
+            status,
+        }
+      );
+
+
+    if (error) {
+
+      setErrorMessage(
+        error.message
+      );
+
+      setSavingId(
+        ""
+      );
+
+      return;
+    }
+
+
+    setActionMessage(
+      `${row.service_name} operasyon durumu güncellendi.`
+    );
+
+
+    await loadData();
+
+
+    setSavingId(
+      ""
+    );
+  }
+
+
   async function sendSupplierWhatsApp(
     row: OperationRow
   ) {
@@ -1928,6 +1993,162 @@ export default function OperationsControlTowerPage() {
                             >
                               Müşteriyi Ara
                             </a>
+                          )
+                        }
+
+
+                        {
+                          row.source ===
+                            "package" &&
+                          ![
+                            "confirmed",
+                            "completed",
+                            "cancelled",
+                          ].includes(
+                            row.status
+                          ) &&
+                          (
+                            <button
+                              type="button"
+                              disabled={
+                                savingId ===
+                                row.id
+                              }
+                              onClick={() =>
+                                void updateOperationStatus(
+                                  row,
+                                  "confirmed"
+                                )
+                              }
+                              className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-300 disabled:opacity-40"
+                            >
+                              Operasyonu Onayla
+                            </button>
+                          )
+                        }
+
+
+                        {
+                          row.source ===
+                            "extra" &&
+                          ![
+                            "confirmed",
+                            "in_service",
+                            "completed",
+                            "cancelled",
+                          ].includes(
+                            row.status
+                          ) &&
+                          (
+                            <button
+                              type="button"
+                              disabled={
+                                savingId ===
+                                row.id
+                              }
+                              onClick={() =>
+                                void updateOperationStatus(
+                                  row,
+                                  "confirmed"
+                                )
+                              }
+                              className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-300 disabled:opacity-40"
+                            >
+                              Operasyonu Onayla
+                            </button>
+                          )
+                        }
+
+
+                        {
+                          row.source ===
+                            "extra" &&
+                          row.status ===
+                            "confirmed" &&
+                          (
+                            <button
+                              type="button"
+                              disabled={
+                                savingId ===
+                                row.id
+                              }
+                              onClick={() =>
+                                void updateOperationStatus(
+                                  row,
+                                  "in_service"
+                                )
+                              }
+                              className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-300 disabled:opacity-40"
+                            >
+                              Başladı
+                            </button>
+                          )
+                        }
+
+
+                        {
+                          ![
+                            "completed",
+                            "cancelled",
+                          ].includes(
+                            row.status
+                          ) &&
+                          (
+                            <button
+                              type="button"
+                              disabled={
+                                savingId ===
+                                row.id
+                              }
+                              onClick={() =>
+                                void updateOperationStatus(
+                                  row,
+                                  "completed"
+                                )
+                              }
+                              className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm font-black text-violet-300 disabled:opacity-40"
+                            >
+                              Tamamlandı
+                            </button>
+                          )
+                        }
+
+
+                        {
+                          ![
+                            "completed",
+                            "cancelled",
+                          ].includes(
+                            row.status
+                          ) &&
+                          (
+                            <button
+                              type="button"
+                              disabled={
+                                savingId ===
+                                row.id
+                              }
+                              onClick={() => {
+
+                                const confirmed =
+                                  window.confirm(
+                                    `${row.service_name} operasyonunu iptal etmek istiyor musunuz?`
+                                  );
+
+                                if (
+                                  confirmed
+                                ) {
+                                  void updateOperationStatus(
+                                    row,
+                                    "cancelled"
+                                  );
+                                }
+
+                              }}
+                              className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-black text-red-300 disabled:opacity-40"
+                            >
+                              İptal
+                            </button>
                           )
                         }
 
