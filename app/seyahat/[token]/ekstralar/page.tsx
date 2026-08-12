@@ -607,17 +607,30 @@ export default function PackageExtrasPage() {
                       )
                       .map(
                         item => (
-                          <Link
+                          <div
                             key={
                               item.id
                             }
-                            href={`/voucher/${item.voucher_token}`}
-                            className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black"
+                            className="flex flex-wrap gap-2"
                           >
-                            {item.name}
-                            {" "}
-                            Voucher →
-                          </Link>
+                            <Link
+                              href={`/voucher/${item.voucher_token}`}
+                              className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black"
+                            >
+                              {item.name}
+                              {" "}
+                              Voucher →
+                            </Link>
+
+                            {item.requires_slot && (
+                              <Link
+                                href={`/seyahat/${token}/ekstralar/${activeOrder.order_token}/aktivite/${item.id}`}
+                                className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-300"
+                              >
+                                Gün / Saat Seç →
+                              </Link>
+                            )}
+                          </div>
                         )
                       )}
 
