@@ -1,6 +1,7 @@
 import turkeyLocations from "@/app/data/turkey-locations.json";
 
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 type LocationItem = {
   id: number;
@@ -13,42 +14,71 @@ type ProvinceItem = {
   districts: LocationItem[];
 };
 
-const provinces = turkeyLocations as ProvinceItem[];
+const provinces =
+  turkeyLocations as ProvinceItem[];
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const provinceId = url.searchParams.get("provinceId");
+export async function GET(
+  request: Request
+) {
+  const url =
+    new URL(request.url);
+
+  const provinceId =
+    url.searchParams.get(
+      "provinceId"
+    );
 
   if (!provinceId) {
     return Response.json({
-      data: provinces.map((province) => ({
-        id: province.id,
-        name: province.name,
-      })),
+      data: provinces.map(
+        province => ({
+          id: province.id,
+          name: province.name,
+        })
+      ),
     });
   }
 
-  const id = Number(provinceId);
+  const parsedProvinceId =
+    Number(provinceId);
 
-  if (!Number.isInteger(id)) {
+  if (
+    !Number.isInteger(
+      parsedProvinceId
+    )
+  ) {
     return Response.json(
-      { error: "Geçersiz il kimliği." },
-      { status: 400 }
+      {
+        error:
+          "Geçersiz il kimliği.",
+      },
+      {
+        status: 400,
+      }
     );
   }
 
-  const province = provinces.find(
-    (item) => item.id === id
-  );
+  const province =
+    provinces.find(
+      item =>
+        item.id ===
+        parsedProvinceId
+    );
 
   if (!province) {
     return Response.json(
-      { error: "İl bulunamadı." },
-      { status: 404 }
+      {
+        error:
+          "İl bulunamadı.",
+      },
+      {
+        status: 404,
+      }
     );
   }
 
   return Response.json({
-    data: province.districts,
+    data:
+      province.districts,
   });
 }
