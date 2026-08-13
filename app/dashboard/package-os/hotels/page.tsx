@@ -2235,8 +2235,10 @@ export default function PackageHotelsPage() {
               Otel Yönetim Merkezi
             </h1>
 
-            <p className="mt-2 text-slate-400">
-              Otel · Oda · Kontrat · EB · Çocuk · API
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+              Otelleri sisteme ekleyin; oda tiplerini, kontrat fiyatlarını,
+              erken rezervasyon dönemlerini, çocuk politikalarını ve API
+              bağlantılarını tek merkezden yönetin.
             </p>
 
           </div>
@@ -2279,246 +2281,396 @@ export default function PackageHotelsPage() {
               onSubmit={
                 createHotel
               }
-              className="rounded-[24px] border border-white/10 bg-slate-900 p-5"
+              className="rounded-[28px] border border-white/10 bg-slate-900 p-6"
             >
 
-              <h2 className="text-lg font-black">
-                Yeni Otel
-              </h2>
+              <div className="flex items-start justify-between gap-3">
+
+                <div>
+
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+                    OTEL KARTI
+                  </p>
+
+                  <h2 className="mt-2 text-xl font-black">
+                    Yeni Otel Oluştur
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-400">
+                    Önce otelin temel bilgilerini kaydedin.
+                    Oda, fiyat, EB ve çocuk kurallarını
+                    oteli oluşturduktan sonra ekleyeceksiniz.
+                  </p>
+
+                </div>
+
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-lg font-black text-orange-400">
+                  +
+                </div>
+
+              </div>
 
 
-              <div className="mt-4 space-y-3">
+              <div className="mt-6 space-y-5">
 
-                <input
-                  value={
-                    hotelName
-                  }
-                  onChange={
-                    e =>
-                      setHotelName(
-                        e.target.value
-                      )
-                  }
-                  placeholder="Otel adı"
-                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                <label className="block">
+
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Otel Adı *
+                  </span>
+
+                  <input
+                    value={
+                      hotelName
+                    }
+                    onChange={
+                      e =>
+                        setHotelName(
+                          e.target.value
+                        )
+                    }
+                    placeholder="Örn: Sunshine Hotel Ölüdeniz"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                  />
+
+                  <span className="mt-2 block text-xs text-slate-500">
+                    Satış ve paket ekranlarında görünecek otel adı.
+                  </span>
+
+                </label>
 
 
                 <div className="grid grid-cols-2 gap-3">
 
-                  <input
-                    value={
-                      hotelCity
-                    }
-                    onChange={
-                      e =>
-                        setHotelCity(
-                          e.target.value
-                        )
-                    }
-                    placeholder="Şehir"
-                    className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                  />
+                  <label className="block">
 
-                  <input
-                    value={
-                      hotelDistrict
-                    }
-                    onChange={
-                      e =>
-                        setHotelDistrict(
-                          e.target.value
-                        )
-                    }
-                    placeholder="Bölge / İlçe"
-                    className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                  />
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                      Şehir
+                    </span>
+
+                    <input
+                      value={
+                        hotelCity
+                      }
+                      onChange={
+                        e =>
+                          setHotelCity(
+                            e.target.value
+                          )
+                      }
+                      placeholder="Muğla"
+                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                    />
+
+                  </label>
+
+
+                  <label className="block">
+
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                      Bölge / İlçe
+                    </span>
+
+                    <input
+                      value={
+                        hotelDistrict
+                      }
+                      onChange={
+                        e =>
+                          setHotelDistrict(
+                            e.target.value
+                          )
+                      }
+                      placeholder="Ölüdeniz"
+                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                    />
+
+                  </label>
 
                 </div>
 
 
-                <input
-                  type="number"
-                  min="0"
-                  max="7"
-                  value={
-                    hotelStars
-                  }
-                  onChange={
-                    e =>
-                      setHotelStars(
-                        e.target.value
-                      )
-                  }
-                  placeholder="Yıldız"
-                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                <div className="grid grid-cols-2 gap-3">
+
+                  <label className="block">
+
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                      Otel Yıldızı
+                    </span>
+
+                    <input
+                      type="number"
+                      min="0"
+                      max="7"
+                      value={
+                        hotelStars
+                      }
+                      onChange={
+                        e =>
+                          setHotelStars(
+                            e.target.value
+                          )
+                      }
+                      placeholder="Örn: 4"
+                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                    />
+
+                  </label>
 
 
-                <select
-                  value={
-                    hotelSource
-                  }
-                  onChange={
-                    e =>
-                      setHotelSource(
-                        e.target.value as Hotel["source_type"]
-                      )
-                  }
-                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                >
+                  <label className="block">
 
-                  {
-                    Object.entries(
-                      sourceLabels
-                    ).map(
-                      ([
-                        value,
-                        label,
-                      ]) => (
-                        <option
-                          key={
-                            value
-                          }
-                          value={
-                            value
-                          }
-                        >
-                          {label}
-                        </option>
-                      )
-                    )
-                  }
+                    <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                      Veri Kaynağı
+                    </span>
 
-                </select>
+                    <select
+                      value={
+                        hotelSource
+                      }
+                      onChange={
+                        e =>
+                          setHotelSource(
+                            e.target.value as Hotel["source_type"]
+                          )
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                    >
+
+                      {
+                        Object.entries(
+                          sourceLabels
+                        ).map(
+                          ([
+                            value,
+                            label,
+                          ]) => (
+                            <option
+                              key={
+                                value
+                              }
+                              value={
+                                value
+                              }
+                            >
+                              {label}
+                            </option>
+                          )
+                        )
+                      }
+
+                    </select>
+
+                  </label>
+
+                </div>
 
 
                 {
                   hotelSource !==
                   "manual" &&
                   (
-                    <input
-                      value={
-                        hotelExternalId
-                      }
-                      onChange={
-                        e =>
-                          setHotelExternalId(
-                            e.target.value
-                          )
-                      }
-                      placeholder="API / Harici Otel ID"
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                    />
+                    <label className="block">
+
+                      <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                        Harici Otel ID
+                      </span>
+
+                      <input
+                        value={
+                          hotelExternalId
+                        }
+                        onChange={
+                          e =>
+                            setHotelExternalId(
+                              e.target.value
+                            )
+                        }
+                        placeholder="Örn: HR-12452 / tesis ID"
+                        className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                      />
+
+                      <span className="mt-2 block text-xs text-slate-500">
+                        HotelRunner, Elektra, Booking veya başka API sistemindeki otel kimliği.
+                      </span>
+
+                    </label>
                   )
                 }
 
 
-                <select
-                  value={
-                    hotelSupplierId
-                  }
-                  onChange={
-                    e =>
-                      setHotelSupplierId(
-                        e.target.value
+                <label className="block">
+
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Kontrat / Fiyat Kaynağı
+                  </span>
+
+                  <select
+                    value={
+                      hotelSupplierId
+                    }
+                    onChange={
+                      e =>
+                        setHotelSupplierId(
+                          e.target.value
+                        )
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                  >
+
+                    <option value="">
+                      Direkt Otel Kontratı
+                    </option>
+
+                    {
+                      suppliers.map(
+                        supplier => (
+                          <option
+                            key={
+                              supplier.id
+                            }
+                            value={
+                              supplier.id
+                            }
+                          >
+                            {supplier.name}
+                          </option>
+                        )
                       )
-                  }
-                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                >
+                    }
 
-                  <option value="">
-                    Otel Direkt / Kaynak seçilmedi
-                  </option>
+                  </select>
 
-                  {
-                    suppliers.map(
-                      supplier => (
-                        <option
-                          key={
-                            supplier.id
-                          }
-                          value={
-                            supplier.id
-                          }
-                        >
-                          {supplier.name}
-                        </option>
-                      )
-                    )
-                  }
+                  <span className="mt-2 block text-xs leading-5 text-slate-500">
+                    Otelle doğrudan çalışıyorsanız “Direkt Otel Kontratı” bırakın.
+                    Fiyat başka bir tedarikçiden geliyorsa ilgili firmayı seçin.
+                  </span>
 
-                </select>
+                </label>
 
 
-                <input
-                  value={
-                    hotelAddress
-                  }
-                  onChange={
-                    e =>
-                      setHotelAddress(
-                        e.target.value
-                      )
-                  }
-                  placeholder="Adres"
-                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                <label className="block">
+
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Otel Adresi
+                  </span>
+
+                  <input
+                    value={
+                      hotelAddress
+                    }
+                    onChange={
+                      e =>
+                        setHotelAddress(
+                          e.target.value
+                        )
+                    }
+                    placeholder="Örn: Ölüdeniz Mah. Fethiye / Muğla"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                  />
+
+                </label>
 
 
-                <textarea
-                  value={
-                    hotelDescription
-                  }
-                  onChange={
-                    e =>
-                      setHotelDescription(
-                        e.target.value
-                      )
-                  }
-                  placeholder="Otel açıklaması"
-                  rows={3}
-                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                <label className="block">
+
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                    Otel Açıklaması
+                  </span>
+
+                  <textarea
+                    value={
+                      hotelDescription
+                    }
+                    onChange={
+                      e =>
+                        setHotelDescription(
+                          e.target.value
+                        )
+                    }
+                    placeholder="Örn: Denize yakın, açık havuzlu, aile konseptli, her şey dahil otel..."
+                    rows={4}
+                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                  />
+
+                  <span className="mt-2 block text-xs text-slate-500">
+                    Satış danışmanının müşteriye anlatabileceği tesis bilgileri.
+                  </span>
+
+                </label>
 
 
-                <input
-                  value={
-                    hotelCoverUrl
-                  }
-                  onChange={
-                    e =>
-                      setHotelCoverUrl(
-                        e.target.value
-                      )
-                  }
-                  placeholder="Kapak fotoğraf URL"
-                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+                    Medya Bağlantıları
+                  </p>
+
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    Şimdilik URL ile ekleyebilirsiniz. Oteli kaydettikten sonra
+                    Galeri bölümünden birden fazla fotoğraf ekleyebilirsiniz.
+                  </p>
 
 
-                <input
-                  value={
-                    hotelVideoUrl
-                  }
-                  onChange={
-                    e =>
-                      setHotelVideoUrl(
-                        e.target.value
-                      )
-                  }
-                  placeholder="Video URL"
-                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+                  <label className="mt-4 block">
+
+                    <span className="mb-2 block text-xs font-bold text-slate-400">
+                      Kapak Fotoğrafı
+                    </span>
+
+                    <input
+                      value={
+                        hotelCoverUrl
+                      }
+                      onChange={
+                        e =>
+                          setHotelCoverUrl(
+                            e.target.value
+                          )
+                      }
+                      placeholder="https://..."
+                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                    />
+
+                  </label>
+
+
+                  <label className="mt-4 block">
+
+                    <span className="mb-2 block text-xs font-bold text-slate-400">
+                      Tanıtım Videosu
+                    </span>
+
+                    <input
+                      value={
+                        hotelVideoUrl
+                      }
+                      onChange={
+                        e =>
+                          setHotelVideoUrl(
+                            e.target.value
+                          )
+                      }
+                      placeholder="https://..."
+                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                    />
+
+                  </label>
+
+                </div>
 
 
                 <button
                   disabled={
                     saving
                   }
-                  className="w-full rounded-xl bg-orange-500 px-4 py-3 font-black disabled:opacity-50"
+                  className="w-full rounded-xl bg-orange-500 px-4 py-4 font-black text-white transition hover:bg-orange-400 disabled:opacity-50"
                 >
-                  Oteli Kaydet
+                  {
+                    saving
+                      ? "Otel Kaydediliyor..."
+                      : "Otel Kartını Oluştur"
+                  }
                 </button>
 
               </div>
@@ -2526,11 +2678,27 @@ export default function PackageHotelsPage() {
             </form>
 
 
-            <div className="rounded-[24px] border border-white/10 bg-slate-900 p-5">
+            <div className="rounded-[28px] border border-white/10 bg-slate-900 p-5">
 
-              <h2 className="font-black">
-                Oteller
-              </h2>
+              <div className="flex items-start justify-between gap-3">
+
+                <div>
+
+                  <h2 className="text-lg font-black">
+                    Kayıtlı Oteller
+                  </h2>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    Düzenlemek istediğiniz oteli seçin.
+                  </p>
+
+                </div>
+
+                <div className="rounded-lg bg-slate-950 px-3 py-2 text-xs font-black text-orange-400">
+                  {filteredHotels.length}
+                </div>
+
+              </div>
 
 
               <input
@@ -2543,68 +2711,116 @@ export default function PackageHotelsPage() {
                       e.target.value
                     )
                 }
-                placeholder="Otel ara..."
-                className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                placeholder="Otel adı, şehir veya bölge ara..."
+                className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
               />
 
 
-              <div className="mt-4 max-h-[580px] space-y-2 overflow-auto">
+              <div className="mt-4 max-h-[580px] space-y-3 overflow-auto pr-1">
 
                 {
-                  filteredHotels.map(
-                    hotel => (
-
-                      <button
-                        key={
-                          hotel.id
-                        }
-                        type="button"
-                        onClick={
-                          () => {
-
-                            setSelectedHotelId(
-                              hotel.id
-                            );
-
-                            setTab(
-                              "general"
-                            );
-                          }
-                        }
-                        className={`w-full rounded-xl border p-3 text-left ${
-                          selectedHotelId ===
-                          hotel.id
-                            ? "border-orange-500 bg-orange-500/10"
-                            : "border-white/10 bg-slate-950"
-                        }`}
-                      >
-
-                        <div className="font-black">
-                          {hotel.name}
-                        </div>
-
-                        <div className="mt-1 text-xs text-slate-400">
-                          {
-                            [
-                              hotel.city,
-                              hotel.district,
-                              sourceLabels[
-                                hotel.source_type
-                              ],
-                            ]
-                              .filter(
-                                Boolean
-                              )
-                              .join(
-                                " · "
-                              )
-                          }
-                        </div>
-
-                      </button>
-
+                  filteredHotels.length ===
+                  0
+                    ? (
+                      <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/60 p-5 text-sm leading-6 text-slate-500">
+                        Henüz kayıtlı otel bulunmuyor.
+                        Yukarıdaki formdan ilk otel kartınızı oluşturun.
+                      </div>
                     )
-                  )
+                    : filteredHotels.map(
+                        hotel => (
+
+                          <button
+                            key={
+                              hotel.id
+                            }
+                            type="button"
+                            onClick={
+                              () => {
+
+                                setSelectedHotelId(
+                                  hotel.id
+                                );
+
+                                setTab(
+                                  "general"
+                                );
+                              }
+                            }
+                            className={`w-full overflow-hidden rounded-2xl border text-left transition ${
+                              selectedHotelId ===
+                              hotel.id
+                                ? "border-orange-500 bg-orange-500/10"
+                                : "border-white/10 bg-slate-950 hover:border-white/20"
+                            }`}
+                          >
+
+                            {
+                              hotel.cover_image_url &&
+                              (
+                                <div className="h-24 w-full overflow-hidden bg-slate-900">
+
+                                  <img
+                                    src={
+                                      hotel.cover_image_url
+                                    }
+                                    alt=""
+                                    className="h-full w-full object-cover"
+                                  />
+
+                                </div>
+                              )
+                            }
+
+
+                            <div className="p-4">
+
+                              <div className="flex items-start justify-between gap-3">
+
+                                <div className="min-w-0">
+
+                                  <div className="truncate font-black">
+                                    {hotel.name}
+                                  </div>
+
+                                  <div className="mt-1 text-xs text-slate-400">
+                                    {
+                                      [
+                                        hotel.city,
+                                        hotel.district,
+                                        hotel.star_rating
+                                          ? `${hotel.star_rating} ★`
+                                          : null,
+                                      ]
+                                        .filter(
+                                          Boolean
+                                        )
+                                        .join(
+                                          " · "
+                                        ) ||
+                                      "Konum bilgisi girilmedi"
+                                    }
+                                  </div>
+
+                                </div>
+
+                                <span className="shrink-0 rounded-lg border border-white/10 bg-slate-900 px-2 py-1 text-[10px] font-black text-orange-300">
+                                  {
+                                    sourceLabels[
+                                      hotel.source_type
+                                    ] ||
+                                    hotel.source_type
+                                  }
+                                </span>
+
+                              </div>
+
+                            </div>
+
+                          </button>
+
+                        )
+                      )
                 }
 
               </div>
@@ -2619,15 +2835,112 @@ export default function PackageHotelsPage() {
             {
               !contract
                 ? (
-                  <div className="rounded-[28px] border border-dashed border-white/10 bg-slate-900/50 p-12 text-center">
+                  <div className="rounded-[28px] border border-white/10 bg-slate-900 p-8 md:p-10">
 
-                    <h2 className="text-2xl font-black">
-                      Otel seçin
-                    </h2>
+                    <div className="max-w-3xl">
 
-                    <p className="mt-3 text-slate-400">
-                      Oda, kontrat, kampanya ve çocuk fiyatlarını yönetmek için soldan otel seçin.
-                    </p>
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-orange-400">
+                        BAŞLANGIÇ
+                      </p>
+
+                      <h2 className="mt-3 text-3xl font-black">
+                        Otel Yönetimine Buradan Başlayın
+                      </h2>
+
+                      <p className="mt-4 text-sm leading-7 text-slate-400">
+                        Soldan yeni bir otel oluşturun veya kayıtlı otellerden
+                        birini seçin. Oteli seçtikten sonra oda, kontrat,
+                        EB kampanyası, çocuk politikası ve API sekmeleri açılır.
+                      </p>
+
+                    </div>
+
+
+                    <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+
+                      <div className="rounded-2xl border border-white/10 bg-slate-950 p-5">
+
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-sm font-black">
+                          1
+                        </div>
+
+                        <h3 className="mt-4 font-black">
+                          Otel Kartı
+                        </h3>
+
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                          Otel adı, konum, kaynak ve temel bilgileri kaydedin.
+                        </p>
+
+                      </div>
+
+
+                      <div className="rounded-2xl border border-white/10 bg-slate-950 p-5">
+
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-sm font-black">
+                          2
+                        </div>
+
+                        <h3 className="mt-4 font-black">
+                          Oda & Galeri
+                        </h3>
+
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                          Oda tiplerini, kapasitelerini ve otel görsellerini ekleyin.
+                        </p>
+
+                      </div>
+
+
+                      <div className="rounded-2xl border border-white/10 bg-slate-950 p-5">
+
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-sm font-black">
+                          3
+                        </div>
+
+                        <h3 className="mt-4 font-black">
+                          Kontrat & Fiyat
+                        </h3>
+
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                          Net alış veya liste fiyatı + acente indirimi ile dönemleri tanımlayın.
+                        </p>
+
+                      </div>
+
+
+                      <div className="rounded-2xl border border-white/10 bg-slate-950 p-5">
+
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-sm font-black">
+                          4
+                        </div>
+
+                        <h3 className="mt-4 font-black">
+                          EB · Çocuk · API
+                        </h3>
+
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                          Kampanyaları, çocuk kurallarını ve entegrasyonları tamamlayın.
+                        </p>
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="mt-8 rounded-2xl border border-orange-500/20 bg-orange-500/5 p-5">
+
+                      <p className="text-sm font-black text-orange-300">
+                        Paket fiyatları burada tanımlanan kurallardan otomatik hesaplanır.
+                      </p>
+
+                      <p className="mt-2 text-sm leading-6 text-slate-400">
+                        Satış danışmanı alış maliyetlerini görmez; sistem fiyatı
+                        arka planda hesaplar ve satış ekranına yalnızca gerekli
+                        satış bilgisini gönderir.
+                      </p>
+
+                    </div>
 
                   </div>
                 )
