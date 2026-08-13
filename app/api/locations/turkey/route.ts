@@ -71,7 +71,9 @@ export async function GET(
       }
 
       targetUrl =
-        `https://api.turkiyeapi.dev/v2/provinces/${provinceId}/districts?fields=id,name&limit=1000&sort=name`;
+        `https://api.turkiyeapi.dev/v2/districts?provinceId=${encodeURIComponent(
+          provinceId
+        )}&limit=1000`;
     } else {
       targetUrl =
         "https://api.turkiyeapi.dev/v2/provinces?fields=id,name&limit=100&sort=name";
