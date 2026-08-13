@@ -4,6 +4,7 @@ import {
   FormEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -2273,20 +2274,90 @@ function DatePickerField({
   onChange:
     (value: string) => void;
 }) {
+  const inputRef =
+    useRef<HTMLInputElement>(
+      null
+    );
+
+  function openCalendar() {
+    if (disabled) {
+      return;
+    }
+
+    const input =
+      inputRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    try {
+      if (
+        typeof input.showPicker ===
+        "function"
+      ) {
+        input.showPicker();
+        return;
+      }
+    } catch {
+    }
+
+    input.focus();
+    input.click();
+  }
+
   return (
-    <label className="block">
+    <div className="block">
       <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
         {label}
       </span>
 
       <div
-        className={`rounded-xl border p-3 ${
+        className={`rounded-2xl border p-4 ${
           disabled
             ? "border-white/5 bg-slate-950/50 opacity-50"
             : "border-white/10 bg-slate-950"
         }`}
       >
+        <button
+          type="button"
+          disabled={
+            disabled
+          }
+          onClick={
+            openCalendar
+          }
+          className="mb-3 flex w-full items-center justify-between rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-4 text-left transition hover:bg-orange-500/15 disabled:cursor-not-allowed"
+        >
+          <div>
+            <div className="text-xs font-black uppercase tracking-wider text-orange-300">
+              📅 TAKVİMİ AÇ
+            </div>
+
+            <div
+              className={`mt-1 text-base font-black ${
+                value
+                  ? "text-white"
+                  : "text-slate-400"
+              }`}
+            >
+              {value
+                ? formatPackageDate(
+                    value
+                  )
+                : placeholder}
+            </div>
+          </div>
+
+          <div className="text-2xl">
+            ›
+          </div>
+        </button>
+
         <input
+          ref={
+            inputRef
+          }
           type="date"
           value={
             value
@@ -2306,26 +2377,18 @@ function DatePickerField({
           aria-label={
             label
           }
-          className="native-package-date w-full cursor-pointer rounded-lg bg-transparent px-1 py-2 text-base font-black text-white outline-none disabled:cursor-not-allowed"
+          className="native-package-date w-full cursor-pointer rounded-xl border border-white/10 bg-slate-900 px-4 py-3 font-black text-white outline-none focus:border-orange-500 disabled:cursor-not-allowed"
         />
 
-        <div className="mt-2 flex items-center justify-between gap-3 border-t border-white/5 pt-2">
-          <span className="text-xs text-slate-500">
-            {value
-              ? formatPackageDate(
-                  value
-                )
-              : placeholder}
-          </span>
-
-          {value && (
-            <span className="text-xs font-black text-orange-400">
-              {value}
-            </span>
-          )}
+        <div className="mt-2 text-xs text-slate-500">
+          {disabled
+            ? "Önce giriş tarihini seçin."
+            : min
+              ? `Seçilebilecek en erken tarih: ${formatPackageDate(min)}`
+              : "Takvimden tarih seçin."}
         </div>
       </div>
-    </label>
+    </div>
   );
 }
 
