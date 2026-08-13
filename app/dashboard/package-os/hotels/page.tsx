@@ -13,6 +13,7 @@ import Link from "next/link";
 import HotelMediaManager from "./components/HotelMediaManager";
 import HotelProfileEditor from "./components/HotelProfileEditor";
 import HotelRecordManager from "./components/HotelRecordManager";
+import HotelRateOccupancyManager from "./components/HotelRateOccupancyManager";
 
 import {
   supabase,
@@ -4684,6 +4685,26 @@ export default function PackageHotelsPage() {
                         </div>
                       )
                     }
+
+                    {
+                      tab ===
+                      "rates" &&
+                      (
+                        <HotelRateOccupancyManager
+                          companyId={
+                            membership?.company_id ??
+                            ""
+                          }
+                          rates={
+                            contract.rates
+                          }
+                          onChanged={
+                            refresh
+                          }
+                        />
+                      )
+                    }
+
 
                     {
                       tab ===
