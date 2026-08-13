@@ -9,13 +9,28 @@ import {
 } from "react";
 
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+
+import {
+  supabase,
+} from "@/lib/supabase";
+
 import {
   CurrentMembership,
   getCurrentMembership,
 } from "@/lib/current-user";
 
-type PackageHotel = {
+
+type Tab =
+  | "general"
+  | "gallery"
+  | "rooms"
+  | "rates"
+  | "promotions"
+  | "children"
+  | "api";
+
+
+type Hotel = {
   id: string;
   company_id: string;
   supplier_id: string | null;
@@ -26,23 +41,55 @@ type PackageHotel = {
   description: string | null;
   cover_image_url: string | null;
   video_url: string | null;
-  currency: string;
-  is_active: boolean;
-  created_at: string;
+  source_type:
+    | "manual"
+    | "hotelrunner"
+    | "elektra"
+    | "booking"
+    | "custom_api";
+  external_hotel_id: string | null;
+  external_source_name: string | null;
+  last_synced_at: string | null;
+  address: string | null;
 };
 
-type HotelRate = {
+
+type Supplier = {
   id: string;
-  package_hotel_id: string;
+  name: string;
+  supplier_type: string;
+};
+
+
+type Media = {
+  id: string;
+  media_type: "image" | "video";
+  url: string;
+  title: string | null;
+  is_cover: boolean;
+  sort_order: number;
+};
+
+
+type RoomType = {
+  id: string;
+  name: string;
+  code: string | null;
+  description: string | null;
+  max_adults: number;
+  max_children: number;
+  max_occupancy: number;
+  size_m2: number | null;
+  bed_type: string | null;
+  external_room_id: string | null;
+};
+
+
+type Rate = {
+  id: string;
+  room_type_id: string | null;
   room_type_name: string;
-  board_type:
-    | "room_only"
-    | "breakfast"
-    | "half_board"
-    | "full_board"
-    | "all_inclusive"
-    | "ultra_all_inclusive"
-    | "other";
+  board_type: string;
   valid_from: string;
   valid_to: string;
   occupancy_adults: number;
@@ -53,1301 +100,4217 @@ type HotelRate = {
   allotment: number | null;
   minimum_stay: number;
   stop_sale: boolean;
-  is_active: boolean;
+  price_input_type:
+    | "net"
+    | "list_discount";
+  list_price: number | null;
+  agency_discount_percent: number | null;
+  source_type: string;
+  external_rate_id: string | null;
+  release_days: number;
+  closed_to_arrival: boolean;
+  closed_to_departure: boolean;
 };
 
-type SupplierOption = {
+
+type Promotion = {
   id: string;
   name: string;
-  supplier_type: string;
+  promotion_type: string;
+  discount_type:
+    | "percent"
+    | "fixed";
+  discount_value: number;
+  booking_from: string | null;
+  booking_to: string | null;
+  stay_from: string | null;
+  stay_to: string | null;
+  minimum_nights: number;
+  combinable: boolean;
 };
 
-type HotelForm = {
-  supplier_id: string;
-  name: string;
-  city: string;
-  district: string;
-  star_rating: string;
-  description: string;
-  cover_image_url: string;
-  video_url: string;
+
+type ChildPolicy = {
+  id: string;
+  room_type_id: string | null;
+  child_order: number;
+  age_from: number;
+  age_to: number;
+  pricing_type:
+    | "free"
+    | "percent"
+    | "fixed";
+  value: number;
 };
 
-type RateForm = {
-  room_type_name: string;
-  board_type: HotelRate["board_type"];
-  valid_from: string;
-  valid_to: string;
-  occupancy_adults: string;
-  occupancy_children: string;
-  nightly_cost: string;
-  nightly_sale_price: string;
-  allotment: string;
-  minimum_stay: string;
-  stop_sale: boolean;
+
+type Integration = {
+  id: string;
+  provider: string;
+  display_name: string;
+  external_account_id: string | null;
+  base_url: string | null;
+  status: string;
+  last_sync_at: string | null;
+  last_sync_status: string | null;
+  last_sync_error: string | null;
 };
 
-const emptyHotelForm: HotelForm = {
-  supplier_id: "",
-  name: "",
-  city: "",
-  district: "",
-  star_rating: "",
-  description: "",
-  cover_image_url: "",
-  video_url: "",
+
+type ContractData = {
+  hotel: Hotel;
+  media: Media[];
+  room_types: RoomType[];
+  rates: Rate[];
+  promotions: Promotion[];
+  child_policies: ChildPolicy[];
+  integrations: Integration[];
 };
 
-const emptyRateForm: RateForm = {
-  room_type_name: "",
-  board_type: "half_board",
-  valid_from: "",
-  valid_to: "",
-  occupancy_adults: "2",
-  occupancy_children: "0",
-  nightly_cost: "0",
-  nightly_sale_price: "",
-  allotment: "",
-  minimum_stay: "1",
-  stop_sale: false,
-};
 
-const boardLabels: Record<
-  HotelRate["board_type"],
-  string
-> = {
-  room_only: "Sadece Oda",
-  breakfast: "Kahvaltı Dahil",
-  half_board: "Yarım Pansiyon",
-  full_board: "Tam Pansiyon",
-  all_inclusive: "Her Şey Dahil",
-  ultra_all_inclusive: "Ultra Her Şey Dahil",
-  other: "Diğer",
-};
+const sourceLabels:
+  Record<string, string> = {
+    manual:
+      "Manuel",
+    hotelrunner:
+      "HotelRunner",
+    elektra:
+      "Elektra",
+    booking:
+      "Booking / Connectivity",
+    custom_api:
+      "Özel API",
+  };
 
-function money(value: number | null) {
-  if (value === null) return "-";
 
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-    maximumFractionDigits: 2,
-  }).format(Number(value));
+const boardLabels:
+  Record<string, string> = {
+    room_only:
+      "Sadece Oda",
+    breakfast:
+      "Kahvaltı Dahil",
+    half_board:
+      "Yarım Pansiyon",
+    full_board:
+      "Tam Pansiyon",
+    all_inclusive:
+      "Her Şey Dahil",
+    ultra_all_inclusive:
+      "Ultra Her Şey Dahil",
+    other:
+      "Diğer",
+  };
+
+
+const promotionLabels:
+  Record<string, string> = {
+    early_booking:
+      "Erken Rezervasyon / EB",
+    campaign:
+      "Kampanya",
+    long_stay:
+      "Uzun Konaklama",
+    last_minute:
+      "Son Dakika",
+    special:
+      "Özel İndirim",
+  };
+
+
+function money(
+  value:
+    number |
+    null |
+    undefined
+) {
+  return new Intl.NumberFormat(
+    "tr-TR",
+    {
+      style: "currency",
+      currency: "TRY",
+      maximumFractionDigits: 2,
+    }
+  ).format(
+    Number(
+      value ?? 0
+    )
+  );
 }
 
-function numeric(value: string) {
-  const number = Number(value);
 
-  return Number.isFinite(number)
-    ? number
+function num(
+  value: string
+) {
+  const parsed =
+    Number(value);
+
+  return Number.isFinite(
+    parsed
+  )
+    ? parsed
     : 0;
 }
 
-function nullableNumeric(value: string) {
-  if (!value.trim()) {
-    return null;
-  }
-
-  const number = Number(value);
-
-  return Number.isFinite(number)
-    ? number
-    : null;
-}
 
 export default function PackageHotelsPage() {
-  const [membership, setMembership] =
-    useState<CurrentMembership | null>(null);
 
-  const [hotels, setHotels] =
-    useState<PackageHotel[]>([]);
+  const [
+    membership,
+    setMembership,
+  ] =
+    useState<
+      CurrentMembership |
+      null
+    >(null);
 
-  const [rates, setRates] =
-    useState<HotelRate[]>([]);
 
-  const [suppliers, setSuppliers] =
-    useState<SupplierOption[]>([]);
+  const [
+    hotels,
+    setHotels,
+  ] =
+    useState<Hotel[]>(
+      []
+    );
 
-  const [selectedHotelId, setSelectedHotelId] =
+
+  const [
+    suppliers,
+    setSuppliers,
+  ] =
+    useState<Supplier[]>(
+      []
+    );
+
+
+  const [
+    selectedHotelId,
+    setSelectedHotelId,
+  ] =
     useState("");
 
-  const [hotelForm, setHotelForm] =
-    useState<HotelForm>(emptyHotelForm);
 
-  const [rateForm, setRateForm] =
-    useState<RateForm>(emptyRateForm);
+  const [
+    contract,
+    setContract,
+  ] =
+    useState<
+      ContractData |
+      null
+    >(null);
 
-  const [editingHotelId, setEditingHotelId] =
-    useState("");
 
-  const [editingRateId, setEditingRateId] =
-    useState("");
+  const [
+    tab,
+    setTab,
+  ] =
+    useState<Tab>(
+      "general"
+    );
 
-  const [search, setSearch] =
-    useState("");
 
-  const [loading, setLoading] =
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(true);
 
-  const [savingHotel, setSavingHotel] =
+
+  const [
+    saving,
+    setSaving,
+  ] =
     useState(false);
 
-  const [savingRate, setSavingRate] =
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] =
+    useState("");
+
+
+  const [
+    successMessage,
+    setSuccessMessage,
+  ] =
+    useState("");
+
+
+  const [
+    search,
+    setSearch,
+  ] =
+    useState("");
+
+
+  const [
+    hotelName,
+    setHotelName,
+  ] =
+    useState("");
+
+
+  const [
+    hotelCity,
+    setHotelCity,
+  ] =
+    useState("");
+
+
+  const [
+    hotelDistrict,
+    setHotelDistrict,
+  ] =
+    useState("");
+
+
+  const [
+    hotelStars,
+    setHotelStars,
+  ] =
+    useState("");
+
+
+  const [
+    hotelSupplierId,
+    setHotelSupplierId,
+  ] =
+    useState("");
+
+
+  const [
+    hotelSource,
+    setHotelSource,
+  ] =
+    useState<
+      Hotel["source_type"]
+    >("manual");
+
+
+  const [
+    hotelExternalId,
+    setHotelExternalId,
+  ] =
+    useState("");
+
+
+  const [
+    hotelDescription,
+    setHotelDescription,
+  ] =
+    useState("");
+
+
+  const [
+    hotelAddress,
+    setHotelAddress,
+  ] =
+    useState("");
+
+
+  const [
+    hotelCoverUrl,
+    setHotelCoverUrl,
+  ] =
+    useState("");
+
+
+  const [
+    hotelVideoUrl,
+    setHotelVideoUrl,
+  ] =
+    useState("");
+
+
+  const [
+    mediaUrl,
+    setMediaUrl,
+  ] =
+    useState("");
+
+
+  const [
+    mediaTitle,
+    setMediaTitle,
+  ] =
+    useState("");
+
+
+  const [
+    mediaType,
+    setMediaType,
+  ] =
+    useState<
+      "image" |
+      "video"
+    >("image");
+
+
+  const [
+    mediaCover,
+    setMediaCover,
+  ] =
     useState(false);
 
-  const [errorMessage, setErrorMessage] =
+
+  const [
+    roomName,
+    setRoomName,
+  ] =
     useState("");
 
-  const [successMessage, setSuccessMessage] =
+
+  const [
+    roomCode,
+    setRoomCode,
+  ] =
     useState("");
 
-  const loadHotels = useCallback(
-    async (companyId: string) => {
-      const { data, error } =
-        await supabase
-          .from("package_catalog_hotels")
-          .select(`
-            id,
-            company_id,
-            supplier_id,
-            name,
-            city,
-            district,
-            star_rating,
-            description,
-            cover_image_url,
-            video_url,
-            currency,
-            is_active,
-            created_at
-          `)
-          .eq("company_id", companyId)
-          .order("created_at", {
-            ascending: false,
-          });
 
-      if (error) {
-        throw new Error(error.message);
-      }
+  const [
+    roomAdults,
+    setRoomAdults,
+  ] =
+    useState("2");
 
-      setHotels(
-        (data ?? []) as PackageHotel[]
-      );
-    },
-    []
-  );
 
-  const loadSuppliers = useCallback(
-    async (companyId: string) => {
-      const { data, error } =
-        await supabase
-          .from("suppliers")
-          .select(
-            "id,name,supplier_type"
-          )
-          .eq("company_id", companyId)
-          .eq("is_active", true)
-          .order("name");
+  const [
+    roomChildren,
+    setRoomChildren,
+  ] =
+    useState("0");
 
-      if (error) {
-        console.error(error);
-        return;
-      }
 
-      setSuppliers(
-        (data ?? []) as SupplierOption[]
-      );
-    },
-    []
-  );
+  const [
+    roomSize,
+    setRoomSize,
+  ] =
+    useState("");
 
-  const loadRates = useCallback(
-    async (
-      companyId: string,
-      hotelId: string
-    ) => {
-      if (!hotelId) {
-        setRates([]);
-        return;
-      }
 
-      const { data, error } =
-        await supabase
-          .from("package_hotel_rates")
-          .select(`
-            id,
-            package_hotel_id,
-            room_type_name,
-            board_type,
-            valid_from,
-            valid_to,
-            occupancy_adults,
-            occupancy_children,
-            nightly_cost,
-            nightly_sale_price,
-            currency,
-            allotment,
-            minimum_stay,
-            stop_sale,
-            is_active
-          `)
-          .eq("company_id", companyId)
-          .eq(
-            "package_hotel_id",
-            hotelId
-          )
-          .order("valid_from", {
-            ascending: false,
-          });
+  const [
+    roomBed,
+    setRoomBed,
+  ] =
+    useState("");
 
-      if (error) {
-        throw new Error(error.message);
-      }
 
-      setRates(
-        (data ?? []) as HotelRate[]
-      );
-    },
-    []
-  );
+  const [
+    roomDescription,
+    setRoomDescription,
+  ] =
+    useState("");
 
-  useEffect(() => {
-    async function initialize() {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
 
-        if (!user) {
-          setErrorMessage(
-            "Kullanıcı oturumu bulunamadı."
-          );
-          return;
-        }
+  const [
+    rateRoomId,
+    setRateRoomId,
+  ] =
+    useState("");
 
-        const currentMembership =
-          await getCurrentMembership(user.id);
 
-        if (!currentMembership) {
-          setErrorMessage(
-            "Aktif şirket üyeliği bulunamadı."
-          );
-          return;
-        }
-
-        setMembership(
-          currentMembership
-        );
-
-        await Promise.all([
-          loadHotels(
-            currentMembership.company_id
-          ),
-          loadSuppliers(
-            currentMembership.company_id
-          ),
-        ]);
-      } catch (error) {
-        console.error(error);
-
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "Otel kataloğu yüklenemedi."
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void initialize();
-  }, [loadHotels, loadSuppliers]);
-
-  useEffect(() => {
-    if (
-      !membership ||
-      !selectedHotelId
-    ) {
-      setRates([]);
-      return;
-    }
-
-    void loadRates(
-      membership.company_id,
-      selectedHotelId
+  const [
+    rateBoard,
+    setRateBoard,
+  ] =
+    useState(
+      "half_board"
     );
-  }, [
-    membership,
-    selectedHotelId,
-    loadRates,
-  ]);
 
-  const selectedHotel =
-    hotels.find(
-      (hotel) =>
-        hotel.id === selectedHotelId
-    ) ?? null;
+
+  const [
+    rateFrom,
+    setRateFrom,
+  ] =
+    useState("");
+
+
+  const [
+    rateTo,
+    setRateTo,
+  ] =
+    useState("");
+
+
+  const [
+    ratePriceType,
+    setRatePriceType,
+  ] =
+    useState<
+      "net" |
+      "list_discount"
+    >("net");
+
+
+  const [
+    rateNet,
+    setRateNet,
+  ] =
+    useState("");
+
+
+  const [
+    rateList,
+    setRateList,
+  ] =
+    useState("");
+
+
+  const [
+    rateDiscount,
+    setRateDiscount,
+  ] =
+    useState("");
+
+
+  const [
+    rateAllotment,
+    setRateAllotment,
+  ] =
+    useState("");
+
+
+  const [
+    rateMinStay,
+    setRateMinStay,
+  ] =
+    useState("1");
+
+
+  const [
+    rateReleaseDays,
+    setRateReleaseDays,
+  ] =
+    useState("0");
+
+
+  const [
+    rateStopSale,
+    setRateStopSale,
+  ] =
+    useState(false);
+
+
+  const [
+    promotionName,
+    setPromotionName,
+  ] =
+    useState("");
+
+
+  const [
+    promotionType,
+    setPromotionType,
+  ] =
+    useState(
+      "early_booking"
+    );
+
+
+  const [
+    promotionDiscountType,
+    setPromotionDiscountType,
+  ] =
+    useState<
+      "percent" |
+      "fixed"
+    >("percent");
+
+
+  const [
+    promotionValue,
+    setPromotionValue,
+  ] =
+    useState("");
+
+
+  const [
+    promotionBookingFrom,
+    setPromotionBookingFrom,
+  ] =
+    useState("");
+
+
+  const [
+    promotionBookingTo,
+    setPromotionBookingTo,
+  ] =
+    useState("");
+
+
+  const [
+    promotionStayFrom,
+    setPromotionStayFrom,
+  ] =
+    useState("");
+
+
+  const [
+    promotionStayTo,
+    setPromotionStayTo,
+  ] =
+    useState("");
+
+
+  const [
+    promotionMinNights,
+    setPromotionMinNights,
+  ] =
+    useState("1");
+
+
+  const [
+    childRoomId,
+    setChildRoomId,
+  ] =
+    useState("");
+
+
+  const [
+    childOrder,
+    setChildOrder,
+  ] =
+    useState("1");
+
+
+  const [
+    childAgeFrom,
+    setChildAgeFrom,
+  ] =
+    useState("0");
+
+
+  const [
+    childAgeTo,
+    setChildAgeTo,
+  ] =
+    useState("11.99");
+
+
+  const [
+    childPricingType,
+    setChildPricingType,
+  ] =
+    useState<
+      "free" |
+      "percent" |
+      "fixed"
+    >("free");
+
+
+  const [
+    childValue,
+    setChildValue,
+  ] =
+    useState("0");
+
+
+  const [
+    integrationProvider,
+    setIntegrationProvider,
+  ] =
+    useState(
+      "hotelrunner"
+    );
+
+
+  const [
+    integrationName,
+    setIntegrationName,
+  ] =
+    useState("");
+
+
+  const [
+    integrationAccount,
+    setIntegrationAccount,
+  ] =
+    useState("");
+
+
+  const [
+    integrationBaseUrl,
+    setIntegrationBaseUrl,
+  ] =
+    useState("");
+
+
+  const canManage =
+    membership
+      ? [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ].includes(
+          membership.role
+        )
+      : false;
+
 
   const filteredHotels =
-    useMemo(() => {
-      const query = search
-        .trim()
-        .toLocaleLowerCase("tr-TR");
+    useMemo(
+      () => {
 
-      if (!query) {
-        return hotels;
+        const q =
+          search
+            .trim()
+            .toLocaleLowerCase(
+              "tr-TR"
+            );
+
+
+        if (!q) {
+          return hotels;
+        }
+
+
+        return hotels.filter(
+          hotel =>
+            [
+              hotel.name,
+              hotel.city,
+              hotel.district,
+            ]
+              .filter(
+                Boolean
+              )
+              .some(
+                value =>
+                  String(
+                    value
+                  )
+                    .toLocaleLowerCase(
+                      "tr-TR"
+                    )
+                    .includes(
+                      q
+                    )
+              )
+        );
+
+      },
+      [
+        hotels,
+        search,
+      ]
+    );
+
+
+  const calculatedNet =
+    ratePriceType ===
+    "list_discount"
+
+      ? Math.max(
+          0,
+          num(
+            rateList
+          ) *
+            (
+              1 -
+              Math.min(
+                100,
+                Math.max(
+                  0,
+                  num(
+                    rateDiscount
+                  )
+                )
+              ) /
+              100
+            )
+        )
+
+      : Math.max(
+          0,
+          num(
+            rateNet
+          )
+        );
+
+
+  const loadHotels =
+    useCallback(
+      async (
+        companyId:
+          string
+      ) => {
+
+        const {
+          data,
+          error,
+        } =
+          await supabase
+            .from(
+              "package_catalog_hotels"
+            )
+            .select(
+              "id,company_id,supplier_id,name,city,district,star_rating,description,cover_image_url,video_url,source_type,external_hotel_id,external_source_name,last_synced_at,address"
+            )
+            .eq(
+              "company_id",
+              companyId
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  false,
+              }
+            );
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        setHotels(
+          (
+            data ??
+            []
+          ) as Hotel[]
+        );
+      },
+      []
+    );
+
+
+  const loadSuppliers =
+    useCallback(
+      async (
+        companyId:
+          string
+      ) => {
+
+        const {
+          data,
+          error,
+        } =
+          await supabase
+            .from(
+              "suppliers"
+            )
+            .select(
+              "id,name,supplier_type"
+            )
+            .eq(
+              "company_id",
+              companyId
+            )
+            .eq(
+              "is_active",
+              true
+            )
+            .order(
+              "name"
+            );
+
+
+        if (error) {
+          console.error(
+            error
+          );
+          return;
+        }
+
+
+        setSuppliers(
+          (
+            data ??
+            []
+          ) as Supplier[]
+        );
+      },
+      []
+    );
+
+
+  const loadContract =
+    useCallback(
+      async (
+        hotelId:
+          string
+      ) => {
+
+        if (!hotelId) {
+
+          setContract(
+            null
+          );
+
+          return;
+        }
+
+
+        const {
+          data,
+          error,
+        } =
+          await supabase.rpc(
+            "get_package_hotel_contract_admin",
+            {
+              p_hotel_id:
+                hotelId,
+            }
+          );
+
+
+        if (error) {
+
+          setErrorMessage(
+            error.message
+          );
+
+          return;
+        }
+
+
+        setContract(
+          data as ContractData
+        );
+      },
+      []
+    );
+
+
+  useEffect(
+    () => {
+
+      async function initialize() {
+
+        try {
+
+          const {
+            data: {
+              user,
+            },
+          } =
+            await supabase
+              .auth
+              .getUser();
+
+
+          if (!user) {
+
+            setErrorMessage(
+              "Kullanıcı oturumu bulunamadı."
+            );
+
+            return;
+          }
+
+
+          const current =
+            await getCurrentMembership(
+              user.id
+            );
+
+
+          if (!current) {
+
+            setErrorMessage(
+              "Aktif şirket üyeliği bulunamadı."
+            );
+
+            return;
+          }
+
+
+          setMembership(
+            current
+          );
+
+
+          if (
+            ![
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "accounting",
+            ].includes(
+              current.role
+            )
+          ) {
+
+            return;
+          }
+
+
+          await Promise.all([
+            loadHotels(
+              current.company_id
+            ),
+
+            loadSuppliers(
+              current.company_id
+            ),
+          ]);
+
+        } catch (
+          error
+        ) {
+
+          console.error(
+            error
+          );
+
+          setErrorMessage(
+            error instanceof
+            Error
+
+              ? error.message
+
+              : "Otel yönetimi yüklenemedi."
+          );
+
+        } finally {
+
+          setLoading(
+            false
+          );
+        }
       }
 
-      return hotels.filter((hotel) =>
-        [
-          hotel.name,
-          hotel.city,
-          hotel.district,
-        ]
-          .filter(Boolean)
-          .some((value) =>
-            String(value)
-              .toLocaleLowerCase(
-                "tr-TR"
-              )
-              .includes(query)
-          )
-      );
-    }, [hotels, search]);
 
-  async function saveHotel(
-    event: FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault();
+      void initialize();
 
-    if (!membership) return;
+    },
+    [
+      loadHotels,
+      loadSuppliers,
+    ]
+  );
 
-    if (!hotelForm.name.trim()) {
-      setErrorMessage(
-        "Otel adı zorunludur."
-      );
+
+  useEffect(
+    () => {
+
+      if (
+        selectedHotelId &&
+        canManage
+      ) {
+
+        void loadContract(
+          selectedHotelId
+        );
+
+      } else {
+
+        setContract(
+          null
+        );
+      }
+
+    },
+    [
+      selectedHotelId,
+      canManage,
+      loadContract,
+    ]
+  );
+
+
+  async function refresh() {
+
+    if (!membership) {
       return;
     }
 
-    setSavingHotel(true);
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    const payload = {
-      company_id:
-        membership.company_id,
-      supplier_id:
-        hotelForm.supplier_id ||
-        null,
-      name: hotelForm.name.trim(),
-      city:
-        hotelForm.city.trim() ||
-        null,
-      district:
-        hotelForm.district.trim() ||
-        null,
-      star_rating:
-        nullableNumeric(
-          hotelForm.star_rating
-        ),
-      description:
-        hotelForm.description.trim() ||
-        null,
-      cover_image_url:
-        hotelForm.cover_image_url.trim() ||
-        null,
-      video_url:
-        hotelForm.video_url.trim() ||
-        null,
-      currency: "TRY",
-      is_active: true,
-      updated_at:
-        new Date().toISOString(),
-    };
-
-    const query = editingHotelId
-      ? supabase
-          .from(
-            "package_catalog_hotels"
-          )
-          .update(payload)
-          .eq("id", editingHotelId)
-          .eq(
-            "company_id",
-            membership.company_id
-          )
-      : supabase
-          .from(
-            "package_catalog_hotels"
-          )
-          .insert(payload);
-
-    const { error } = await query;
-
-    if (error) {
-      setErrorMessage(
-        error.message
-      );
-      setSavingHotel(false);
-      return;
-    }
 
     await loadHotels(
       membership.company_id
     );
 
-    setHotelForm(
-      emptyHotelForm
+
+    if (
+      selectedHotelId
+    ) {
+
+      await loadContract(
+        selectedHotelId
+      );
+    }
+  }
+
+
+  function clearMessages() {
+
+    setErrorMessage(
+      ""
     );
-    setEditingHotelId("");
 
     setSuccessMessage(
-      editingHotelId
-        ? "Otel güncellendi."
-        : "Otel eklendi."
+      ""
+    );
+  }
+
+
+  async function createHotel(
+    event:
+      FormEvent
+  ) {
+
+    event.preventDefault();
+
+    if (!membership) {
+      return;
+    }
+
+
+    clearMessages();
+
+
+    if (
+      !hotelName.trim()
+    ) {
+
+      setErrorMessage(
+        "Otel adı zorunludur."
+      );
+
+      return;
+    }
+
+
+    setSaving(
+      true
     );
 
-    setSavingHotel(false);
+
+    const {
+      data,
+      error,
+    } =
+      await supabase
+        .from(
+          "package_catalog_hotels"
+        )
+        .insert({
+          company_id:
+            membership.company_id,
+
+          supplier_id:
+            hotelSupplierId ||
+            null,
+
+          name:
+            hotelName.trim(),
+
+          city:
+            hotelCity.trim() ||
+            null,
+
+          district:
+            hotelDistrict.trim() ||
+            null,
+
+          star_rating:
+            hotelStars
+              ? num(
+                  hotelStars
+                )
+              : null,
+
+          source_type:
+            hotelSource,
+
+          external_hotel_id:
+            hotelExternalId.trim() ||
+            null,
+
+          external_source_name:
+            sourceLabels[
+              hotelSource
+            ] ||
+            hotelSource,
+
+          description:
+            hotelDescription.trim() ||
+            null,
+
+          address:
+            hotelAddress.trim() ||
+            null,
+
+          cover_image_url:
+            hotelCoverUrl.trim() ||
+            null,
+
+          video_url:
+            hotelVideoUrl.trim() ||
+            null,
+
+          currency:
+            "TRY",
+
+          is_active:
+            true,
+
+          updated_at:
+            new Date()
+              .toISOString(),
+        })
+        .select(
+          "id"
+        )
+        .single();
+
+
+    if (
+      error ||
+      !data
+    ) {
+
+      setErrorMessage(
+        error?.message ||
+        "Otel kaydedilemedi."
+      );
+
+      setSaving(
+        false
+      );
+
+      return;
+    }
+
+
+    setSuccessMessage(
+      "Otel kaydedildi."
+    );
+
+
+    setHotelName("");
+    setHotelCity("");
+    setHotelDistrict("");
+    setHotelStars("");
+    setHotelSupplierId("");
+    setHotelSource(
+      "manual"
+    );
+    setHotelExternalId("");
+    setHotelDescription("");
+    setHotelAddress("");
+    setHotelCoverUrl("");
+    setHotelVideoUrl("");
+
+
+    await loadHotels(
+      membership.company_id
+    );
+
+
+    setSelectedHotelId(
+      data.id
+    );
+
+
+    setSaving(
+      false
+    );
   }
 
-  function editHotel(
-    hotel: PackageHotel
+
+  async function addMedia(
+    event:
+      FormEvent
   ) {
-    setEditingHotelId(hotel.id);
 
-    setHotelForm({
-      supplier_id:
-        hotel.supplier_id ?? "",
-      name: hotel.name,
-      city: hotel.city ?? "",
-      district:
-        hotel.district ?? "",
-      star_rating:
-        hotel.star_rating?.toString() ??
-        "",
-      description:
-        hotel.description ?? "",
-      cover_image_url:
-        hotel.cover_image_url ?? "",
-      video_url:
-        hotel.video_url ?? "",
-    });
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  async function saveRate(
-    event: FormEvent<HTMLFormElement>
-  ) {
     event.preventDefault();
 
     if (
       !membership ||
       !selectedHotelId
     ) {
-      setErrorMessage(
-        "Önce otel seçin."
-      );
       return;
     }
+
+
+    clearMessages();
+
 
     if (
-      !rateForm.room_type_name.trim() ||
-      !rateForm.valid_from ||
-      !rateForm.valid_to
+      !mediaUrl.trim()
     ) {
+
       setErrorMessage(
-        "Oda tipi ve tarih aralığı zorunludur."
+        "Fotoğraf veya video URL zorunludur."
       );
+
       return;
     }
 
-    setSavingRate(true);
-    setErrorMessage("");
-    setSuccessMessage("");
 
-    const payload = {
-      company_id:
-        membership.company_id,
-      package_hotel_id:
-        selectedHotelId,
-      room_type_name:
-        rateForm.room_type_name.trim(),
-      board_type:
-        rateForm.board_type,
-      valid_from:
-        rateForm.valid_from,
-      valid_to:
-        rateForm.valid_to,
-      occupancy_adults:
-        Math.max(
-          1,
-          numeric(
-            rateForm.occupancy_adults
-          )
-        ),
-      occupancy_children:
-        Math.max(
-          0,
-          numeric(
-            rateForm.occupancy_children
-          )
-        ),
-      nightly_cost:
-        Math.max(
-          0,
-          numeric(
-            rateForm.nightly_cost
-          )
-        ),
-      nightly_sale_price:
-        nullableNumeric(
-          rateForm.nightly_sale_price
-        ),
-      allotment:
-        nullableNumeric(
-          rateForm.allotment
-        ),
-      minimum_stay:
-        Math.max(
-          1,
-          numeric(
-            rateForm.minimum_stay
-          )
-        ),
-      stop_sale:
-        rateForm.stop_sale,
-      currency: "TRY",
-      is_active: true,
-      updated_at:
-        new Date().toISOString(),
-    };
+    setSaving(
+      true
+    );
 
-    const query = editingRateId
-      ? supabase
-          .from(
-            "package_hotel_rates"
-          )
-          .update(payload)
-          .eq("id", editingRateId)
-          .eq(
-            "company_id",
-            membership.company_id
-          )
-      : supabase
-          .from(
-            "package_hotel_rates"
-          )
-          .insert(payload);
 
-    const { error } = await query;
+    if (mediaCover) {
+
+      await supabase
+        .from(
+          "package_hotel_media"
+        )
+        .update({
+          is_cover:
+            false,
+        })
+        .eq(
+          "company_id",
+          membership.company_id
+        )
+        .eq(
+          "package_hotel_id",
+          selectedHotelId
+        );
+    }
+
+
+    const {
+      error,
+    } =
+      await supabase
+        .from(
+          "package_hotel_media"
+        )
+        .insert({
+          company_id:
+            membership.company_id,
+
+          package_hotel_id:
+            selectedHotelId,
+
+          media_type:
+            mediaType,
+
+          url:
+            mediaUrl.trim(),
+
+          title:
+            mediaTitle.trim() ||
+            null,
+
+          is_cover:
+            mediaCover,
+
+          source_type:
+            "manual",
+        });
+
 
     if (error) {
+
       setErrorMessage(
         error.message
       );
-      setSavingRate(false);
+
+      setSaving(
+        false
+      );
+
       return;
     }
 
-    await loadRates(
-      membership.company_id,
-      selectedHotelId
-    );
 
-    setRateForm(
-      emptyRateForm
-    );
-    setEditingRateId("");
+    if (
+      mediaCover &&
+      mediaType ===
+        "image"
+    ) {
+
+      await supabase
+        .from(
+          "package_catalog_hotels"
+        )
+        .update({
+          cover_image_url:
+            mediaUrl.trim(),
+
+          updated_at:
+            new Date()
+              .toISOString(),
+        })
+        .eq(
+          "id",
+          selectedHotelId
+        )
+        .eq(
+          "company_id",
+          membership.company_id
+        );
+    }
+
+
+    setMediaUrl("");
+    setMediaTitle("");
+    setMediaCover(false);
 
     setSuccessMessage(
-      editingRateId
-        ? "Fiyat dönemi güncellendi."
-        : "Fiyat dönemi eklendi."
+      "Medya eklendi."
     );
 
-    setSavingRate(false);
+
+    await refresh();
+
+    setSaving(
+      false
+    );
   }
 
-  function editRate(
-    rate: HotelRate
+
+  async function addRoom(
+    event:
+      FormEvent
   ) {
-    setEditingRateId(rate.id);
 
-    setRateForm({
-      room_type_name:
-        rate.room_type_name,
-      board_type:
-        rate.board_type,
-      valid_from:
-        rate.valid_from,
-      valid_to:
-        rate.valid_to,
-      occupancy_adults:
-        String(
-          rate.occupancy_adults
-        ),
-      occupancy_children:
-        String(
-          rate.occupancy_children
-        ),
-      nightly_cost:
-        String(rate.nightly_cost),
-      nightly_sale_price:
-        rate.nightly_sale_price ===
-        null
-          ? ""
-          : String(
-              rate.nightly_sale_price
-            ),
-      allotment:
-        rate.allotment === null
-          ? ""
-          : String(rate.allotment),
-      minimum_stay:
-        String(rate.minimum_stay),
-      stop_sale:
-        rate.stop_sale,
-    });
+    event.preventDefault();
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    if (
+      !membership ||
+      !selectedHotelId
+    ) {
+      return;
+    }
+
+
+    clearMessages();
+
+
+    if (
+      !roomName.trim()
+    ) {
+
+      setErrorMessage(
+        "Oda tipi adı zorunludur."
+      );
+
+      return;
+    }
+
+
+    const adults =
+      Math.max(
+        1,
+        num(
+          roomAdults
+        )
+      );
+
+    const children =
+      Math.max(
+        0,
+        num(
+          roomChildren
+        )
+      );
+
+
+    setSaving(
+      true
+    );
+
+
+    const {
+      error,
+    } =
+      await supabase
+        .from(
+          "package_hotel_room_types"
+        )
+        .insert({
+          company_id:
+            membership.company_id,
+
+          package_hotel_id:
+            selectedHotelId,
+
+          name:
+            roomName.trim(),
+
+          code:
+            roomCode.trim() ||
+            null,
+
+          description:
+            roomDescription.trim() ||
+            null,
+
+          max_adults:
+            adults,
+
+          max_children:
+            children,
+
+          max_occupancy:
+            adults +
+            children,
+
+          size_m2:
+            roomSize
+              ? num(
+                  roomSize
+                )
+              : null,
+
+          bed_type:
+            roomBed.trim() ||
+            null,
+
+          source_type:
+            "manual",
+
+          is_active:
+            true,
+        });
+
+
+    if (error) {
+
+      setErrorMessage(
+        error.message
+      );
+
+      setSaving(
+        false
+      );
+
+      return;
+    }
+
+
+    setRoomName("");
+    setRoomCode("");
+    setRoomAdults("2");
+    setRoomChildren("0");
+    setRoomSize("");
+    setRoomBed("");
+    setRoomDescription("");
+
+
+    setSuccessMessage(
+      "Oda tipi eklendi."
+    );
+
+
+    await refresh();
+
+    setSaving(
+      false
+    );
   }
+
+
+  async function addRate(
+    event:
+      FormEvent
+  ) {
+
+    event.preventDefault();
+
+    if (
+      !membership ||
+      !selectedHotelId ||
+      !contract
+    ) {
+      return;
+    }
+
+
+    clearMessages();
+
+
+    const room =
+      contract.room_types
+        .find(
+          item =>
+            item.id ===
+            rateRoomId
+        );
+
+
+    if (
+      !room ||
+      !rateFrom ||
+      !rateTo
+    ) {
+
+      setErrorMessage(
+        "Oda tipi ve fiyat dönemi tarihleri zorunludur."
+      );
+
+      return;
+    }
+
+
+    if (
+      rateTo <
+      rateFrom
+    ) {
+
+      setErrorMessage(
+        "Bitiş tarihi başlangıç tarihinden önce olamaz."
+      );
+
+      return;
+    }
+
+
+    setSaving(
+      true
+    );
+
+
+    const {
+      error,
+    } =
+      await supabase
+        .from(
+          "package_hotel_rates"
+        )
+        .insert({
+          company_id:
+            membership.company_id,
+
+          package_hotel_id:
+            selectedHotelId,
+
+          room_type_id:
+            room.id,
+
+          room_type_name:
+            room.name,
+
+          board_type:
+            rateBoard,
+
+          valid_from:
+            rateFrom,
+
+          valid_to:
+            rateTo,
+
+          occupancy_adults:
+            room.max_adults,
+
+          occupancy_children:
+            room.max_children,
+
+          price_input_type:
+            ratePriceType,
+
+          nightly_cost:
+            ratePriceType ===
+            "net"
+              ? calculatedNet
+              : 0,
+
+          list_price:
+            ratePriceType ===
+            "list_discount"
+              ? num(
+                  rateList
+                )
+              : null,
+
+          agency_discount_percent:
+            ratePriceType ===
+            "list_discount"
+              ? num(
+                  rateDiscount
+                )
+              : null,
+
+          nightly_sale_price:
+            null,
+
+          currency:
+            "TRY",
+
+          allotment:
+            rateAllotment
+              ? num(
+                  rateAllotment
+                )
+              : null,
+
+          minimum_stay:
+            Math.max(
+              1,
+              num(
+                rateMinStay
+              )
+            ),
+
+          release_days:
+            Math.max(
+              0,
+              num(
+                rateReleaseDays
+              )
+            ),
+
+          stop_sale:
+            rateStopSale,
+
+          closed_to_arrival:
+            false,
+
+          closed_to_departure:
+            false,
+
+          source_type:
+            "manual",
+
+          is_active:
+            true,
+
+          updated_at:
+            new Date()
+              .toISOString(),
+        });
+
+
+    if (error) {
+
+      setErrorMessage(
+        error.message
+      );
+
+      setSaving(
+        false
+      );
+
+      return;
+    }
+
+
+    setRateRoomId("");
+    setRateFrom("");
+    setRateTo("");
+    setRateNet("");
+    setRateList("");
+    setRateDiscount("");
+    setRateAllotment("");
+    setRateMinStay("1");
+    setRateReleaseDays("0");
+    setRateStopSale(false);
+
+
+    setSuccessMessage(
+      "Kontrat fiyat dönemi eklendi."
+    );
+
+
+    await refresh();
+
+    setSaving(
+      false
+    );
+  }
+
+
+  async function addPromotion(
+    event:
+      FormEvent
+  ) {
+
+    event.preventDefault();
+
+    if (
+      !membership ||
+      !selectedHotelId
+    ) {
+      return;
+    }
+
+
+    clearMessages();
+
+
+    if (
+      !promotionName.trim()
+    ) {
+
+      setErrorMessage(
+        "Kampanya adı zorunludur."
+      );
+
+      return;
+    }
+
+
+    setSaving(
+      true
+    );
+
+
+    const {
+      error,
+    } =
+      await supabase
+        .from(
+          "package_hotel_promotions"
+        )
+        .insert({
+          company_id:
+            membership.company_id,
+
+          package_hotel_id:
+            selectedHotelId,
+
+          name:
+            promotionName.trim(),
+
+          promotion_type:
+            promotionType,
+
+          discount_type:
+            promotionDiscountType,
+
+          discount_value:
+            Math.max(
+              0,
+              num(
+                promotionValue
+              )
+            ),
+
+          booking_from:
+            promotionBookingFrom ||
+            null,
+
+          booking_to:
+            promotionBookingTo ||
+            null,
+
+          stay_from:
+            promotionStayFrom ||
+            null,
+
+          stay_to:
+            promotionStayTo ||
+            null,
+
+          minimum_nights:
+            Math.max(
+              1,
+              num(
+                promotionMinNights
+              )
+            ),
+
+          combinable:
+            false,
+
+          priority:
+            100,
+
+          is_active:
+            true,
+        });
+
+
+    if (error) {
+
+      setErrorMessage(
+        error.message
+      );
+
+      setSaving(
+        false
+      );
+
+      return;
+    }
+
+
+    setPromotionName("");
+    setPromotionValue("");
+    setPromotionBookingFrom("");
+    setPromotionBookingTo("");
+    setPromotionStayFrom("");
+    setPromotionStayTo("");
+    setPromotionMinNights("1");
+
+
+    setSuccessMessage(
+      "EB / kampanya eklendi."
+    );
+
+
+    await refresh();
+
+    setSaving(
+      false
+    );
+  }
+
+
+  async function addChildPolicy(
+    event:
+      FormEvent
+  ) {
+
+    event.preventDefault();
+
+    if (
+      !membership ||
+      !selectedHotelId
+    ) {
+      return;
+    }
+
+
+    clearMessages();
+
+
+    setSaving(
+      true
+    );
+
+
+    const {
+      error,
+    } =
+      await supabase
+        .from(
+          "package_hotel_child_policies"
+        )
+        .insert({
+          company_id:
+            membership.company_id,
+
+          package_hotel_id:
+            selectedHotelId,
+
+          room_type_id:
+            childRoomId ||
+            null,
+
+          child_order:
+            Math.max(
+              1,
+              num(
+                childOrder
+              )
+            ),
+
+          age_from:
+            Math.max(
+              0,
+              num(
+                childAgeFrom
+              )
+            ),
+
+          age_to:
+            Math.max(
+              0,
+              num(
+                childAgeTo
+              )
+            ),
+
+          pricing_type:
+            childPricingType,
+
+          value:
+            childPricingType ===
+            "free"
+              ? 0
+              : Math.max(
+                  0,
+                  num(
+                    childValue
+                  )
+                ),
+
+          is_active:
+            true,
+        });
+
+
+    if (error) {
+
+      setErrorMessage(
+        error.message
+      );
+
+      setSaving(
+        false
+      );
+
+      return;
+    }
+
+
+    setChildRoomId("");
+    setChildOrder("1");
+    setChildAgeFrom("0");
+    setChildAgeTo("11.99");
+    setChildPricingType(
+      "free"
+    );
+    setChildValue("0");
+
+
+    setSuccessMessage(
+      "Çocuk fiyat politikası eklendi."
+    );
+
+
+    await refresh();
+
+    setSaving(
+      false
+    );
+  }
+
+
+  async function addIntegration(
+    event:
+      FormEvent
+  ) {
+
+    event.preventDefault();
+
+    if (!membership) {
+      return;
+    }
+
+
+    clearMessages();
+
+
+    if (
+      !integrationName.trim()
+    ) {
+
+      setErrorMessage(
+        "Bağlantı adı zorunludur."
+      );
+
+      return;
+    }
+
+
+    setSaving(
+      true
+    );
+
+
+    const {
+      error,
+    } =
+      await supabase
+        .from(
+          "package_hotel_integrations"
+        )
+        .insert({
+          company_id:
+            membership.company_id,
+
+          provider:
+            integrationProvider,
+
+          display_name:
+            integrationName.trim(),
+
+          external_account_id:
+            integrationAccount.trim() ||
+            null,
+
+          base_url:
+            integrationBaseUrl.trim() ||
+            null,
+
+          status:
+            "draft",
+
+          settings:
+            {},
+        });
+
+
+    if (error) {
+
+      setErrorMessage(
+        error.message
+      );
+
+      setSaving(
+        false
+      );
+
+      return;
+    }
+
+
+    setIntegrationName("");
+    setIntegrationAccount("");
+    setIntegrationBaseUrl("");
+
+
+    setSuccessMessage(
+      "API bağlantı kaydı oluşturuldu."
+    );
+
+
+    if (
+      selectedHotelId
+    ) {
+
+      await refresh();
+    }
+
+
+    setSaving(
+      false
+    );
+  }
+
 
   if (loading) {
+
     return (
       <main className="min-h-screen bg-slate-950 p-10 text-white">
-        Otel kataloğu yükleniyor...
+        Otel yönetimi yükleniyor...
       </main>
     );
   }
 
+
+  if (
+    membership &&
+    !canManage
+  ) {
+
+    return (
+      <main className="min-h-screen bg-slate-950 p-6 text-white md:p-10">
+
+        <div className="mx-auto max-w-3xl rounded-[28px] border border-white/10 bg-slate-900 p-8">
+
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-orange-400">
+            TUROBUS PACKAGE OS
+          </p>
+
+          <h1 className="mt-3 text-3xl font-black">
+            Otel Kontrat Yönetimi
+          </h1>
+
+          <p className="mt-4 leading-7 text-slate-400">
+            Bu alan kontrat, tedarikçi ve maliyet bilgileri içerir.
+            Satış danışmanı bu verilere erişemez.
+          </p>
+
+          <Link
+            href="/dashboard/package-os/builder"
+            className="mt-6 inline-block rounded-xl bg-orange-500 px-5 py-3 font-black"
+          >
+            Paket Oluşturma Ekranına Dön
+          </Link>
+
+        </div>
+
+      </main>
+    );
+  }
+
+
   return (
-    <main className="min-h-screen bg-slate-950 p-5 text-white md:p-10">
-      <div className="mx-auto max-w-7xl">
+    <main className="min-h-screen bg-slate-950 p-5 text-white md:p-8">
+
+      <div className="mx-auto max-w-[1600px]">
+
         <div className="flex flex-wrap items-center justify-between gap-4">
+
           <div>
+
             <p className="text-xs font-black uppercase tracking-[0.25em] text-orange-400">
-              TUROBUS PACKAGE OS
+              TUROBUS HOTEL CONTRACT ENGINE
             </p>
 
-            <h1 className="mt-3 text-4xl font-black">
-              Otel Ürün Havuzu
+            <h1 className="mt-2 text-4xl font-black">
+              Otel Yönetim Merkezi
             </h1>
 
-            <p className="mt-3 text-slate-400">
-              Anlaşmalı oteller, oda tipleri,
-              pansiyonlar, sezon alış fiyatları
-              ve kontenjan.
+            <p className="mt-2 text-slate-400">
+              Otel · Oda · Kontrat · EB · Çocuk · API
             </p>
+
           </div>
 
           <Link
             href="/dashboard/package-os"
-            className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black"
+            className="rounded-xl border border-white/10 px-4 py-3 font-black"
           >
             ← Paket Merkezi
           </Link>
+
         </div>
 
-        {errorMessage && (
-          <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-            {errorMessage}
-          </div>
-        )}
 
-        {successMessage && (
-          <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-300">
-            {successMessage}
-          </div>
-        )}
+        {
+          errorMessage &&
+          (
+            <div className="mt-6 rounded-xl bg-red-500/10 p-4 text-red-300">
+              {errorMessage}
+            </div>
+          )
+        }
 
-        <div className="mt-8 grid gap-6 xl:grid-cols-[420px_1fr]">
-          <form
-            onSubmit={saveHotel}
-            className="rounded-[28px] border border-white/10 bg-slate-900 p-6"
-          >
-            <p className="text-xs font-black uppercase tracking-wider text-orange-400">
-              {editingHotelId
-                ? "Otel Düzenle"
-                : "Yeni Otel"}
-            </p>
 
-            <div className="mt-5 space-y-4">
-              <input
-                value={hotelForm.name}
-                onChange={(event) =>
-                  setHotelForm((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-                placeholder="Otel adı"
-                className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
+        {
+          successMessage &&
+          (
+            <div className="mt-6 rounded-xl bg-emerald-500/10 p-4 text-emerald-300">
+              {successMessage}
+            </div>
+          )
+        }
 
-              <select
-                value={
-                  hotelForm.supplier_id
-                }
-                onChange={(event) =>
-                  setHotelForm((current) => ({
-                    ...current,
-                    supplier_id:
-                      event.target.value,
-                  }))
-                }
-                className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-              >
-                <option value="">
-                  Otel Direkt / Kaynak seçilmedi
-                </option>
 
-                {suppliers.map(
-                  (supplier) => (
-                    <option
-                      key={supplier.id}
-                      value={supplier.id}
-                    >
-                      {supplier.name}
-                    </option>
-                  )
-                )}
-              </select>
+        <div className="mt-8 grid gap-6 xl:grid-cols-[360px_1fr]">
 
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  value={hotelForm.city}
-                  onChange={(event) =>
-                    setHotelForm(
-                      (current) => ({
-                        ...current,
-                        city:
-                          event.target
-                            .value,
-                      })
-                    )
-                  }
-                  placeholder="Şehir"
-                  className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                />
+          <aside className="space-y-5">
+
+            <form
+              onSubmit={
+                createHotel
+              }
+              className="rounded-[24px] border border-white/10 bg-slate-900 p-5"
+            >
+
+              <h2 className="text-lg font-black">
+                Yeni Otel
+              </h2>
+
+
+              <div className="mt-4 space-y-3">
 
                 <input
                   value={
-                    hotelForm.district
+                    hotelName
                   }
-                  onChange={(event) =>
-                    setHotelForm(
-                      (current) => ({
-                        ...current,
-                        district:
-                          event.target
-                            .value,
-                      })
+                  onChange={
+                    e =>
+                      setHotelName(
+                        e.target.value
+                      )
+                  }
+                  placeholder="Otel adı"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                />
+
+
+                <div className="grid grid-cols-2 gap-3">
+
+                  <input
+                    value={
+                      hotelCity
+                    }
+                    onChange={
+                      e =>
+                        setHotelCity(
+                          e.target.value
+                        )
+                    }
+                    placeholder="Şehir"
+                    className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                  />
+
+                  <input
+                    value={
+                      hotelDistrict
+                    }
+                    onChange={
+                      e =>
+                        setHotelDistrict(
+                          e.target.value
+                        )
+                    }
+                    placeholder="Bölge / İlçe"
+                    className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                  />
+
+                </div>
+
+
+                <input
+                  type="number"
+                  min="0"
+                  max="7"
+                  value={
+                    hotelStars
+                  }
+                  onChange={
+                    e =>
+                      setHotelStars(
+                        e.target.value
+                      )
+                  }
+                  placeholder="Yıldız"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                />
+
+
+                <select
+                  value={
+                    hotelSource
+                  }
+                  onChange={
+                    e =>
+                      setHotelSource(
+                        e.target.value as Hotel["source_type"]
+                      )
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                >
+
+                  {
+                    Object.entries(
+                      sourceLabels
+                    ).map(
+                      ([
+                        value,
+                        label,
+                      ]) => (
+                        <option
+                          key={
+                            value
+                          }
+                          value={
+                            value
+                          }
+                        >
+                          {label}
+                        </option>
+                      )
                     )
                   }
-                  placeholder="Bölge"
-                  className="rounded-xl border border-white/10 bg-slate-950 p-3"
+
+                </select>
+
+
+                {
+                  hotelSource !==
+                  "manual" &&
+                  (
+                    <input
+                      value={
+                        hotelExternalId
+                      }
+                      onChange={
+                        e =>
+                          setHotelExternalId(
+                            e.target.value
+                          )
+                      }
+                      placeholder="API / Harici Otel ID"
+                      className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                    />
+                  )
+                }
+
+
+                <select
+                  value={
+                    hotelSupplierId
+                  }
+                  onChange={
+                    e =>
+                      setHotelSupplierId(
+                        e.target.value
+                      )
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                >
+
+                  <option value="">
+                    Otel Direkt / Kaynak seçilmedi
+                  </option>
+
+                  {
+                    suppliers.map(
+                      supplier => (
+                        <option
+                          key={
+                            supplier.id
+                          }
+                          value={
+                            supplier.id
+                          }
+                        >
+                          {supplier.name}
+                        </option>
+                      )
+                    )
+                  }
+
+                </select>
+
+
+                <input
+                  value={
+                    hotelAddress
+                  }
+                  onChange={
+                    e =>
+                      setHotelAddress(
+                        e.target.value
+                      )
+                  }
+                  placeholder="Adres"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
                 />
+
+
+                <textarea
+                  value={
+                    hotelDescription
+                  }
+                  onChange={
+                    e =>
+                      setHotelDescription(
+                        e.target.value
+                      )
+                  }
+                  placeholder="Otel açıklaması"
+                  rows={3}
+                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                />
+
+
+                <input
+                  value={
+                    hotelCoverUrl
+                  }
+                  onChange={
+                    e =>
+                      setHotelCoverUrl(
+                        e.target.value
+                      )
+                  }
+                  placeholder="Kapak fotoğraf URL"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                />
+
+
+                <input
+                  value={
+                    hotelVideoUrl
+                  }
+                  onChange={
+                    e =>
+                      setHotelVideoUrl(
+                        e.target.value
+                      )
+                  }
+                  placeholder="Video URL"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                />
+
+
+                <button
+                  disabled={
+                    saving
+                  }
+                  className="w-full rounded-xl bg-orange-500 px-4 py-3 font-black disabled:opacity-50"
+                >
+                  Oteli Kaydet
+                </button>
+
               </div>
 
-              <input
-                value={
-                  hotelForm.star_rating
-                }
-                onChange={(event) =>
-                  setHotelForm((current) => ({
-                    ...current,
-                    star_rating:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Yıldız"
-                type="number"
-                min="0"
-                max="5"
-                step="0.5"
-                className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <textarea
-                value={
-                  hotelForm.description
-                }
-                onChange={(event) =>
-                  setHotelForm((current) => ({
-                    ...current,
-                    description:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Otel açıklaması"
-                className="min-h-28 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <input
-                value={
-                  hotelForm.cover_image_url
-                }
-                onChange={(event) =>
-                  setHotelForm((current) => ({
-                    ...current,
-                    cover_image_url:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Kapak görsel URL"
-                className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <input
-                value={
-                  hotelForm.video_url
-                }
-                onChange={(event) =>
-                  setHotelForm((current) => ({
-                    ...current,
-                    video_url:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Video URL"
-                className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <button
-                disabled={savingHotel}
-                className="w-full rounded-xl bg-orange-500 px-4 py-3 font-black text-black disabled:opacity-50"
-              >
-                {savingHotel
-                  ? "Kaydediliyor..."
-                  : editingHotelId
-                    ? "Oteli Güncelle"
-                    : "Oteli Kaydet"}
-              </button>
-
-              {editingHotelId && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHotelForm(
-                      emptyHotelForm
-                    );
-                    setEditingHotelId("");
-                  }}
-                  className="w-full rounded-xl border border-white/10 px-4 py-3"
-                >
-                  Vazgeç
-                </button>
-              )}
-            </div>
-          </form>
-
-          <section>
-            <input
-              value={search}
-              onChange={(event) =>
-                setSearch(
-                  event.target.value
-                )
-              }
-              placeholder="Otel ara..."
-              className="mb-4 w-full rounded-xl border border-white/10 bg-slate-900 p-4"
-            />
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {filteredHotels.map(
-                (hotel) => (
-                  <div
-                    key={hotel.id}
-                    className={`rounded-[24px] border p-5 ${
-                      selectedHotelId ===
-                      hotel.id
-                        ? "border-orange-500 bg-orange-500/5"
-                        : "border-white/10 bg-slate-900"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h2 className="text-xl font-black">
-                          {hotel.name}
-                        </h2>
-
-                        <p className="mt-1 text-sm text-slate-400">
-                          {[
-                            hotel.city,
-                            hotel.district,
-                          ]
-                            .filter(Boolean)
-                            .join(" / ") ||
-                            "Konum girilmedi"}
-                        </p>
-                      </div>
-
-                      <span className="rounded-lg bg-slate-950 px-3 py-1 text-xs font-black">
-                        {hotel.star_rating
-                          ? `${hotel.star_rating} ★`
-                          : "★ -"}
-                      </span>
-                    </div>
-
-                    <div className="mt-5 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedHotelId(
-                            hotel.id
-                          )
-                        }
-                        className="rounded-xl bg-white px-3 py-2 text-xs font-black text-black"
-                      >
-                        Fiyatlar
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          editHotel(hotel)
-                        }
-                        className="rounded-xl border border-white/10 px-3 py-2 text-xs font-black"
-                      >
-                        Düzenle
-                      </button>
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          </section>
-        </div>
-
-        {selectedHotel && (
-          <div className="mt-10 rounded-[30px] border border-white/10 bg-slate-900 p-6">
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-emerald-400">
-                Sezon & Kontrat
-              </p>
-
-              <h2 className="mt-2 text-2xl font-black">
-                {selectedHotel.name}
-              </h2>
-            </div>
-
-            <form
-              onSubmit={saveRate}
-              className="mt-6 grid gap-3 md:grid-cols-3 xl:grid-cols-5"
-            >
-              <input
-                value={
-                  rateForm.room_type_name
-                }
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    room_type_name:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Oda tipi"
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <select
-                value={
-                  rateForm.board_type
-                }
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    board_type:
-                      event.target
-                        .value as HotelRate["board_type"],
-                  }))
-                }
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              >
-                {Object.entries(
-                  boardLabels
-                ).map(
-                  ([value, label]) => (
-                    <option
-                      key={value}
-                      value={value}
-                    >
-                      {label}
-                    </option>
-                  )
-                )}
-              </select>
-
-              <input
-                type="date"
-                value={
-                  rateForm.valid_from
-                }
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    valid_from:
-                      event.target.value,
-                  }))
-                }
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <input
-                type="date"
-                value={rateForm.valid_to}
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    valid_to:
-                      event.target.value,
-                  }))
-                }
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <input
-                value={
-                  rateForm.nightly_cost
-                }
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    nightly_cost:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Gecelik alış"
-                type="number"
-                min="0"
-                step="0.01"
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <input
-                value={
-                  rateForm.nightly_sale_price
-                }
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    nightly_sale_price:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Gecelik satış"
-                type="number"
-                min="0"
-                step="0.01"
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <input
-                value={
-                  rateForm.occupancy_adults
-                }
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    occupancy_adults:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Yetişkin"
-                type="number"
-                min="1"
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <input
-                value={
-                  rateForm.occupancy_children
-                }
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    occupancy_children:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Çocuk"
-                type="number"
-                min="0"
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <input
-                value={
-                  rateForm.allotment
-                }
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    allotment:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Kontenjan"
-                type="number"
-                min="0"
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <input
-                value={
-                  rateForm.minimum_stay
-                }
-                onChange={(event) =>
-                  setRateForm((current) => ({
-                    ...current,
-                    minimum_stay:
-                      event.target.value,
-                  }))
-                }
-                placeholder="Min. gece"
-                type="number"
-                min="1"
-                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-              />
-
-              <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-950 p-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={
-                    rateForm.stop_sale
-                  }
-                  onChange={(event) =>
-                    setRateForm(
-                      (current) => ({
-                        ...current,
-                        stop_sale:
-                          event.target
-                            .checked,
-                      })
-                    )
-                  }
-                />
-                Stop Sale
-              </label>
-
-              <button
-                disabled={savingRate}
-                className="rounded-xl bg-emerald-500 px-4 py-3 font-black text-black disabled:opacity-50"
-              >
-                {savingRate
-                  ? "Kaydediliyor..."
-                  : editingRateId
-                    ? "Fiyatı Güncelle"
-                    : "Fiyat Ekle"}
-              </button>
             </form>
 
-            <div className="mt-7 overflow-x-auto">
-              <table className="w-full min-w-[950px] text-sm">
-                <thead className="text-left text-xs uppercase tracking-wider text-slate-500">
-                  <tr>
-                    <th className="p-3">
-                      Oda
-                    </th>
-                    <th className="p-3">
-                      Pansiyon
-                    </th>
-                    <th className="p-3">
-                      Dönem
-                    </th>
-                    <th className="p-3">
-                      Alış
-                    </th>
-                    <th className="p-3">
-                      Satış
-                    </th>
-                    <th className="p-3">
-                      Kontenjan
-                    </th>
-                    <th className="p-3">
-                      Durum
-                    </th>
-                    <th className="p-3">
-                      İşlem
-                    </th>
-                  </tr>
-                </thead>
 
-                <tbody>
-                  {rates.map((rate) => (
-                    <tr
-                      key={rate.id}
-                      className="border-t border-white/5"
-                    >
-                      <td className="p-3 font-black">
-                        {
-                          rate.room_type_name
+            <div className="rounded-[24px] border border-white/10 bg-slate-900 p-5">
+
+              <h2 className="font-black">
+                Oteller
+              </h2>
+
+
+              <input
+                value={
+                  search
+                }
+                onChange={
+                  e =>
+                    setSearch(
+                      e.target.value
+                    )
+                }
+                placeholder="Otel ara..."
+                className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+              />
+
+
+              <div className="mt-4 max-h-[580px] space-y-2 overflow-auto">
+
+                {
+                  filteredHotels.map(
+                    hotel => (
+
+                      <button
+                        key={
+                          hotel.id
                         }
-                      </td>
+                        type="button"
+                        onClick={
+                          () => {
 
-                      <td className="p-3">
-                        {
-                          boardLabels[
-                            rate.board_type
-                          ]
-                        }
-                      </td>
+                            setSelectedHotelId(
+                              hotel.id
+                            );
 
-                      <td className="p-3">
-                        {rate.valid_from}
-                        {" → "}
-                        {rate.valid_to}
-                      </td>
-
-                      <td className="p-3">
-                        {money(
-                          rate.nightly_cost
-                        )}
-                      </td>
-
-                      <td className="p-3">
-                        {money(
-                          rate.nightly_sale_price
-                        )}
-                      </td>
-
-                      <td className="p-3">
-                        {rate.allotment ??
-                          "Sınırsız"}
-                      </td>
-
-                      <td className="p-3">
-                        {rate.stop_sale
-                          ? "STOP SALE"
-                          : "Açık"}
-                      </td>
-
-                      <td className="p-3">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            editRate(rate)
+                            setTab(
+                              "general"
+                            );
                           }
-                          className="rounded-lg border border-white/10 px-3 py-2 text-xs font-black"
-                        >
-                          Düzenle
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        }
+                        className={`w-full rounded-xl border p-3 text-left ${
+                          selectedHotelId ===
+                          hotel.id
+                            ? "border-orange-500 bg-orange-500/10"
+                            : "border-white/10 bg-slate-950"
+                        }`}
+                      >
+
+                        <div className="font-black">
+                          {hotel.name}
+                        </div>
+
+                        <div className="mt-1 text-xs text-slate-400">
+                          {
+                            [
+                              hotel.city,
+                              hotel.district,
+                              sourceLabels[
+                                hotel.source_type
+                              ],
+                            ]
+                              .filter(
+                                Boolean
+                              )
+                              .join(
+                                " · "
+                              )
+                          }
+                        </div>
+
+                      </button>
+
+                    )
+                  )
+                }
+
+              </div>
+
             </div>
-          </div>
-        )}
+
+          </aside>
+
+
+          <section>
+
+            {
+              !contract
+                ? (
+                  <div className="rounded-[28px] border border-dashed border-white/10 bg-slate-900/50 p-12 text-center">
+
+                    <h2 className="text-2xl font-black">
+                      Otel seçin
+                    </h2>
+
+                    <p className="mt-3 text-slate-400">
+                      Oda, kontrat, kampanya ve çocuk fiyatlarını yönetmek için soldan otel seçin.
+                    </p>
+
+                  </div>
+                )
+                : (
+                  <div>
+
+                    <div className="overflow-hidden rounded-[28px] border border-white/10 bg-slate-900">
+
+                      {
+                        contract.hotel
+                          .cover_image_url
+                          ? (
+                            <div className="h-52 overflow-hidden bg-slate-800">
+
+                              <img
+                                src={
+                                  contract.hotel
+                                    .cover_image_url
+                                }
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+
+                            </div>
+                          )
+                          : null
+                      }
+
+
+                      <div className="p-6">
+
+                        <div className="flex flex-wrap items-start justify-between gap-4">
+
+                          <div>
+
+                            <h2 className="text-3xl font-black">
+                              {
+                                contract.hotel
+                                  .name
+                              }
+                            </h2>
+
+                            <p className="mt-2 text-slate-400">
+                              {
+                                [
+                                  contract.hotel
+                                    .city,
+                                  contract.hotel
+                                    .district,
+                                  contract.hotel
+                                    .star_rating
+                                    ? `${contract.hotel.star_rating} ★`
+                                    : null,
+                                ]
+                                  .filter(
+                                    Boolean
+                                  )
+                                  .join(
+                                    " · "
+                                  )
+                              }
+                            </p>
+
+                          </div>
+
+
+                          <div className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm">
+
+                            <div className="text-xs text-slate-500">
+                              Veri Kaynağı
+                            </div>
+
+                            <strong>
+                              {
+                                sourceLabels[
+                                  contract.hotel
+                                    .source_type
+                                ] ||
+                                contract.hotel
+                                  .source_type
+                              }
+                            </strong>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
+
+                      {
+                        [
+                          [
+                            "general",
+                            "Genel",
+                          ],
+                          [
+                            "gallery",
+                            `Galeri (${contract.media.length})`,
+                          ],
+                          [
+                            "rooms",
+                            `Odalar (${contract.room_types.length})`,
+                          ],
+                          [
+                            "rates",
+                            `Fiyat Dönemleri (${contract.rates.length})`,
+                          ],
+                          [
+                            "promotions",
+                            `EB & Kampanya (${contract.promotions.length})`,
+                          ],
+                          [
+                            "children",
+                            `Çocuk (${contract.child_policies.length})`,
+                          ],
+                          [
+                            "api",
+                            "API",
+                          ],
+                        ].map(
+                          item => (
+
+                            <button
+                              key={
+                                item[0]
+                              }
+                              type="button"
+                              onClick={
+                                () =>
+                                  setTab(
+                                    item[0] as Tab
+                                  )
+                              }
+                              className={`whitespace-nowrap rounded-xl px-4 py-3 text-sm font-black ${
+                                tab ===
+                                item[0]
+                                  ? "bg-orange-500"
+                                  : "border border-white/10 bg-slate-900"
+                              }`}
+                            >
+                              {item[1]}
+                            </button>
+
+                          )
+                        )
+                      }
+
+                    </div>
+
+
+                    {
+                      tab ===
+                      "general" &&
+                      (
+                        <div className="mt-4 grid gap-4 md:grid-cols-2">
+
+                          <InfoCard
+                            title="Kontrat / Fiyat Kaynağı"
+                            value={
+                              contract.hotel
+                                .supplier_id
+                                ? "Tedarikçi bağlantılı"
+                                : "Otel Direkt"
+                            }
+                          />
+
+                          <InfoCard
+                            title="Kaynak Sistemi"
+                            value={
+                              sourceLabels[
+                                contract.hotel
+                                  .source_type
+                              ] ||
+                              contract.hotel
+                                .source_type
+                            }
+                          />
+
+                          <InfoCard
+                            title="Harici Otel ID"
+                            value={
+                              contract.hotel
+                                .external_hotel_id ||
+                              "Yok"
+                            }
+                          />
+
+                          <InfoCard
+                            title="Son API Senkronizasyonu"
+                            value={
+                              contract.hotel
+                                .last_synced_at
+                                ? new Date(
+                                    contract.hotel
+                                      .last_synced_at
+                                  )
+                                    .toLocaleString(
+                                      "tr-TR"
+                                    )
+                                : "Henüz senkronize edilmedi"
+                            }
+                          />
+
+                        </div>
+                      )
+                    }
+
+
+                    {
+                      tab ===
+                      "gallery" &&
+                      (
+                        <div className="mt-4 grid gap-5 xl:grid-cols-[360px_1fr]">
+
+                          <form
+                            onSubmit={
+                              addMedia
+                            }
+                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                          >
+
+                            <h3 className="font-black">
+                              Galeriye Ekle
+                            </h3>
+
+                            <select
+                              value={
+                                mediaType
+                              }
+                              onChange={
+                                e =>
+                                  setMediaType(
+                                    e.target.value as "image" | "video"
+                                  )
+                              }
+                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            >
+                              <option value="image">
+                                Fotoğraf
+                              </option>
+                              <option value="video">
+                                Video
+                              </option>
+                            </select>
+
+                            <input
+                              value={
+                                mediaUrl
+                              }
+                              onChange={
+                                e =>
+                                  setMediaUrl(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Medya URL"
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <input
+                              value={
+                                mediaTitle
+                              }
+                              onChange={
+                                e =>
+                                  setMediaTitle(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Başlık"
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <label className="mt-3 flex items-center gap-3 rounded-xl bg-slate-950 p-3">
+                              <input
+                                type="checkbox"
+                                checked={
+                                  mediaCover
+                                }
+                                onChange={
+                                  e =>
+                                    setMediaCover(
+                                      e.target.checked
+                                    )
+                                }
+                              />
+                              Kapak fotoğrafı
+                            </label>
+
+                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
+                              Galeriye Ekle
+                            </button>
+
+                          </form>
+
+
+                          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+                            {
+                              contract.media.map(
+                                media => (
+
+                                  <div
+                                    key={
+                                      media.id
+                                    }
+                                    className="overflow-hidden rounded-[20px] border border-white/10 bg-slate-900"
+                                  >
+
+                                    {
+                                      media.media_type ===
+                                      "image"
+                                        ? (
+                                          <img
+                                            src={
+                                              media.url
+                                            }
+                                            alt=""
+                                            className="h-44 w-full object-cover"
+                                          />
+                                        )
+                                        : (
+                                          <div className="flex h-44 items-center justify-center bg-slate-950 text-slate-400">
+                                            VIDEO
+                                          </div>
+                                        )
+                                    }
+
+                                    <div className="p-4">
+
+                                      <div className="font-black">
+                                        {
+                                          media.title ||
+                                          "Otel görseli"
+                                        }
+                                      </div>
+
+                                      {
+                                        media.is_cover &&
+                                        (
+                                          <div className="mt-2 text-xs font-black text-orange-400">
+                                            KAPAK
+                                          </div>
+                                        )
+                                      }
+
+                                    </div>
+
+                                  </div>
+
+                                )
+                              )
+                            }
+
+                          </div>
+
+                        </div>
+                      )
+                    }
+
+
+                    {
+                      tab ===
+                      "rooms" &&
+                      (
+                        <div className="mt-4 grid gap-5 xl:grid-cols-[380px_1fr]">
+
+                          <form
+                            onSubmit={
+                              addRoom
+                            }
+                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                          >
+
+                            <h3 className="font-black">
+                              Yeni Oda Tipi
+                            </h3>
+
+                            <input
+                              value={
+                                roomName
+                              }
+                              onChange={
+                                e =>
+                                  setRoomName(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Standart Oda / Family / Suite"
+                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <input
+                              value={
+                                roomCode
+                              }
+                              onChange={
+                                e =>
+                                  setRoomCode(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Oda kodu"
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <div className="mt-3 grid grid-cols-2 gap-3">
+
+                              <input
+                                type="number"
+                                min="1"
+                                value={
+                                  roomAdults
+                                }
+                                onChange={
+                                  e =>
+                                    setRoomAdults(
+                                      e.target.value
+                                    )
+                                }
+                                placeholder="Max yetişkin"
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              />
+
+                              <input
+                                type="number"
+                                min="0"
+                                value={
+                                  roomChildren
+                                }
+                                onChange={
+                                  e =>
+                                    setRoomChildren(
+                                      e.target.value
+                                    )
+                                }
+                                placeholder="Max çocuk"
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              />
+
+                            </div>
+
+                            <input
+                              type="number"
+                              value={
+                                roomSize
+                              }
+                              onChange={
+                                e =>
+                                  setRoomSize(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="m²"
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <input
+                              value={
+                                roomBed
+                              }
+                              onChange={
+                                e =>
+                                  setRoomBed(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Yatak tipi"
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <textarea
+                              value={
+                                roomDescription
+                              }
+                              onChange={
+                                e =>
+                                  setRoomDescription(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Oda özellikleri"
+                              rows={3}
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
+                              Oda Tipini Ekle
+                            </button>
+
+                          </form>
+
+
+                          <div className="grid gap-4 md:grid-cols-2">
+
+                            {
+                              contract.room_types.map(
+                                room => (
+
+                                  <div
+                                    key={
+                                      room.id
+                                    }
+                                    className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
+                                  >
+
+                                    <h4 className="text-lg font-black">
+                                      {room.name}
+                                    </h4>
+
+                                    <p className="mt-2 text-sm text-slate-400">
+                                      {room.max_adults} yetişkin · {room.max_children} çocuk
+                                    </p>
+
+                                    {
+                                      room.size_m2 &&
+                                      (
+                                        <p className="mt-1 text-sm text-slate-400">
+                                          {room.size_m2} m²
+                                        </p>
+                                      )
+                                    }
+
+                                    {
+                                      room.bed_type &&
+                                      (
+                                        <p className="mt-1 text-sm text-slate-400">
+                                          {room.bed_type}
+                                        </p>
+                                      )
+                                    }
+
+                                  </div>
+
+                                )
+                              )
+                            }
+
+                          </div>
+
+                        </div>
+                      )
+                    }
+
+
+                    {
+                      tab ===
+                      "rates" &&
+                      (
+                        <div className="mt-4 grid gap-5 xl:grid-cols-[420px_1fr]">
+
+                          <form
+                            onSubmit={
+                              addRate
+                            }
+                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                          >
+
+                            <h3 className="font-black">
+                              Kontrat Fiyat Dönemi
+                            </h3>
+
+                            <select
+                              value={
+                                rateRoomId
+                              }
+                              onChange={
+                                e =>
+                                  setRateRoomId(
+                                    e.target.value
+                                  )
+                              }
+                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            >
+
+                              <option value="">
+                                Oda tipi seçin
+                              </option>
+
+                              {
+                                contract.room_types.map(
+                                  room => (
+                                    <option
+                                      key={
+                                        room.id
+                                      }
+                                      value={
+                                        room.id
+                                      }
+                                    >
+                                      {room.name}
+                                    </option>
+                                  )
+                                )
+                              }
+
+                            </select>
+
+
+                            <select
+                              value={
+                                rateBoard
+                              }
+                              onChange={
+                                e =>
+                                  setRateBoard(
+                                    e.target.value
+                                  )
+                              }
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            >
+
+                              {
+                                Object.entries(
+                                  boardLabels
+                                ).map(
+                                  ([
+                                    value,
+                                    label,
+                                  ]) => (
+                                    <option
+                                      key={
+                                        value
+                                      }
+                                      value={
+                                        value
+                                      }
+                                    >
+                                      {label}
+                                    </option>
+                                  )
+                                )
+                              }
+
+                            </select>
+
+
+                            <div className="mt-3 grid grid-cols-2 gap-3">
+
+                              <label>
+                                <span className="mb-1 block text-xs text-slate-500">
+                                  Başlangıç
+                                </span>
+
+                                <input
+                                  type="date"
+                                  value={
+                                    rateFrom
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRateFrom(
+                                        e.target.value
+                                      )
+                                  }
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
+                                />
+                              </label>
+
+                              <label>
+                                <span className="mb-1 block text-xs text-slate-500">
+                                  Bitiş
+                                </span>
+
+                                <input
+                                  type="date"
+                                  value={
+                                    rateTo
+                                  }
+                                  min={
+                                    rateFrom ||
+                                    undefined
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRateTo(
+                                        e.target.value
+                                      )
+                                  }
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
+                                />
+                              </label>
+
+                            </div>
+
+
+                            <select
+                              value={
+                                ratePriceType
+                              }
+                              onChange={
+                                e =>
+                                  setRatePriceType(
+                                    e.target.value as "net" | "list_discount"
+                                  )
+                              }
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            >
+                              <option value="net">
+                                Net Alış Fiyatı
+                              </option>
+                              <option value="list_discount">
+                                Liste Fiyatı + Acente İndirimi %
+                              </option>
+                            </select>
+
+
+                            {
+                              ratePriceType ===
+                              "net"
+                                ? (
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={
+                                      rateNet
+                                    }
+                                    onChange={
+                                      e =>
+                                        setRateNet(
+                                          e.target.value
+                                        )
+                                    }
+                                    placeholder="Gecelik net maliyet"
+                                    className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                                  />
+                                )
+                                : (
+                                  <div className="mt-3">
+
+                                    <div className="grid grid-cols-2 gap-3">
+
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={
+                                          rateList
+                                        }
+                                        onChange={
+                                          e =>
+                                            setRateList(
+                                              e.target.value
+                                            )
+                                        }
+                                        placeholder="Liste fiyatı"
+                                        className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                                      />
+
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        value={
+                                          rateDiscount
+                                        }
+                                        onChange={
+                                          e =>
+                                            setRateDiscount(
+                                              e.target.value
+                                            )
+                                        }
+                                        placeholder="Acente indirim %"
+                                        className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                                      />
+
+                                    </div>
+
+                                    <div className="mt-3 rounded-xl bg-emerald-500/10 p-3">
+
+                                      <div className="text-xs text-emerald-300">
+                                        Hesaplanan Net Maliyet
+                                      </div>
+
+                                      <strong className="text-lg text-emerald-300">
+                                        {money(calculatedNet)}
+                                      </strong>
+
+                                    </div>
+
+                                  </div>
+                                )
+                            }
+
+
+                            <div className="mt-3 grid grid-cols-3 gap-3">
+
+                              <input
+                                type="number"
+                                min="0"
+                                value={
+                                  rateAllotment
+                                }
+                                onChange={
+                                  e =>
+                                    setRateAllotment(
+                                      e.target.value
+                                    )
+                                }
+                                placeholder="Kontenjan"
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              />
+
+                              <input
+                                type="number"
+                                min="1"
+                                value={
+                                  rateMinStay
+                                }
+                                onChange={
+                                  e =>
+                                    setRateMinStay(
+                                      e.target.value
+                                    )
+                                }
+                                placeholder="Min gece"
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              />
+
+                              <input
+                                type="number"
+                                min="0"
+                                value={
+                                  rateReleaseDays
+                                }
+                                onChange={
+                                  e =>
+                                    setRateReleaseDays(
+                                      e.target.value
+                                    )
+                                }
+                                placeholder="Release"
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              />
+
+                            </div>
+
+
+                            <label className="mt-3 flex items-center gap-3 rounded-xl bg-slate-950 p-3">
+
+                              <input
+                                type="checkbox"
+                                checked={
+                                  rateStopSale
+                                }
+                                onChange={
+                                  e =>
+                                    setRateStopSale(
+                                      e.target.checked
+                                    )
+                                }
+                              />
+
+                              Stop Sale
+
+                            </label>
+
+
+                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
+                              Fiyat Dönemini Kaydet
+                            </button>
+
+                          </form>
+
+
+                          <div className="space-y-3">
+
+                            {
+                              contract.rates.map(
+                                rate => (
+
+                                  <div
+                                    key={
+                                      rate.id
+                                    }
+                                    className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
+                                  >
+
+                                    <div className="flex flex-wrap justify-between gap-4">
+
+                                      <div>
+
+                                        <h4 className="font-black">
+                                          {rate.room_type_name}
+                                        </h4>
+
+                                        <p className="mt-1 text-sm text-slate-400">
+                                          {
+                                            boardLabels[
+                                              rate.board_type
+                                            ] ||
+                                            rate.board_type
+                                          }
+                                        </p>
+
+                                        <p className="mt-2 text-xs text-slate-500">
+                                          {rate.valid_from} → {rate.valid_to}
+                                        </p>
+
+                                      </div>
+
+
+                                      <div className="text-right">
+
+                                        <div className="text-xs text-slate-500">
+                                          Net Maliyet / Gece
+                                        </div>
+
+                                        <strong className="text-xl text-orange-400">
+                                          {money(rate.nightly_cost)}
+                                        </strong>
+
+                                        {
+                                          rate.price_input_type ===
+                                          "list_discount" &&
+                                          (
+                                            <div className="mt-1 text-xs text-slate-500">
+                                              Liste {money(rate.list_price)} · %{rate.agency_discount_percent} acente indirimi
+                                            </div>
+                                          )
+                                        }
+
+                                      </div>
+
+                                    </div>
+
+
+                                    <div className="mt-4 flex flex-wrap gap-2 text-xs">
+
+                                      <Badge>
+                                        Min {rate.minimum_stay} gece
+                                      </Badge>
+
+                                      <Badge>
+                                        Kontenjan {rate.allotment ?? "∞"}
+                                      </Badge>
+
+                                      <Badge>
+                                        Release {rate.release_days} gün
+                                      </Badge>
+
+                                      {
+                                        rate.stop_sale &&
+                                        (
+                                          <Badge>
+                                            STOP SALE
+                                          </Badge>
+                                        )
+                                      }
+
+                                    </div>
+
+                                  </div>
+
+                                )
+                              )
+                            }
+
+                          </div>
+
+                        </div>
+                      )
+                    }
+
+
+                    {
+                      tab ===
+                      "promotions" &&
+                      (
+                        <div className="mt-4 grid gap-5 xl:grid-cols-[420px_1fr]">
+
+                          <form
+                            onSubmit={
+                              addPromotion
+                            }
+                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                          >
+
+                            <h3 className="font-black">
+                              EB / Kampanya
+                            </h3>
+
+                            <input
+                              value={
+                                promotionName
+                              }
+                              onChange={
+                                e =>
+                                  setPromotionName(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Örn: 31 Mart'a kadar EB %20"
+                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <select
+                              value={
+                                promotionType
+                              }
+                              onChange={
+                                e =>
+                                  setPromotionType(
+                                    e.target.value
+                                  )
+                              }
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            >
+
+                              {
+                                Object.entries(
+                                  promotionLabels
+                                ).map(
+                                  ([
+                                    value,
+                                    label,
+                                  ]) => (
+                                    <option
+                                      key={
+                                        value
+                                      }
+                                      value={
+                                        value
+                                      }
+                                    >
+                                      {label}
+                                    </option>
+                                  )
+                                )
+                              }
+
+                            </select>
+
+
+                            <div className="mt-3 grid grid-cols-2 gap-3">
+
+                              <select
+                                value={
+                                  promotionDiscountType
+                                }
+                                onChange={
+                                  e =>
+                                    setPromotionDiscountType(
+                                      e.target.value as "percent" | "fixed"
+                                    )
+                                }
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              >
+                                <option value="percent">
+                                  Yüzde %
+                                </option>
+                                <option value="fixed">
+                                  Sabit TL
+                                </option>
+                              </select>
+
+                              <input
+                                type="number"
+                                min="0"
+                                value={
+                                  promotionValue
+                                }
+                                onChange={
+                                  e =>
+                                    setPromotionValue(
+                                      e.target.value
+                                    )
+                                }
+                                placeholder="İndirim"
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              />
+
+                            </div>
+
+
+                            <p className="mt-4 text-xs font-black uppercase text-slate-500">
+                              Rezervasyon Yapılabilecek Tarih
+                            </p>
+
+                            <div className="mt-2 grid grid-cols-2 gap-3">
+
+                              <input
+                                type="date"
+                                value={
+                                  promotionBookingFrom
+                                }
+                                onChange={
+                                  e =>
+                                    setPromotionBookingFrom(
+                                      e.target.value
+                                    )
+                                }
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
+                              />
+
+                              <input
+                                type="date"
+                                value={
+                                  promotionBookingTo
+                                }
+                                onChange={
+                                  e =>
+                                    setPromotionBookingTo(
+                                      e.target.value
+                                    )
+                                }
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
+                              />
+
+                            </div>
+
+
+                            <p className="mt-4 text-xs font-black uppercase text-slate-500">
+                              Konaklama Tarihi
+                            </p>
+
+                            <div className="mt-2 grid grid-cols-2 gap-3">
+
+                              <input
+                                type="date"
+                                value={
+                                  promotionStayFrom
+                                }
+                                onChange={
+                                  e =>
+                                    setPromotionStayFrom(
+                                      e.target.value
+                                    )
+                                }
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
+                              />
+
+                              <input
+                                type="date"
+                                value={
+                                  promotionStayTo
+                                }
+                                onChange={
+                                  e =>
+                                    setPromotionStayTo(
+                                      e.target.value
+                                    )
+                                }
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
+                              />
+
+                            </div>
+
+
+                            <input
+                              type="number"
+                              min="1"
+                              value={
+                                promotionMinNights
+                              }
+                              onChange={
+                                e =>
+                                  setPromotionMinNights(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Minimum gece"
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+
+                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
+                              Kampanyayı Kaydet
+                            </button>
+
+                          </form>
+
+
+                          <div className="space-y-3">
+
+                            {
+                              contract.promotions.map(
+                                promo => (
+
+                                  <div
+                                    key={
+                                      promo.id
+                                    }
+                                    className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
+                                  >
+
+                                    <div className="flex justify-between gap-4">
+
+                                      <div>
+
+                                        <h4 className="font-black">
+                                          {promo.name}
+                                        </h4>
+
+                                        <p className="mt-1 text-sm text-slate-400">
+                                          {
+                                            promotionLabels[
+                                              promo.promotion_type
+                                            ] ||
+                                            promo.promotion_type
+                                          }
+                                        </p>
+
+                                      </div>
+
+                                      <strong className="text-xl text-emerald-400">
+                                        {
+                                          promo.discount_type ===
+                                          "percent"
+                                            ? `%${promo.discount_value}`
+                                            : money(
+                                                promo.discount_value
+                                              )
+                                        }
+                                      </strong>
+
+                                    </div>
+
+                                    <p className="mt-3 text-xs text-slate-500">
+                                      Konaklama: {promo.stay_from || "—"} → {promo.stay_to || "—"}
+                                    </p>
+
+                                  </div>
+
+                                )
+                              )
+                            }
+
+                          </div>
+
+                        </div>
+                      )
+                    }
+
+
+                    {
+                      tab ===
+                      "children" &&
+                      (
+                        <div className="mt-4 grid gap-5 xl:grid-cols-[420px_1fr]">
+
+                          <form
+                            onSubmit={
+                              addChildPolicy
+                            }
+                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                          >
+
+                            <h3 className="font-black">
+                              Çocuk Yaş / İndirim Kuralı
+                            </h3>
+
+                            <select
+                              value={
+                                childRoomId
+                              }
+                              onChange={
+                                e =>
+                                  setChildRoomId(
+                                    e.target.value
+                                  )
+                              }
+                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            >
+
+                              <option value="">
+                                Tüm oda tipleri
+                              </option>
+
+                              {
+                                contract.room_types.map(
+                                  room => (
+                                    <option
+                                      key={
+                                        room.id
+                                      }
+                                      value={
+                                        room.id
+                                      }
+                                    >
+                                      {room.name}
+                                    </option>
+                                  )
+                                )
+                              }
+
+                            </select>
+
+
+                            <div className="mt-3 grid grid-cols-3 gap-3">
+
+                              <input
+                                type="number"
+                                min="1"
+                                value={
+                                  childOrder
+                                }
+                                onChange={
+                                  e =>
+                                    setChildOrder(
+                                      e.target.value
+                                    )
+                                }
+                                placeholder="Kaçıncı çocuk"
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              />
+
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={
+                                  childAgeFrom
+                                }
+                                onChange={
+                                  e =>
+                                    setChildAgeFrom(
+                                      e.target.value
+                                    )
+                                }
+                                placeholder="Yaş başlangıç"
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              />
+
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={
+                                  childAgeTo
+                                }
+                                onChange={
+                                  e =>
+                                    setChildAgeTo(
+                                      e.target.value
+                                    )
+                                }
+                                placeholder="Yaş bitiş"
+                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                              />
+
+                            </div>
+
+
+                            <select
+                              value={
+                                childPricingType
+                              }
+                              onChange={
+                                e =>
+                                  setChildPricingType(
+                                    e.target.value as "free" | "percent" | "fixed"
+                                  )
+                              }
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            >
+                              <option value="free">
+                                Ücretsiz
+                              </option>
+                              <option value="percent">
+                                İndirim %
+                              </option>
+                              <option value="fixed">
+                                Sabit Çocuk Fiyatı
+                              </option>
+                            </select>
+
+
+                            {
+                              childPricingType !==
+                              "free" &&
+                              (
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={
+                                    childValue
+                                  }
+                                  onChange={
+                                    e =>
+                                      setChildValue(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder={
+                                    childPricingType ===
+                                    "percent"
+                                      ? "İndirim yüzdesi"
+                                      : "Sabit fiyat"
+                                  }
+                                  className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                                />
+                              )
+                            }
+
+
+                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
+                              Çocuk Kuralını Kaydet
+                            </button>
+
+                          </form>
+
+
+                          <div className="space-y-3">
+
+                            {
+                              contract.child_policies.map(
+                                policy => {
+
+                                  const room =
+                                    contract.room_types.find(
+                                      item =>
+                                        item.id ===
+                                        policy.room_type_id
+                                    );
+
+
+                                  return (
+
+                                    <div
+                                      key={
+                                        policy.id
+                                      }
+                                      className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
+                                    >
+
+                                      <div className="flex justify-between gap-4">
+
+                                        <div>
+
+                                          <h4 className="font-black">
+                                            {policy.child_order}. Çocuk
+                                          </h4>
+
+                                          <p className="mt-1 text-sm text-slate-400">
+                                            {policy.age_from} – {policy.age_to} yaş
+                                          </p>
+
+                                          <p className="mt-1 text-xs text-slate-500">
+                                            {room?.name || "Tüm odalar"}
+                                          </p>
+
+                                        </div>
+
+                                        <strong className="text-emerald-400">
+
+                                          {
+                                            policy.pricing_type ===
+                                            "free"
+                                              ? "ÜCRETSİZ"
+                                              : policy.pricing_type ===
+                                                "percent"
+                                                ? `%${policy.value} indirim`
+                                                : money(
+                                                    policy.value
+                                                  )
+                                          }
+
+                                        </strong>
+
+                                      </div>
+
+                                    </div>
+
+                                  );
+                                }
+                              )
+                            }
+
+                          </div>
+
+                        </div>
+                      )
+                    }
+
+
+                    {
+                      tab ===
+                      "api" &&
+                      (
+                        <div className="mt-4 grid gap-5 xl:grid-cols-[420px_1fr]">
+
+                          <form
+                            onSubmit={
+                              addIntegration
+                            }
+                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                          >
+
+                            <h3 className="font-black">
+                              API / Entegrasyon Kaynağı
+                            </h3>
+
+                            <select
+                              value={
+                                integrationProvider
+                              }
+                              onChange={
+                                e =>
+                                  setIntegrationProvider(
+                                    e.target.value
+                                  )
+                              }
+                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            >
+                              <option value="hotelrunner">
+                                HotelRunner
+                              </option>
+                              <option value="elektra">
+                                Elektra
+                              </option>
+                              <option value="booking">
+                                Booking / Connectivity
+                              </option>
+                              <option value="custom_api">
+                                Özel API
+                              </option>
+                            </select>
+
+                            <input
+                              value={
+                                integrationName
+                              }
+                              onChange={
+                                e =>
+                                  setIntegrationName(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Bağlantı adı"
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <input
+                              value={
+                                integrationAccount
+                              }
+                              onChange={
+                                e =>
+                                  setIntegrationAccount(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="Harici hesap / tesis ID"
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <input
+                              value={
+                                integrationBaseUrl
+                              }
+                              onChange={
+                                e =>
+                                  setIntegrationBaseUrl(
+                                    e.target.value
+                                  )
+                              }
+                              placeholder="API base URL (opsiyonel)"
+                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
+                            />
+
+                            <div className="mt-3 rounded-xl bg-amber-500/10 p-3 text-xs leading-5 text-amber-200">
+                              API anahtarı ve şifre bu ekranda saklanmayacak.
+                              Güvenli bağlantı bilgileri sunucu/Vault katmanında tutulacak.
+                            </div>
+
+                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
+                              Entegrasyon Kaydı Oluştur
+                            </button>
+
+                          </form>
+
+
+                          <div className="space-y-3">
+
+                            {
+                              contract.integrations.map(
+                                integration => (
+
+                                  <div
+                                    key={
+                                      integration.id
+                                    }
+                                    className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
+                                  >
+
+                                    <div className="flex justify-between gap-4">
+
+                                      <div>
+
+                                        <h4 className="font-black">
+                                          {integration.display_name}
+                                        </h4>
+
+                                        <p className="mt-1 text-sm text-slate-400">
+                                          {
+                                            sourceLabels[
+                                              integration.provider
+                                            ] ||
+                                            integration.provider
+                                          }
+                                        </p>
+
+                                        <p className="mt-2 text-xs text-slate-500">
+                                          Hesap: {integration.external_account_id || "—"}
+                                        </p>
+
+                                      </div>
+
+                                      <Badge>
+                                        {integration.status}
+                                      </Badge>
+
+                                    </div>
+
+                                  </div>
+
+                                )
+                              )
+                            }
+
+                          </div>
+
+                        </div>
+                      )
+                    }
+
+                  </div>
+                )
+            }
+
+          </section>
+
+        </div>
+
       </div>
+
     </main>
+  );
+}
+
+
+function InfoCard(
+  props: {
+    title: string;
+    value: string;
+  }
+) {
+
+  return (
+    <div className="rounded-[20px] border border-white/10 bg-slate-900 p-5">
+
+      <div className="text-xs font-black uppercase tracking-wider text-slate-500">
+        {props.title}
+      </div>
+
+      <div className="mt-2 font-black">
+        {props.value}
+      </div>
+
+    </div>
+  );
+}
+
+
+function Badge(
+  props: {
+    children:
+      React.ReactNode;
+  }
+) {
+
+  return (
+    <span className="rounded-lg border border-white/10 bg-slate-950 px-3 py-2">
+      {props.children}
+    </span>
   );
 }
