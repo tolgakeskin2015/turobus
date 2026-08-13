@@ -54,6 +54,18 @@ type Hotel = {
 };
 
 
+type TurkeyProvince = {
+  id: number;
+  name: string;
+};
+
+
+type TurkeyDistrict = {
+  id: number;
+  name: string;
+};
+
+
 type Supplier = {
   id: string;
   name: string;
@@ -360,6 +372,45 @@ export default function PackageHotelsPage() {
   const [
     hotelDistrict,
     setHotelDistrict,
+  ] =
+    useState("");
+
+
+  const [
+    turkeyProvinces,
+    setTurkeyProvinces,
+  ] =
+    useState<TurkeyProvince[]>(
+      []
+    );
+
+
+  const [
+    turkeyDistricts,
+    setTurkeyDistricts,
+  ] =
+    useState<TurkeyDistrict[]>(
+      []
+    );
+
+
+  const [
+    selectedProvinceId,
+    setSelectedProvinceId,
+  ] =
+    useState("");
+
+
+  const [
+    locationLoading,
+    setLocationLoading,
+  ] =
+    useState(false);
+
+
+  const [
+    locationError,
+    setLocationError,
   ] =
     useState("");
 
@@ -977,6 +1028,151 @@ export default function PackageHotelsPage() {
   useEffect(
     () => {
 
+      async function loadTurkeyProvinces() {
+
+        try {
+
+          setLocationError("");
+
+          const response =
+            await fetch(
+              "/api/locations/turkey"
+            );
+
+          if (!response.ok) {
+            throw new Error(
+              "İller alınamadı."
+            );
+          }
+
+          const payload:
+            {
+              data?: TurkeyProvince[];
+            } =
+            await response.json();
+
+          setTurkeyProvinces(
+            Array.isArray(
+              payload.data
+            )
+              ? payload.data
+              : []
+          );
+
+        } catch (error) {
+
+          console.error(
+            error
+          );
+
+          setTurkeyProvinces(
+            []
+          );
+
+          setLocationError(
+            "İl listesi yüklenemedi."
+          );
+
+        }
+
+      }
+
+
+      void loadTurkeyProvinces();
+
+    },
+    []
+  );
+
+
+  useEffect(
+    () => {
+
+      async function loadTurkeyDistricts() {
+
+        if (
+          !selectedProvinceId
+        ) {
+
+          setTurkeyDistricts(
+            []
+          );
+
+          return;
+        }
+
+        try {
+
+          setLocationLoading(
+            true
+          );
+
+          setLocationError("");
+
+          const response =
+            await fetch(
+              `/api/locations/turkey?provinceId=${encodeURIComponent(
+                selectedProvinceId
+              )}`
+            );
+
+          if (!response.ok) {
+            throw new Error(
+              "İlçeler alınamadı."
+            );
+          }
+
+          const payload:
+            {
+              data?: TurkeyDistrict[];
+            } =
+            await response.json();
+
+          setTurkeyDistricts(
+            Array.isArray(
+              payload.data
+            )
+              ? payload.data
+              : []
+          );
+
+        } catch (error) {
+
+          console.error(
+            error
+          );
+
+          setTurkeyDistricts(
+            []
+          );
+
+          setLocationError(
+            "İlçe listesi yüklenemedi."
+          );
+
+        } finally {
+
+          setLocationLoading(
+            false
+          );
+
+        }
+
+      }
+
+
+      void loadTurkeyDistricts();
+
+    },
+    [
+      selectedProvinceId,
+    ]
+  );
+
+
+  useEffect(
+    () => {
+
       async function initialize() {
 
         try {
@@ -1283,6 +1479,8 @@ export default function PackageHotelsPage() {
     setHotelName("");
     setHotelCity("");
     setHotelDistrict("");
+    setSelectedProvinceId("");
+    setTurkeyDistricts([]);
     setHotelStars("");
     setHotelSupplierId("");
     setHotelSource(
@@ -2340,52 +2538,160 @@ export default function PackageHotelsPage() {
                 </label>
 
 
-                <div className="grid grid-cols-2 gap-3">
+                <div>
 
-                  <label className="block">
+                  <div className="grid gap-3 md:grid-cols-2">
 
-                    <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
-                      Şehir
-                    </span>
+                    <label className="block">
 
-                    <input
-                      value={
-                        hotelCity
-                      }
-                      onChange={
-                        e =>
-                          setHotelCity(
-                            e.target.value
+                      <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                        İl *
+                      </span>
+
+                      <select
+                        value={
+                          selectedProvinceId
+                        }
+                        onChange={
+                          e => {
+
+                            const provinceId =
+                              e.target.value;
+
+                            const province =
+                              turkeyProvinces.find(
+                                item =>
+                                  String(
+                                    item.id
+                                  ) ===
+                                  provinceId
+                              );
+
+                            setSelectedProvinceId(
+                              provinceId
+                            );
+
+                            setHotelCity(
+                              province?.name ||
+                              ""
+                            );
+
+                            setHotelDistrict(
+                              ""
+                            );
+
+                            setTurkeyDistricts(
+                              []
+                            );
+
+                          }
+                        }
+                        className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                      >
+
+                        <option value="">
+                          İl seçin
+                        </option>
+
+                        {
+                          turkeyProvinces.map(
+                            province => (
+
+                              <option
+                                key={
+                                  province.id
+                                }
+                                value={
+                                  province.id
+                                }
+                              >
+                                {province.name}
+                              </option>
+
+                            )
                           )
-                      }
-                      placeholder="Muğla"
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
-                    />
+                        }
 
-                  </label>
+                      </select>
+
+                      <span className="mt-2 block text-xs text-slate-500">
+                        Türkiye'deki illerden seçim yapın.
+                      </span>
+
+                    </label>
 
 
-                  <label className="block">
+                    <label className="block">
 
-                    <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
-                      Bölge / İlçe
-                    </span>
+                      <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                        İlçe *
+                      </span>
 
-                    <input
-                      value={
-                        hotelDistrict
-                      }
-                      onChange={
-                        e =>
-                          setHotelDistrict(
-                            e.target.value
+                      <select
+                        value={
+                          hotelDistrict
+                        }
+                        disabled={
+                          !selectedProvinceId ||
+                          locationLoading
+                        }
+                        onChange={
+                          e =>
+                            setHotelDistrict(
+                              e.target.value
+                            )
+                        }
+                        className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+
+                        <option value="">
+                          {
+                            !selectedProvinceId
+                              ? "Önce il seçin"
+                              : locationLoading
+                                ? "İlçeler yükleniyor..."
+                                : "İlçe seçin"
+                          }
+                        </option>
+
+                        {
+                          turkeyDistricts.map(
+                            district => (
+
+                              <option
+                                key={
+                                  district.id
+                                }
+                                value={
+                                  district.name
+                                }
+                              >
+                                {district.name}
+                              </option>
+
+                            )
                           )
-                      }
-                      placeholder="Ölüdeniz"
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
-                    />
+                        }
 
-                  </label>
+                      </select>
+
+                      <span className="mt-2 block text-xs text-slate-500">
+                        Seçilen ile bağlı ilçeler otomatik gelir.
+                      </span>
+
+                    </label>
+
+                  </div>
+
+
+                  {
+                    locationError &&
+                    (
+                      <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs leading-5 text-amber-200">
+                        {locationError}
+                      </div>
+                    )
+                  }
 
                 </div>
 
