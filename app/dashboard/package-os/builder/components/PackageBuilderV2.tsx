@@ -17,6 +17,11 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 
+import GuestRoster, {
+  createInitialGuests,
+  type Guest,
+} from "./GuestRoster";
+
 type Hotel = {
   id: string;
   name: string;
@@ -309,16 +314,16 @@ export default function PackageBuilderV2() {
     );
 
   const [
-    customerName,
-    setCustomerName,
+    guests,
+    setGuests,
   ] =
-    useState("");
-
-  const [
-    customerPhone,
-    setCustomerPhone,
-  ] =
-    useState("");
+    useState<Guest[]>(
+      () =>
+        createInitialGuests(
+          2,
+          0
+        )
+    );
 
   const [
     checkIn,
@@ -1033,14 +1038,17 @@ export default function PackageBuilderV2() {
 
     if (
       !companyId ||
-      !customerName.trim() ||
+      guests.length !==
+        people ||
+      !guests[0]?.fullName.trim() ||
+      !guests[0]?.phone.trim() ||
       !selectedHotelId ||
       !selectedRateId ||
       !checkIn ||
       !checkOut
     ) {
       setErrorMessage(
-        "Müşteri, tarih, otel ve oda seçimi zorunludur."
+        "Misafir bilgileri, tarih, otel ve oda seçimi zorunludur. Misafir sayısı paket kişi sayısıyla aynı olmalıdır."
       );
 
       return;
@@ -1055,16 +1063,30 @@ export default function PackageBuilderV2() {
       error,
     } =
       await supabase.rpc(
-        "create_package_quote_v2",
+        "create_package_quote_v3",
         {
           p_company_id:
             companyId,
 
-          p_customer_name:
-            customerName.trim(),
+          p_guests:
+            guests.map(
+              guest => ({
+                guestType:
+                  guest.guestType,
 
-          p_customer_phone:
-            customerPhone.trim(),
+                fullName:
+                  guest.fullName.trim(),
+
+                phone:
+                  guest.phone.trim(),
+
+                email:
+                  guest.email.trim(),
+
+                address:
+                  guest.address.trim(),
+              })
+            ),
 
           p_check_in:
             checkIn,
@@ -1207,48 +1229,10 @@ export default function PackageBuilderV2() {
         >
           <div className="space-y-6">
             <Panel
-              title="1 · Müşteri & Konaklama"
-              description="Kişi ve tarih bilgileri tüm maliyet hesaplarını otomatik etkiler."
+              title="1 · Misafirler & Konaklama"
+              description="Rezervasyona dahil olacak tüm misafirlerin iletişim ve konaklama bilgilerini kaydedin."
             >
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                <Field
-                  label="Müşteri Adı Soyadı"
-                >
-                  <input
-                    value={
-                      customerName
-                    }
-                    onChange={
-                      event =>
-                        setCustomerName(
-                          event.target.value
-                        )
-                    }
-                    className="input"
-                    placeholder="Ahmet Yılmaz"
-                  />
-                </Field>
-
-                <Field
-                  label="Telefon"
-                >
-                  <input
-                    value={
-                      customerPhone
-                    }
-                    onChange={
-                      event =>
-                        setCustomerPhone(
-                          event.target.value
-                        )
-                    }
-                    className="input"
-                    placeholder="0532..."
-                  />
-                </Field>
-
-                <div />
-
                 <Field
                   label="Giriş Tarihi"
                 >
@@ -1274,7 +1258,7 @@ export default function PackageBuilderV2() {
                         }
                       }
                     }
-                    className="input"
+                    className="input date-input"
                   />
                 </Field>
 
@@ -1299,7 +1283,7 @@ export default function PackageBuilderV2() {
                           event.target.value
                         )
                     }
-                    className="input disabled:opacity-40"
+                    className="input date-input disabled:opacity-40"
                   />
                 </Field>
 
@@ -1314,7 +1298,7 @@ export default function PackageBuilderV2() {
                 </div>
 
                 <Field
-                  label="Yetişkin"
+                  label="Yetişkin Sayısı"
                 >
                   <input
                     type="number"
@@ -1323,23 +1307,27 @@ export default function PackageBuilderV2() {
                       adults
                     }
                     onChange={
-                      event =>
-                        setAdults(
+                      event => {
+                        const nextAdults =
                           Math.max(
                             1,
                             Number(
                               event.target.value
                             ) ||
                             1
-                          )
-                        )
+                          );
+
+                        setAdults(
+                          nextAdults
+                        );
+                      }
                     }
                     className="input"
                   />
                 </Field>
 
                 <Field
-                  label="Çocuk"
+                  label="Çocuk Sayısı"
                 >
                   <input
                     type="number"
@@ -1348,16 +1336,20 @@ export default function PackageBuilderV2() {
                       children
                     }
                     onChange={
-                      event =>
-                        setChildren(
+                      event => {
+                        const nextChildren =
                           Math.max(
                             0,
                             Number(
                               event.target.value
                             ) ||
                             0
-                          )
-                        )
+                          );
+
+                        setChildren(
+                          nextChildren
+                        );
+                      }
                     }
                     className="input"
                   />
@@ -1365,7 +1357,7 @@ export default function PackageBuilderV2() {
 
                 <div className="rounded-xl border border-white/10 bg-slate-950 p-4">
                   <div className="text-xs text-slate-500">
-                    Toplam Kişi
+                    Toplam Misafir
                   </div>
 
                   <div className="mt-2 text-2xl font-black">
@@ -1373,7 +1365,25 @@ export default function PackageBuilderV2() {
                   </div>
                 </div>
               </div>
+
+              <div className="mt-7 border-t border-white/10 pt-7">
+                <GuestRoster
+                  guests={
+                    guests
+                  }
+                  adults={
+                    adults
+                  }
+                  children={
+                    children
+                  }
+                  onChange={
+                    setGuests
+                  }
+                />
+              </div>
             </Panel>
+
 
             <Panel
               title="2 · Otel"
@@ -1954,7 +1964,7 @@ export default function PackageBuilderV2() {
 
                   <div className="mt-5 rounded-2xl bg-orange-500 p-5">
                     <div className="text-xs font-black uppercase text-orange-100">
-                      MÜŞTERİ PAKET TUTARI
+                      MİSAFİR PAKET TUTARI
                     </div>
 
                     <div className="mt-2 text-4xl font-black">
@@ -2023,6 +2033,30 @@ export default function PackageBuilderV2() {
 
         .input:focus {
           border-color: rgba(249,115,22,0.6);
+        }
+
+        .date-input {
+          color-scheme: dark;
+          color: white !important;
+          -webkit-text-fill-color: white;
+        }
+
+        .date-input::-webkit-datetime-edit {
+          color: white;
+        }
+
+        .date-input::-webkit-datetime-edit-fields-wrapper {
+          color: white;
+        }
+
+        .date-input::-webkit-datetime-edit-text {
+          color: rgb(148 163 184);
+        }
+
+        .date-input::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+          filter: invert(1);
+          opacity: 0.85;
         }
       `}</style>
     </main>
