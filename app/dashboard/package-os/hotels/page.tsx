@@ -10,6 +10,10 @@ import {
 
 import Link from "next/link";
 
+import HotelMediaManager from "./components/HotelMediaManager";
+import HotelProfileEditor from "./components/HotelProfileEditor";
+import HotelRecordManager from "./components/HotelRecordManager";
+
 import {
   supabase,
 } from "@/lib/supabase";
@@ -2309,6 +2313,10 @@ export default function PackageHotelsPage() {
           company_id:
             membership.company_id,
 
+          package_hotel_id:
+            selectedHotelId ||
+            null,
+
           provider:
             integrationProvider,
 
@@ -3462,320 +3470,82 @@ export default function PackageHotelsPage() {
 
                     {
                       tab ===
-                      "gallery" &&
+                      "general" &&
                       (
-                        <div className="mt-5 grid gap-5 xl:grid-cols-[390px_1fr]">
-
-                          <form
-                            onSubmit={
-                              addMedia
+                        <>
+                          <HotelProfileEditor
+                            companyId={
+                              membership?.company_id ??
+                              ""
                             }
-                            className="h-fit rounded-[26px] border border-white/10 bg-slate-900 p-6"
-                          >
-
-                            <div>
-
-                              <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
-                                OTEL MEDYA
-                              </p>
-
-                              <h3 className="mt-2 text-xl font-black">
-                                Galeriye İçerik Ekle
-                              </h3>
-
-                              <p className="mt-2 text-sm leading-6 text-slate-400">
-                                Otelin dış cephe, havuz, oda, restoran ve
-                                sosyal alan görsellerini burada yönetin.
-                              </p>
-
-                            </div>
-
-
-                            <div className="mt-6 space-y-5">
-
-                              <label className="block">
-
-                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
-                                  İçerik Türü
-                                </span>
-
-                                <select
-                                  value={
-                                    mediaType
-                                  }
-                                  onChange={
-                                    e =>
-                                      setMediaType(
-                                        e.target.value as "image" | "video"
-                                      )
-                                  }
-                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
-                                >
-
-                                  <option value="image">
-                                    Fotoğraf
-                                  </option>
-
-                                  <option value="video">
-                                    Video
-                                  </option>
-
-                                </select>
-
-                                <span className="mt-2 block text-xs text-slate-500">
-                                  Otel fotoğrafı veya tanıtım videosu seçin.
-                                </span>
-
-                              </label>
-
-
-                              <label className="block">
-
-                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
-                                  Medya Bağlantısı *
-                                </span>
-
-                                <input
-                                  value={
-                                    mediaUrl
-                                  }
-                                  onChange={
-                                    e =>
-                                      setMediaUrl(
-                                        e.target.value
-                                      )
-                                  }
-                                  placeholder="https://..."
-                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
-                                />
-
-                                <span className="mt-2 block text-xs leading-5 text-slate-500">
-                                  Şimdilik doğrudan görsel/video URL'si girin.
-                                  Dosya yükleme modülünü ayrıca bağlayacağız.
-                                </span>
-
-                              </label>
-
-
-                              <label className="block">
-
-                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
-                                  Görsel Başlığı
-                                </span>
-
-                                <input
-                                  value={
-                                    mediaTitle
-                                  }
-                                  onChange={
-                                    e =>
-                                      setMediaTitle(
-                                        e.target.value
-                                      )
-                                  }
-                                  placeholder="Örn: Deniz Manzaralı Standart Oda"
-                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
-                                />
-
-                                <span className="mt-2 block text-xs text-slate-500">
-                                  Satış ekranında görseli tanımlamak için kullanılır.
-                                </span>
-
-                              </label>
-
-
-                              <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-950 p-4">
-
-                                <input
-                                  type="checkbox"
-                                  checked={
-                                    mediaCover
-                                  }
-                                  onChange={
-                                    e =>
-                                      setMediaCover(
-                                        e.target.checked
-                                      )
-                                  }
-                                  className="mt-1"
-                                />
-
-                                <div>
-
-                                  <div className="text-sm font-black">
-                                    Kapak Görseli Olarak Kullan
-                                  </div>
-
-                                  <div className="mt-1 text-xs leading-5 text-slate-500">
-                                    Otel listesi ve paket seçim ekranında bu
-                                    fotoğraf ana görsel olarak gösterilir.
-                                  </div>
-
-                                </div>
-
-                              </label>
-
-
-                              <button
-                                disabled={
-                                  saving
-                                }
-                                className="w-full rounded-xl bg-orange-500 px-4 py-4 font-black transition hover:bg-orange-400 disabled:opacity-50"
-                              >
-                                {
-                                  saving
-                                    ? "Kaydediliyor..."
-                                    : "Galeriye Ekle"
-                                }
-                              </button>
-
-                            </div>
-
-                          </form>
-
-
-                          <div>
-
-                            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-
-                              <div>
-
-                                <h3 className="text-xl font-black">
-                                  Otel Galerisi
-                                </h3>
-
-                                <p className="mt-1 text-sm text-slate-500">
-                                  {contract.media.length} medya kaydı
-                                </p>
-
-                              </div>
-
-                              <div className="rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-xs text-slate-400">
-                                Kapak görseli satış ekranlarında öncelikli gösterilir
-                              </div>
-
-                            </div>
-
-
-                            {
-                              contract.media.length ===
-                              0
-                                ? (
-                                  <div className="rounded-[26px] border border-dashed border-white/10 bg-slate-900/60 p-10">
-
-                                    <div className="max-w-xl">
-
-                                      <h4 className="text-2xl font-black">
-                                        Henüz Görsel Eklenmedi
-                                      </h4>
-
-                                      <p className="mt-3 text-sm leading-7 text-slate-400">
-                                        Otelin satışta güçlü görünmesi için en az
-                                        bir dış görünüm, bir oda, havuz ve restoran
-                                        fotoğrafı eklemenizi öneririz.
-                                      </p>
-
-                                    </div>
-
-                                  </div>
-                                )
-                                : (
-                                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-                                    {
-                                      contract.media.map(
-                                        media => (
-
-                                          <div
-                                            key={
-                                              media.id
-                                            }
-                                            className="overflow-hidden rounded-[22px] border border-white/10 bg-slate-900"
-                                          >
-
-                                            {
-                                              media.media_type ===
-                                              "image"
-                                                ? (
-                                                  <div className="relative h-48 overflow-hidden bg-slate-950">
-
-                                                    <img
-                                                      src={
-                                                        media.url
-                                                      }
-                                                      alt={
-                                                        media.title ||
-                                                        ""
-                                                      }
-                                                      className="h-full w-full object-cover"
-                                                    />
-
-                                                    {
-                                                      media.is_cover &&
-                                                      (
-                                                        <div className="absolute left-3 top-3 rounded-lg bg-orange-500 px-3 py-2 text-[10px] font-black">
-                                                          KAPAK
-                                                        </div>
-                                                      )
-                                                    }
-
-                                                  </div>
-                                                )
-                                                : (
-                                                  <div className="flex h-48 items-center justify-center bg-slate-950">
-
-                                                    <div className="text-center">
-
-                                                      <div className="text-2xl">
-                                                        ▶
-                                                      </div>
-
-                                                      <div className="mt-2 text-xs font-black text-slate-400">
-                                                        TANITIM VİDEOSU
-                                                      </div>
-
-                                                    </div>
-
-                                                  </div>
-                                                )
-                                            }
-
-
-                                            <div className="p-4">
-
-                                              <div className="font-black">
-                                                {
-                                                  media.title ||
-                                                  "Başlıksız medya"
-                                                }
-                                              </div>
-
-                                              <div className="mt-2 text-xs text-slate-500">
-                                                {
-                                                  media.media_type ===
-                                                  "image"
-                                                    ? "Fotoğraf"
-                                                    : "Video"
-                                                }
-                                              </div>
-
-                                            </div>
-
-                                          </div>
-
-                                        )
-                                      )
-                                    }
-
-                                  </div>
-                                )
+                            hotel={
+                              contract.hotel
                             }
+                            mediaCount={
+                              contract.media.length
+                            }
+                            roomCount={
+                              contract.room_types.length
+                            }
+                            rateCount={
+                              contract.rates.length
+                            }
+                            promotionCount={
+                              contract.promotions.length
+                            }
+                            onChanged={
+                              refresh
+                            }
+                          />
 
-                          </div>
-
-                        </div>
+                          <HotelRecordManager
+                            companyId={
+                              membership?.company_id ??
+                              ""
+                            }
+                            rooms={
+                              contract.room_types
+                            }
+                            rates={
+                              contract.rates
+                            }
+                            promotions={
+                              contract.promotions
+                            }
+                            children={
+                              contract.child_policies
+                            }
+                            onChanged={
+                              refresh
+                            }
+                          />
+                        </>
                       )
                     }
+
+
+                    {
+                      tab ===
+                      "gallery" &&
+                      (
+                        <HotelMediaManager
+                          companyId={
+                            membership?.company_id ??
+                            ""
+                          }
+                          hotelId={
+                            selectedHotelId
+                          }
+                          media={
+                            contract.media
+                          }
+                          onChanged={
+                            refresh
+                          }
+                        />
+                      )
+                    }
+
 
                     {
                       tab ===
