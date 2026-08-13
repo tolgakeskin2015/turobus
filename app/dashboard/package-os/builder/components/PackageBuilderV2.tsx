@@ -2075,6 +2075,34 @@ export default function PackageBuilderV2() {
           border-color: rgba(249,115,22,0.6);
         }
 
+        .native-package-date {
+          color-scheme: dark;
+          -webkit-appearance: auto;
+          appearance: auto;
+        }
+
+        .native-package-date::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+          opacity: 1;
+          filter: invert(1);
+          width: 22px;
+          height: 22px;
+        }
+
+        .native-package-date::-webkit-datetime-edit {
+          color: white;
+        }
+
+        .native-package-date::-webkit-datetime-edit-text {
+          color: rgb(148 163 184);
+        }
+
+        .native-package-date::-webkit-datetime-edit-month-field,
+        .native-package-date::-webkit-datetime-edit-day-field,
+        .native-package-date::-webkit-datetime-edit-year-field {
+          color: white;
+        }
+
       `}</style>
     </main>
   );
@@ -2252,40 +2280,12 @@ function DatePickerField({
       </span>
 
       <div
-        className={`relative overflow-hidden rounded-xl border px-4 py-3 transition ${
+        className={`rounded-xl border p-3 ${
           disabled
-            ? "cursor-not-allowed border-white/5 bg-slate-950/50 opacity-50"
-            : "cursor-pointer border-white/10 bg-slate-950 hover:border-orange-500/50"
+            ? "border-white/5 bg-slate-950/50 opacity-50"
+            : "border-white/10 bg-slate-950"
         }`}
       >
-        <div className="pointer-events-none flex min-h-[46px] items-center justify-between gap-4">
-          <div>
-            <div
-              className={`font-black ${
-                value
-                  ? "text-white"
-                  : "text-slate-500"
-              }`}
-            >
-              {value
-                ? formatPackageDate(
-                    value
-                  )
-                : placeholder}
-            </div>
-
-            {value && (
-              <div className="mt-1 text-xs font-bold text-orange-400">
-                {value}
-              </div>
-            )}
-          </div>
-
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-500/20 bg-orange-500/10 text-lg">
-            📅
-          </div>
-        </div>
-
         <input
           type="date"
           value={
@@ -2306,8 +2306,24 @@ function DatePickerField({
           aria-label={
             label
           }
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+          className="native-package-date w-full cursor-pointer rounded-lg bg-transparent px-1 py-2 text-base font-black text-white outline-none disabled:cursor-not-allowed"
         />
+
+        <div className="mt-2 flex items-center justify-between gap-3 border-t border-white/5 pt-2">
+          <span className="text-xs text-slate-500">
+            {value
+              ? formatPackageDate(
+                  value
+                )
+              : placeholder}
+          </span>
+
+          {value && (
+            <span className="text-xs font-black text-orange-400">
+              {value}
+            </span>
+          )}
+        </div>
       </div>
     </label>
   );
