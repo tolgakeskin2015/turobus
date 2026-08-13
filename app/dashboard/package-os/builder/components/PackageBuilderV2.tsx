@@ -1238,6 +1238,9 @@ export default function PackageBuilderV2() {
                   value={
                     checkIn
                   }
+                  min={
+                    todayLocalISO()
+                  }
                   onChange={
                     value => {
                       setCheckIn(
@@ -1245,9 +1248,25 @@ export default function PackageBuilderV2() {
                       );
 
                       if (
+                        value &&
+                        value <
+                          todayLocalISO()
+                      ) {
+                        setCheckIn(
+                          ""
+                        );
+
+                        setCheckOut(
+                          ""
+                        );
+
+                        return;
+                      }
+
+                      if (
                         checkOut &&
-                        value >=
-                          checkOut
+                        checkOut <=
+                          value
                       ) {
                         setCheckOut(
                           ""
@@ -1263,8 +1282,12 @@ export default function PackageBuilderV2() {
                     checkOut
                   }
                   min={
-                    checkIn ||
-                    undefined
+                    checkIn
+                      ? addDaysISO(
+                          checkIn,
+                          1
+                        )
+                      : undefined
                   }
                   disabled={
                     !checkIn
@@ -1275,10 +1298,32 @@ export default function PackageBuilderV2() {
                       : "Önce giriş tarihini seçin"
                   }
                   onChange={
-                    value =>
+                    value => {
+                      const minimumCheckout =
+                        checkIn
+                          ? addDaysISO(
+                              checkIn,
+                              1
+                            )
+                          : "";
+
+                      if (
+                        value &&
+                        minimumCheckout &&
+                        value <
+                          minimumCheckout
+                      ) {
+                        setCheckOut(
+                          ""
+                        );
+
+                        return;
+                      }
+
                       setCheckOut(
                         value
-                      )
+                      );
+                    }
                   }
                 />
 
@@ -2060,6 +2105,83 @@ function Panel({
       </div>
     </section>
   );
+}
+
+function todayLocalISO() {
+  const now =
+    new Date();
+
+  const year =
+    now.getFullYear();
+
+  const month =
+    String(
+      now.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const day =
+    String(
+      now.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${year}-${month}-${day}`;
+}
+
+function addDaysISO(
+  value: string,
+  days: number
+) {
+  if (!value) {
+    return "";
+  }
+
+  const [
+    year,
+    month,
+    day,
+  ] =
+    value
+      .split("-")
+      .map(Number);
+
+  const date =
+    new Date(
+      year,
+      month - 1,
+      day
+    );
+
+  date.setDate(
+    date.getDate() +
+    days
+  );
+
+  const nextYear =
+    date.getFullYear();
+
+  const nextMonth =
+    String(
+      date.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const nextDay =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${nextYear}-${nextMonth}-${nextDay}`;
 }
 
 function formatPackageDate(
