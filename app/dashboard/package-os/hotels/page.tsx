@@ -3158,146 +3158,311 @@ export default function PackageHotelsPage() {
                       tab ===
                       "gallery" &&
                       (
-                        <div className="mt-4 grid gap-5 xl:grid-cols-[360px_1fr]">
+                        <div className="mt-5 grid gap-5 xl:grid-cols-[390px_1fr]">
 
                           <form
                             onSubmit={
                               addMedia
                             }
-                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                            className="h-fit rounded-[26px] border border-white/10 bg-slate-900 p-6"
                           >
 
-                            <h3 className="font-black">
-                              Galeriye Ekle
-                            </h3>
+                            <div>
 
-                            <select
-                              value={
-                                mediaType
-                              }
-                              onChange={
-                                e =>
-                                  setMediaType(
-                                    e.target.value as "image" | "video"
-                                  )
-                              }
-                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            >
-                              <option value="image">
-                                Fotoğraf
-                              </option>
-                              <option value="video">
-                                Video
-                              </option>
-                            </select>
+                              <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+                                OTEL MEDYA
+                              </p>
 
-                            <input
-                              value={
-                                mediaUrl
-                              }
-                              onChange={
-                                e =>
-                                  setMediaUrl(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Medya URL"
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
+                              <h3 className="mt-2 text-xl font-black">
+                                Galeriye İçerik Ekle
+                              </h3>
 
-                            <input
-                              value={
-                                mediaTitle
-                              }
-                              onChange={
-                                e =>
-                                  setMediaTitle(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Başlık"
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
+                              <p className="mt-2 text-sm leading-6 text-slate-400">
+                                Otelin dış cephe, havuz, oda, restoran ve
+                                sosyal alan görsellerini burada yönetin.
+                              </p>
 
-                            <label className="mt-3 flex items-center gap-3 rounded-xl bg-slate-950 p-3">
-                              <input
-                                type="checkbox"
-                                checked={
-                                  mediaCover
+                            </div>
+
+
+                            <div className="mt-6 space-y-5">
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  İçerik Türü
+                                </span>
+
+                                <select
+                                  value={
+                                    mediaType
+                                  }
+                                  onChange={
+                                    e =>
+                                      setMediaType(
+                                        e.target.value as "image" | "video"
+                                      )
+                                  }
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                >
+
+                                  <option value="image">
+                                    Fotoğraf
+                                  </option>
+
+                                  <option value="video">
+                                    Video
+                                  </option>
+
+                                </select>
+
+                                <span className="mt-2 block text-xs text-slate-500">
+                                  Otel fotoğrafı veya tanıtım videosu seçin.
+                                </span>
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Medya Bağlantısı *
+                                </span>
+
+                                <input
+                                  value={
+                                    mediaUrl
+                                  }
+                                  onChange={
+                                    e =>
+                                      setMediaUrl(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="https://..."
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                                <span className="mt-2 block text-xs leading-5 text-slate-500">
+                                  Şimdilik doğrudan görsel/video URL'si girin.
+                                  Dosya yükleme modülünü ayrıca bağlayacağız.
+                                </span>
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Görsel Başlığı
+                                </span>
+
+                                <input
+                                  value={
+                                    mediaTitle
+                                  }
+                                  onChange={
+                                    e =>
+                                      setMediaTitle(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="Örn: Deniz Manzaralı Standart Oda"
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                                <span className="mt-2 block text-xs text-slate-500">
+                                  Satış ekranında görseli tanımlamak için kullanılır.
+                                </span>
+
+                              </label>
+
+
+                              <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-950 p-4">
+
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    mediaCover
+                                  }
+                                  onChange={
+                                    e =>
+                                      setMediaCover(
+                                        e.target.checked
+                                      )
+                                  }
+                                  className="mt-1"
+                                />
+
+                                <div>
+
+                                  <div className="text-sm font-black">
+                                    Kapak Görseli Olarak Kullan
+                                  </div>
+
+                                  <div className="mt-1 text-xs leading-5 text-slate-500">
+                                    Otel listesi ve paket seçim ekranında bu
+                                    fotoğraf ana görsel olarak gösterilir.
+                                  </div>
+
+                                </div>
+
+                              </label>
+
+
+                              <button
+                                disabled={
+                                  saving
                                 }
-                                onChange={
-                                  e =>
-                                    setMediaCover(
-                                      e.target.checked
-                                    )
+                                className="w-full rounded-xl bg-orange-500 px-4 py-4 font-black transition hover:bg-orange-400 disabled:opacity-50"
+                              >
+                                {
+                                  saving
+                                    ? "Kaydediliyor..."
+                                    : "Galeriye Ekle"
                                 }
-                              />
-                              Kapak fotoğrafı
-                            </label>
+                              </button>
 
-                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
-                              Galeriye Ekle
-                            </button>
+                            </div>
 
                           </form>
 
 
-                          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                          <div>
+
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+
+                              <div>
+
+                                <h3 className="text-xl font-black">
+                                  Otel Galerisi
+                                </h3>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                  {contract.media.length} medya kaydı
+                                </p>
+
+                              </div>
+
+                              <div className="rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-xs text-slate-400">
+                                Kapak görseli satış ekranlarında öncelikli gösterilir
+                              </div>
+
+                            </div>
+
 
                             {
-                              contract.media.map(
-                                media => (
+                              contract.media.length ===
+                              0
+                                ? (
+                                  <div className="rounded-[26px] border border-dashed border-white/10 bg-slate-900/60 p-10">
 
-                                  <div
-                                    key={
-                                      media.id
-                                    }
-                                    className="overflow-hidden rounded-[20px] border border-white/10 bg-slate-900"
-                                  >
+                                    <div className="max-w-xl">
 
-                                    {
-                                      media.media_type ===
-                                      "image"
-                                        ? (
-                                          <img
-                                            src={
-                                              media.url
-                                            }
-                                            alt=""
-                                            className="h-44 w-full object-cover"
-                                          />
-                                        )
-                                        : (
-                                          <div className="flex h-44 items-center justify-center bg-slate-950 text-slate-400">
-                                            VIDEO
-                                          </div>
-                                        )
-                                    }
+                                      <h4 className="text-2xl font-black">
+                                        Henüz Görsel Eklenmedi
+                                      </h4>
 
-                                    <div className="p-4">
-
-                                      <div className="font-black">
-                                        {
-                                          media.title ||
-                                          "Otel görseli"
-                                        }
-                                      </div>
-
-                                      {
-                                        media.is_cover &&
-                                        (
-                                          <div className="mt-2 text-xs font-black text-orange-400">
-                                            KAPAK
-                                          </div>
-                                        )
-                                      }
+                                      <p className="mt-3 text-sm leading-7 text-slate-400">
+                                        Otelin satışta güçlü görünmesi için en az
+                                        bir dış görünüm, bir oda, havuz ve restoran
+                                        fotoğrafı eklemenizi öneririz.
+                                      </p>
 
                                     </div>
 
                                   </div>
-
                                 )
-                              )
+                                : (
+                                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+                                    {
+                                      contract.media.map(
+                                        media => (
+
+                                          <div
+                                            key={
+                                              media.id
+                                            }
+                                            className="overflow-hidden rounded-[22px] border border-white/10 bg-slate-900"
+                                          >
+
+                                            {
+                                              media.media_type ===
+                                              "image"
+                                                ? (
+                                                  <div className="relative h-48 overflow-hidden bg-slate-950">
+
+                                                    <img
+                                                      src={
+                                                        media.url
+                                                      }
+                                                      alt={
+                                                        media.title ||
+                                                        ""
+                                                      }
+                                                      className="h-full w-full object-cover"
+                                                    />
+
+                                                    {
+                                                      media.is_cover &&
+                                                      (
+                                                        <div className="absolute left-3 top-3 rounded-lg bg-orange-500 px-3 py-2 text-[10px] font-black">
+                                                          KAPAK
+                                                        </div>
+                                                      )
+                                                    }
+
+                                                  </div>
+                                                )
+                                                : (
+                                                  <div className="flex h-48 items-center justify-center bg-slate-950">
+
+                                                    <div className="text-center">
+
+                                                      <div className="text-2xl">
+                                                        ▶
+                                                      </div>
+
+                                                      <div className="mt-2 text-xs font-black text-slate-400">
+                                                        TANITIM VİDEOSU
+                                                      </div>
+
+                                                    </div>
+
+                                                  </div>
+                                                )
+                                            }
+
+
+                                            <div className="p-4">
+
+                                              <div className="font-black">
+                                                {
+                                                  media.title ||
+                                                  "Başlıksız medya"
+                                                }
+                                              </div>
+
+                                              <div className="mt-2 text-xs text-slate-500">
+                                                {
+                                                  media.media_type ===
+                                                  "image"
+                                                    ? "Fotoğraf"
+                                                    : "Video"
+                                                }
+                                              </div>
+
+                                            </div>
+
+                                          </div>
+
+                                        )
+                                      )
+                                    }
+
+                                  </div>
+                                )
                             }
 
                           </div>
@@ -3305,183 +3470,416 @@ export default function PackageHotelsPage() {
                         </div>
                       )
                     }
-
 
                     {
                       tab ===
                       "rooms" &&
                       (
-                        <div className="mt-4 grid gap-5 xl:grid-cols-[380px_1fr]">
+                        <div className="mt-5 grid gap-5 xl:grid-cols-[410px_1fr]">
 
                           <form
                             onSubmit={
                               addRoom
                             }
-                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                            className="h-fit rounded-[26px] border border-white/10 bg-slate-900 p-6"
                           >
 
-                            <h3 className="font-black">
-                              Yeni Oda Tipi
-                            </h3>
+                            <div>
 
-                            <input
-                              value={
-                                roomName
-                              }
-                              onChange={
-                                e =>
-                                  setRoomName(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Standart Oda / Family / Suite"
-                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
+                              <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+                                ODA ENVANTERİ
+                              </p>
 
-                            <input
-                              value={
-                                roomCode
-                              }
-                              onChange={
-                                e =>
-                                  setRoomCode(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Oda kodu"
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
+                              <h3 className="mt-2 text-xl font-black">
+                                Yeni Oda Tipi Oluştur
+                              </h3>
 
-                            <div className="mt-3 grid grid-cols-2 gap-3">
-
-                              <input
-                                type="number"
-                                min="1"
-                                value={
-                                  roomAdults
-                                }
-                                onChange={
-                                  e =>
-                                    setRoomAdults(
-                                      e.target.value
-                                    )
-                                }
-                                placeholder="Max yetişkin"
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                              />
-
-                              <input
-                                type="number"
-                                min="0"
-                                value={
-                                  roomChildren
-                                }
-                                onChange={
-                                  e =>
-                                    setRoomChildren(
-                                      e.target.value
-                                    )
-                                }
-                                placeholder="Max çocuk"
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                              />
+                              <p className="mt-2 text-sm leading-6 text-slate-400">
+                                Kontrattaki her oda tipini ayrı oluşturun.
+                                Fiyat dönemleri daha sonra bu odalara bağlanır.
+                              </p>
 
                             </div>
 
-                            <input
-                              type="number"
-                              value={
-                                roomSize
-                              }
-                              onChange={
-                                e =>
-                                  setRoomSize(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="m²"
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
 
-                            <input
-                              value={
-                                roomBed
-                              }
-                              onChange={
-                                e =>
-                                  setRoomBed(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Yatak tipi"
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
+                            <div className="mt-6 space-y-5">
 
-                            <textarea
-                              value={
-                                roomDescription
-                              }
-                              onChange={
-                                e =>
-                                  setRoomDescription(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Oda özellikleri"
-                              rows={3}
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
+                              <label className="block">
 
-                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
-                              Oda Tipini Ekle
-                            </button>
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Oda Tipi Adı *
+                                </span>
+
+                                <input
+                                  value={
+                                    roomName
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRoomName(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="Örn: Standart Oda"
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                                <span className="mt-2 block text-xs text-slate-500">
+                                  Standart Oda, Family Room, Deluxe Suite gibi.
+                                </span>
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Oda Kodu
+                                </span>
+
+                                <input
+                                  value={
+                                    roomCode
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRoomCode(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="Örn: STD-DBL"
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                                <span className="mt-2 block text-xs text-slate-500">
+                                  İç sistem veya API eşleştirmesinde kullanılabilecek kısa kod.
+                                </span>
+
+                              </label>
+
+
+                              <div className="grid grid-cols-2 gap-3">
+
+                                <label>
+
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    Maks. Yetişkin
+                                  </span>
+
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={
+                                      roomAdults
+                                    }
+                                    onChange={
+                                      e =>
+                                        setRoomAdults(
+                                          e.target.value
+                                        )
+                                    }
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                  />
+
+                                </label>
+
+
+                                <label>
+
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    Maks. Çocuk
+                                  </span>
+
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={
+                                      roomChildren
+                                    }
+                                    onChange={
+                                      e =>
+                                        setRoomChildren(
+                                          e.target.value
+                                        )
+                                    }
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                  />
+
+                                </label>
+
+                              </div>
+
+
+                              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+
+                                <p className="text-xs leading-5 text-slate-500">
+                                  Bu oda için toplam maksimum kapasite:
+                                </p>
+
+                                <div className="mt-2 text-xl font-black text-orange-400">
+                                  {
+                                    Math.max(
+                                      1,
+                                      num(
+                                        roomAdults
+                                      )
+                                    ) +
+                                    Math.max(
+                                      0,
+                                      num(
+                                        roomChildren
+                                      )
+                                    )
+                                  } kişi
+                                </div>
+
+                              </div>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Oda Büyüklüğü
+                                </span>
+
+                                <div className="relative">
+
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={
+                                      roomSize
+                                    }
+                                    onChange={
+                                      e =>
+                                        setRoomSize(
+                                          e.target.value
+                                        )
+                                    }
+                                    placeholder="Örn: 28"
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 pr-14 outline-none focus:border-orange-500/60"
+                                  />
+
+                                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                                    m²
+                                  </span>
+
+                                </div>
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Yatak Düzeni
+                                </span>
+
+                                <input
+                                  value={
+                                    roomBed
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRoomBed(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="Örn: 1 Double + 1 Single"
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Oda Özellikleri
+                                </span>
+
+                                <textarea
+                                  value={
+                                    roomDescription
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRoomDescription(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="Örn: Balkon, havuz manzarası, klima, minibar, duş..."
+                                  rows={4}
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                              </label>
+
+
+                              <button
+                                disabled={
+                                  saving
+                                }
+                                className="w-full rounded-xl bg-orange-500 px-4 py-4 font-black transition hover:bg-orange-400 disabled:opacity-50"
+                              >
+                                {
+                                  saving
+                                    ? "Kaydediliyor..."
+                                    : "Oda Tipini Kaydet"
+                                }
+                              </button>
+
+                            </div>
 
                           </form>
 
 
-                          <div className="grid gap-4 md:grid-cols-2">
+                          <div>
+
+                            <div className="mb-4 flex items-center justify-between gap-3">
+
+                              <div>
+
+                                <h3 className="text-xl font-black">
+                                  Tanımlı Oda Tipleri
+                                </h3>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                  {contract.room_types.length} aktif oda tipi
+                                </p>
+
+                              </div>
+
+                            </div>
+
 
                             {
-                              contract.room_types.map(
-                                room => (
+                              contract.room_types.length ===
+                              0
+                                ? (
+                                  <div className="rounded-[26px] border border-dashed border-white/10 bg-slate-900/60 p-10">
 
-                                  <div
-                                    key={
-                                      room.id
-                                    }
-                                    className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
-                                  >
-
-                                    <h4 className="text-lg font-black">
-                                      {room.name}
+                                    <h4 className="text-2xl font-black">
+                                      Önce Oda Tipi Ekleyin
                                     </h4>
 
-                                    <p className="mt-2 text-sm text-slate-400">
-                                      {room.max_adults} yetişkin · {room.max_children} çocuk
+                                    <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
+                                      Fiyat dönemi oluşturabilmek için en az bir
+                                      oda tipi gerekir. Otel kontratında bulunan
+                                      oda tiplerini soldaki formdan ekleyin.
                                     </p>
 
-                                    {
-                                      room.size_m2 &&
-                                      (
-                                        <p className="mt-1 text-sm text-slate-400">
-                                          {room.size_m2} m²
-                                        </p>
-                                      )
-                                    }
+                                  </div>
+                                )
+                                : (
+                                  <div className="grid gap-4 md:grid-cols-2">
 
                                     {
-                                      room.bed_type &&
-                                      (
-                                        <p className="mt-1 text-sm text-slate-400">
-                                          {room.bed_type}
-                                        </p>
+                                      contract.room_types.map(
+                                        room => (
+
+                                          <div
+                                            key={
+                                              room.id
+                                            }
+                                            className="rounded-[22px] border border-white/10 bg-slate-900 p-5"
+                                          >
+
+                                            <div className="flex items-start justify-between gap-4">
+
+                                              <div>
+
+                                                <h4 className="text-lg font-black">
+                                                  {room.name}
+                                                </h4>
+
+                                                <p className="mt-1 text-xs text-slate-500">
+                                                  {
+                                                    room.code
+                                                      ? `Kod: ${room.code}`
+                                                      : "Oda kodu yok"
+                                                  }
+                                                </p>
+
+                                              </div>
+
+                                              <div className="rounded-xl bg-orange-500/10 px-3 py-2 text-sm font-black text-orange-300">
+                                                {room.max_occupancy} kişi
+                                              </div>
+
+                                            </div>
+
+
+                                            <div className="mt-5 grid grid-cols-2 gap-3">
+
+                                              <div className="rounded-xl bg-slate-950 p-3">
+
+                                                <div className="text-[10px] font-black uppercase text-slate-500">
+                                                  Yetişkin
+                                                </div>
+
+                                                <div className="mt-1 font-black">
+                                                  {room.max_adults}
+                                                </div>
+
+                                              </div>
+
+
+                                              <div className="rounded-xl bg-slate-950 p-3">
+
+                                                <div className="text-[10px] font-black uppercase text-slate-500">
+                                                  Çocuk
+                                                </div>
+
+                                                <div className="mt-1 font-black">
+                                                  {room.max_children}
+                                                </div>
+
+                                              </div>
+
+                                            </div>
+
+
+                                            <div className="mt-4 flex flex-wrap gap-2 text-xs">
+
+                                              {
+                                                room.size_m2 &&
+                                                (
+                                                  <span className="rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-slate-300">
+                                                    {room.size_m2} m²
+                                                  </span>
+                                                )
+                                              }
+
+                                              {
+                                                room.bed_type &&
+                                                (
+                                                  <span className="rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-slate-300">
+                                                    {room.bed_type}
+                                                  </span>
+                                                )
+                                              }
+
+                                            </div>
+
+
+                                            {
+                                              room.description &&
+                                              (
+                                                <p className="mt-4 text-sm leading-6 text-slate-400">
+                                                  {room.description}
+                                                </p>
+                                              )
+                                            }
+
+                                          </div>
+
+                                        )
                                       )
                                     }
 
                                   </div>
-
                                 )
-                              )
                             }
 
                           </div>
@@ -3489,421 +3887,720 @@ export default function PackageHotelsPage() {
                         </div>
                       )
                     }
-
 
                     {
                       tab ===
                       "rates" &&
                       (
-                        <div className="mt-4 grid gap-5 xl:grid-cols-[420px_1fr]">
+                        <div className="mt-5 grid gap-5 xl:grid-cols-[450px_1fr]">
 
                           <form
                             onSubmit={
                               addRate
                             }
-                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                            className="h-fit rounded-[26px] border border-white/10 bg-slate-900 p-6"
                           >
 
-                            <h3 className="font-black">
-                              Kontrat Fiyat Dönemi
-                            </h3>
+                            <div>
 
-                            <select
-                              value={
-                                rateRoomId
-                              }
-                              onChange={
-                                e =>
-                                  setRateRoomId(
-                                    e.target.value
-                                  )
-                              }
-                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            >
+                              <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+                                OTEL KONTRATI
+                              </p>
 
-                              <option value="">
-                                Oda tipi seçin
-                              </option>
+                              <h3 className="mt-2 text-xl font-black">
+                                Yeni Fiyat Dönemi
+                              </h3>
 
-                              {
-                                contract.room_types.map(
-                                  room => (
-                                    <option
-                                      key={
-                                        room.id
-                                      }
-                                      value={
-                                        room.id
-                                      }
-                                    >
-                                      {room.name}
-                                    </option>
-                                  )
-                                )
-                              }
-
-                            </select>
-
-
-                            <select
-                              value={
-                                rateBoard
-                              }
-                              onChange={
-                                e =>
-                                  setRateBoard(
-                                    e.target.value
-                                  )
-                              }
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            >
-
-                              {
-                                Object.entries(
-                                  boardLabels
-                                ).map(
-                                  ([
-                                    value,
-                                    label,
-                                  ]) => (
-                                    <option
-                                      key={
-                                        value
-                                      }
-                                      value={
-                                        value
-                                      }
-                                    >
-                                      {label}
-                                    </option>
-                                  )
-                                )
-                              }
-
-                            </select>
-
-
-                            <div className="mt-3 grid grid-cols-2 gap-3">
-
-                              <label>
-                                <span className="mb-1 block text-xs text-slate-500">
-                                  Başlangıç
-                                </span>
-
-                                <input
-                                  type="date"
-                                  value={
-                                    rateFrom
-                                  }
-                                  onChange={
-                                    e =>
-                                      setRateFrom(
-                                        e.target.value
-                                      )
-                                  }
-                                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
-                                />
-                              </label>
-
-                              <label>
-                                <span className="mb-1 block text-xs text-slate-500">
-                                  Bitiş
-                                </span>
-
-                                <input
-                                  type="date"
-                                  value={
-                                    rateTo
-                                  }
-                                  min={
-                                    rateFrom ||
-                                    undefined
-                                  }
-                                  onChange={
-                                    e =>
-                                      setRateTo(
-                                        e.target.value
-                                      )
-                                  }
-                                  className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
-                                />
-                              </label>
+                              <p className="mt-2 text-sm leading-6 text-slate-400">
+                                Otelin kontratındaki sezonları ayrı ayrı tanımlayın.
+                                Paket motoru tarihe göre doğru dönemi otomatik kullanır.
+                              </p>
 
                             </div>
-
-
-                            <select
-                              value={
-                                ratePriceType
-                              }
-                              onChange={
-                                e =>
-                                  setRatePriceType(
-                                    e.target.value as "net" | "list_discount"
-                                  )
-                              }
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            >
-                              <option value="net">
-                                Net Alış Fiyatı
-                              </option>
-                              <option value="list_discount">
-                                Liste Fiyatı + Acente İndirimi %
-                              </option>
-                            </select>
 
 
                             {
-                              ratePriceType ===
-                              "net"
+                              contract.room_types.length ===
+                              0
                                 ? (
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={
-                                      rateNet
-                                    }
-                                    onChange={
-                                      e =>
-                                        setRateNet(
-                                          e.target.value
-                                        )
-                                    }
-                                    placeholder="Gecelik net maliyet"
-                                    className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                                  />
-                                )
-                                : (
-                                  <div className="mt-3">
+                                  <div className="mt-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
 
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <p className="text-sm font-black text-amber-200">
+                                      Önce oda tipi oluşturmanız gerekiyor.
+                                    </p>
 
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={
-                                          rateList
-                                        }
-                                        onChange={
-                                          e =>
-                                            setRateList(
-                                              e.target.value
-                                            )
-                                        }
-                                        placeholder="Liste fiyatı"
-                                        className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                                      />
-
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        step="0.01"
-                                        value={
-                                          rateDiscount
-                                        }
-                                        onChange={
-                                          e =>
-                                            setRateDiscount(
-                                              e.target.value
-                                            )
-                                        }
-                                        placeholder="Acente indirim %"
-                                        className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                                      />
-
-                                    </div>
-
-                                    <div className="mt-3 rounded-xl bg-emerald-500/10 p-3">
-
-                                      <div className="text-xs text-emerald-300">
-                                        Hesaplanan Net Maliyet
-                                      </div>
-
-                                      <strong className="text-lg text-emerald-300">
-                                        {money(calculatedNet)}
-                                      </strong>
-
-                                    </div>
+                                    <p className="mt-2 text-xs leading-5 text-amber-100/70">
+                                      Fiyat dönemi bir oda tipine bağlanmadan kaydedilemez.
+                                    </p>
 
                                   </div>
                                 )
+                                : null
                             }
 
 
-                            <div className="mt-3 grid grid-cols-3 gap-3">
+                            <div className="mt-6 space-y-5">
 
-                              <input
-                                type="number"
-                                min="0"
-                                value={
-                                  rateAllotment
-                                }
-                                onChange={
-                                  e =>
-                                    setRateAllotment(
-                                      e.target.value
-                                    )
-                                }
-                                placeholder="Kontenjan"
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                              />
+                              <label className="block">
 
-                              <input
-                                type="number"
-                                min="1"
-                                value={
-                                  rateMinStay
-                                }
-                                onChange={
-                                  e =>
-                                    setRateMinStay(
-                                      e.target.value
-                                    )
-                                }
-                                placeholder="Min gece"
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                              />
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Oda Tipi *
+                                </span>
 
-                              <input
-                                type="number"
-                                min="0"
-                                value={
-                                  rateReleaseDays
-                                }
-                                onChange={
-                                  e =>
-                                    setRateReleaseDays(
-                                      e.target.value
+                                <select
+                                  value={
+                                    rateRoomId
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRateRoomId(
+                                        e.target.value
+                                      )
+                                  }
+                                  disabled={
+                                    contract.room_types.length ===
+                                    0
+                                  }
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60 disabled:opacity-40"
+                                >
+
+                                  <option value="">
+                                    Oda tipi seçin
+                                  </option>
+
+                                  {
+                                    contract.room_types.map(
+                                      room => (
+                                        <option
+                                          key={
+                                            room.id
+                                          }
+                                          value={
+                                            room.id
+                                          }
+                                        >
+                                          {room.name}
+                                        </option>
+                                      )
                                     )
+                                  }
+
+                                </select>
+
+                                <span className="mt-2 block text-xs text-slate-500">
+                                  Bu fiyatın uygulanacağı oda tipi.
+                                </span>
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Pansiyon / Konsept *
+                                </span>
+
+                                <select
+                                  value={
+                                    rateBoard
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRateBoard(
+                                        e.target.value
+                                      )
+                                  }
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                >
+
+                                  {
+                                    Object.entries(
+                                      boardLabels
+                                    ).map(
+                                      ([
+                                        value,
+                                        label,
+                                      ]) => (
+                                        <option
+                                          key={
+                                            value
+                                          }
+                                          value={
+                                            value
+                                          }
+                                        >
+                                          {label}
+                                        </option>
+                                      )
+                                    )
+                                  }
+
+                                </select>
+
+                              </label>
+
+
+                              <div>
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Konaklama Fiyat Dönemi *
+                                </span>
+
+                                <div className="grid grid-cols-2 gap-3">
+
+                                  <label>
+
+                                    <span className="mb-1 block text-xs text-slate-500">
+                                      Başlangıç
+                                    </span>
+
+                                    <input
+                                      type="date"
+                                      value={
+                                        rateFrom
+                                      }
+                                      onChange={
+                                        e =>
+                                          setRateFrom(
+                                            e.target.value
+                                          )
+                                      }
+                                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60 [color-scheme:dark]"
+                                    />
+
+                                  </label>
+
+
+                                  <label>
+
+                                    <span className="mb-1 block text-xs text-slate-500">
+                                      Bitiş
+                                    </span>
+
+                                    <input
+                                      type="date"
+                                      value={
+                                        rateTo
+                                      }
+                                      min={
+                                        rateFrom ||
+                                        undefined
+                                      }
+                                      onChange={
+                                        e =>
+                                          setRateTo(
+                                            e.target.value
+                                          )
+                                      }
+                                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60 [color-scheme:dark]"
+                                    />
+
+                                  </label>
+
+                                </div>
+
+                                <span className="mt-2 block text-xs leading-5 text-slate-500">
+                                  Örn: 01.06–30.06 Haziran sezonu, 01.07–31.08 yüksek sezon.
+                                </span>
+
+                              </div>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Fiyat Giriş Modeli
+                                </span>
+
+                                <select
+                                  value={
+                                    ratePriceType
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRatePriceType(
+                                        e.target.value as "net" | "list_discount"
+                                      )
+                                  }
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                >
+
+                                  <option value="net">
+                                    Net Alış Fiyatı
+                                  </option>
+
+                                  <option value="list_discount">
+                                    Liste Fiyatı + Acente İndirimi %
+                                  </option>
+
+                                </select>
+
+                                <span className="mt-2 block text-xs leading-5 text-slate-500">
+                                  Otel doğrudan net fiyat verdiyse ilk seçeneği;
+                                  liste fiyat üzerinden acente indirimi verdiyse ikinci seçeneği kullanın.
+                                </span>
+
+                              </label>
+
+
+                              {
+                                ratePriceType ===
+                                "net"
+                                  ? (
+                                    <label className="block">
+
+                                      <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                        Gecelik Net Alış Maliyeti *
+                                      </span>
+
+                                      <div className="relative">
+
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          value={
+                                            rateNet
+                                          }
+                                          onChange={
+                                            e =>
+                                              setRateNet(
+                                                e.target.value
+                                              )
+                                          }
+                                          placeholder="Örn: 6.500"
+                                          className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 pr-14 outline-none focus:border-orange-500/60"
+                                        />
+
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                                          TL
+                                        </span>
+
+                                      </div>
+
+                                      <span className="mt-2 block text-xs text-slate-500">
+                                        Sistemin gerçek otel maliyeti olarak kullanacağı gecelik tutar.
+                                      </span>
+
+                                    </label>
+                                  )
+                                  : (
+                                    <div>
+
+                                      <div className="grid grid-cols-2 gap-3">
+
+                                        <label>
+
+                                          <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                            Liste Fiyatı
+                                          </span>
+
+                                          <input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={
+                                              rateList
+                                            }
+                                            onChange={
+                                              e =>
+                                                setRateList(
+                                                  e.target.value
+                                                )
+                                            }
+                                            placeholder="Örn: 8.000"
+                                            className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                          />
+
+                                        </label>
+
+
+                                        <label>
+
+                                          <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                            Acente İndirimi %
+                                          </span>
+
+                                          <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.01"
+                                            value={
+                                              rateDiscount
+                                            }
+                                            onChange={
+                                              e =>
+                                                setRateDiscount(
+                                                  e.target.value
+                                                )
+                                            }
+                                            placeholder="Örn: 25"
+                                            className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                          />
+
+                                        </label>
+
+                                      </div>
+
+
+                                      <div className="mt-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+
+                                        <div className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                                          Hesaplanan Net Maliyet
+                                        </div>
+
+                                        <div className="mt-2 text-2xl font-black text-emerald-300">
+                                          {money(calculatedNet)}
+                                        </div>
+
+                                        <div className="mt-2 text-xs text-emerald-100/60">
+                                          Bu tutar sistemde gerçek alış maliyeti olarak saklanır.
+                                        </div>
+
+                                      </div>
+
+                                    </div>
+                                  )
+                              }
+
+
+                              <div className="grid grid-cols-3 gap-3">
+
+                                <label>
+
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    Kontenjan
+                                  </span>
+
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={
+                                      rateAllotment
+                                    }
+                                    onChange={
+                                      e =>
+                                        setRateAllotment(
+                                          e.target.value
+                                        )
+                                    }
+                                    placeholder="5"
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 outline-none focus:border-orange-500/60"
+                                  />
+
+                                </label>
+
+
+                                <label>
+
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    Min. Gece
+                                  </span>
+
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={
+                                      rateMinStay
+                                    }
+                                    onChange={
+                                      e =>
+                                        setRateMinStay(
+                                          e.target.value
+                                        )
+                                    }
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 outline-none focus:border-orange-500/60"
+                                  />
+
+                                </label>
+
+
+                                <label>
+
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    Release
+                                  </span>
+
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={
+                                      rateReleaseDays
+                                    }
+                                    onChange={
+                                      e =>
+                                        setRateReleaseDays(
+                                          e.target.value
+                                        )
+                                    }
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 outline-none focus:border-orange-500/60"
+                                  />
+
+                                </label>
+
+                              </div>
+
+
+                              <div className="grid gap-3 sm:grid-cols-3">
+
+                                <div className="rounded-xl bg-slate-950 p-3">
+
+                                  <div className="text-[10px] font-black uppercase text-slate-500">
+                                    Kontenjan
+                                  </div>
+
+                                  <div className="mt-1 text-xs leading-5 text-slate-400">
+                                    Otelin acenteye ayırdığı oda adedi.
+                                  </div>
+
+                                </div>
+
+
+                                <div className="rounded-xl bg-slate-950 p-3">
+
+                                  <div className="text-[10px] font-black uppercase text-slate-500">
+                                    Min. Gece
+                                  </div>
+
+                                  <div className="mt-1 text-xs leading-5 text-slate-400">
+                                    Minimum konaklama süresi.
+                                  </div>
+
+                                </div>
+
+
+                                <div className="rounded-xl bg-slate-950 p-3">
+
+                                  <div className="text-[10px] font-black uppercase text-slate-500">
+                                    Release
+                                  </div>
+
+                                  <div className="mt-1 text-xs leading-5 text-slate-400">
+                                    Girişten kaç gün önce satış kapanır.
+                                  </div>
+
+                                </div>
+
+                              </div>
+
+
+                              <label className="flex items-start gap-3 rounded-2xl border border-red-500/10 bg-red-500/5 p-4">
+
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    rateStopSale
+                                  }
+                                  onChange={
+                                    e =>
+                                      setRateStopSale(
+                                        e.target.checked
+                                      )
+                                  }
+                                  className="mt-1"
+                                />
+
+                                <div>
+
+                                  <div className="text-sm font-black">
+                                    Stop Sale
+                                  </div>
+
+                                  <div className="mt-1 text-xs leading-5 text-slate-500">
+                                    Bu dönem satışa kapalıysa işaretleyin.
+                                    Paket motoru bu fiyat dönemini kullanmaz.
+                                  </div>
+
+                                </div>
+
+                              </label>
+
+
+                              <button
+                                disabled={
+                                  saving ||
+                                  contract.room_types.length ===
+                                  0
                                 }
-                                placeholder="Release"
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                              />
+                                className="w-full rounded-xl bg-orange-500 px-4 py-4 font-black transition hover:bg-orange-400 disabled:opacity-40"
+                              >
+                                {
+                                  saving
+                                    ? "Kaydediliyor..."
+                                    : "Fiyat Dönemini Kaydet"
+                                }
+                              </button>
 
                             </div>
-
-
-                            <label className="mt-3 flex items-center gap-3 rounded-xl bg-slate-950 p-3">
-
-                              <input
-                                type="checkbox"
-                                checked={
-                                  rateStopSale
-                                }
-                                onChange={
-                                  e =>
-                                    setRateStopSale(
-                                      e.target.checked
-                                    )
-                                }
-                              />
-
-                              Stop Sale
-
-                            </label>
-
-
-                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
-                              Fiyat Dönemini Kaydet
-                            </button>
 
                           </form>
 
 
-                          <div className="space-y-3">
+                          <div>
+
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+
+                              <div>
+
+                                <h3 className="text-xl font-black">
+                                  Kontrat Fiyatları
+                                </h3>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                  {contract.rates.length} aktif fiyat dönemi
+                                </p>
+
+                              </div>
+
+                            </div>
+
 
                             {
-                              contract.rates.map(
-                                rate => (
+                              contract.rates.length ===
+                              0
+                                ? (
+                                  <div className="rounded-[26px] border border-dashed border-white/10 bg-slate-900/60 p-10">
 
-                                  <div
-                                    key={
-                                      rate.id
-                                    }
-                                    className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
-                                  >
+                                    <h4 className="text-2xl font-black">
+                                      Henüz Fiyat Dönemi Yok
+                                    </h4>
 
-                                    <div className="flex flex-wrap justify-between gap-4">
-
-                                      <div>
-
-                                        <h4 className="font-black">
-                                          {rate.room_type_name}
-                                        </h4>
-
-                                        <p className="mt-1 text-sm text-slate-400">
-                                          {
-                                            boardLabels[
-                                              rate.board_type
-                                            ] ||
-                                            rate.board_type
-                                          }
-                                        </p>
-
-                                        <p className="mt-2 text-xs text-slate-500">
-                                          {rate.valid_from} → {rate.valid_to}
-                                        </p>
-
-                                      </div>
-
-
-                                      <div className="text-right">
-
-                                        <div className="text-xs text-slate-500">
-                                          Net Maliyet / Gece
-                                        </div>
-
-                                        <strong className="text-xl text-orange-400">
-                                          {money(rate.nightly_cost)}
-                                        </strong>
-
-                                        {
-                                          rate.price_input_type ===
-                                          "list_discount" &&
-                                          (
-                                            <div className="mt-1 text-xs text-slate-500">
-                                              Liste {money(rate.list_price)} · %{rate.agency_discount_percent} acente indirimi
-                                            </div>
-                                          )
-                                        }
-
-                                      </div>
-
-                                    </div>
-
-
-                                    <div className="mt-4 flex flex-wrap gap-2 text-xs">
-
-                                      <Badge>
-                                        Min {rate.minimum_stay} gece
-                                      </Badge>
-
-                                      <Badge>
-                                        Kontenjan {rate.allotment ?? "∞"}
-                                      </Badge>
-
-                                      <Badge>
-                                        Release {rate.release_days} gün
-                                      </Badge>
-
-                                      {
-                                        rate.stop_sale &&
-                                        (
-                                          <Badge>
-                                            STOP SALE
-                                          </Badge>
-                                        )
-                                      }
-
-                                    </div>
+                                    <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
+                                      Paket oluşturma ekranında otelin fiyatlanabilmesi
+                                      için en az bir aktif fiyat dönemi girmeniz gerekir.
+                                    </p>
 
                                   </div>
-
                                 )
-                              )
+                                : (
+                                  <div className="space-y-4">
+
+                                    {
+                                      contract.rates.map(
+                                        rate => (
+
+                                          <div
+                                            key={
+                                              rate.id
+                                            }
+                                            className="rounded-[22px] border border-white/10 bg-slate-900 p-5"
+                                          >
+
+                                            <div className="flex flex-wrap items-start justify-between gap-4">
+
+                                              <div>
+
+                                                <div className="flex flex-wrap items-center gap-2">
+
+                                                  <h4 className="text-lg font-black">
+                                                    {rate.room_type_name}
+                                                  </h4>
+
+                                                  {
+                                                    rate.stop_sale &&
+                                                    (
+                                                      <span className="rounded-lg bg-red-500/10 px-2 py-1 text-[10px] font-black text-red-300">
+                                                        STOP SALE
+                                                      </span>
+                                                    )
+                                                  }
+
+                                                </div>
+
+                                                <p className="mt-1 text-sm text-slate-400">
+                                                  {
+                                                    boardLabels[
+                                                      rate.board_type
+                                                    ] ||
+                                                    rate.board_type
+                                                  }
+                                                </p>
+
+                                                <p className="mt-2 text-xs text-slate-500">
+                                                  {rate.valid_from} → {rate.valid_to}
+                                                </p>
+
+                                              </div>
+
+
+                                              <div className="text-right">
+
+                                                <div className="text-xs font-black uppercase text-slate-500">
+                                                  Net Maliyet / Gece
+                                                </div>
+
+                                                <div className="mt-1 text-2xl font-black text-orange-400">
+                                                  {money(rate.nightly_cost)}
+                                                </div>
+
+                                                {
+                                                  rate.price_input_type ===
+                                                  "list_discount" &&
+                                                  (
+                                                    <div className="mt-1 text-xs text-slate-500">
+                                                      Liste {money(rate.list_price)}
+                                                      {" · "}
+                                                      %{rate.agency_discount_percent} indirim
+                                                    </div>
+                                                  )
+                                                }
+
+                                              </div>
+
+                                            </div>
+
+
+                                            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+
+                                              <div className="rounded-xl bg-slate-950 p-3">
+
+                                                <div className="text-[10px] font-black uppercase text-slate-500">
+                                                  Kontenjan
+                                                </div>
+
+                                                <div className="mt-1 font-black">
+                                                  {rate.allotment ?? "Sınırsız"}
+                                                </div>
+
+                                              </div>
+
+
+                                              <div className="rounded-xl bg-slate-950 p-3">
+
+                                                <div className="text-[10px] font-black uppercase text-slate-500">
+                                                  Minimum
+                                                </div>
+
+                                                <div className="mt-1 font-black">
+                                                  {rate.minimum_stay} gece
+                                                </div>
+
+                                              </div>
+
+
+                                              <div className="rounded-xl bg-slate-950 p-3">
+
+                                                <div className="text-[10px] font-black uppercase text-slate-500">
+                                                  Release
+                                                </div>
+
+                                                <div className="mt-1 font-black">
+                                                  {rate.release_days} gün
+                                                </div>
+
+                                              </div>
+
+                                            </div>
+
+                                          </div>
+
+                                        )
+                                      )
+                                    }
+
+                                  </div>
+                                )
                             }
 
                           </div>
@@ -3911,7 +4608,6 @@ export default function PackageHotelsPage() {
                         </div>
                       )
                     }
-
 
                     {
                       tab ===
