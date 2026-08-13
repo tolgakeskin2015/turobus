@@ -4613,263 +4613,504 @@ export default function PackageHotelsPage() {
                       tab ===
                       "promotions" &&
                       (
-                        <div className="mt-4 grid gap-5 xl:grid-cols-[420px_1fr]">
+                        <div className="mt-5 grid gap-5 xl:grid-cols-[440px_1fr]">
 
                           <form
                             onSubmit={
                               addPromotion
                             }
-                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                            className="h-fit rounded-[26px] border border-white/10 bg-slate-900 p-6"
                           >
 
-                            <h3 className="font-black">
-                              EB / Kampanya
-                            </h3>
+                            <div>
 
-                            <input
-                              value={
-                                promotionName
-                              }
-                              onChange={
-                                e =>
-                                  setPromotionName(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Örn: 31 Mart'a kadar EB %20"
-                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
+                              <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+                                KAMPANYA MOTORU
+                              </p>
 
-                            <select
-                              value={
-                                promotionType
-                              }
-                              onChange={
-                                e =>
-                                  setPromotionType(
-                                    e.target.value
-                                  )
-                              }
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            >
+                              <h3 className="mt-2 text-xl font-black">
+                                Erken Rezervasyon / Kampanya
+                              </h3>
 
-                              {
-                                Object.entries(
-                                  promotionLabels
-                                ).map(
-                                  ([
-                                    value,
-                                    label,
-                                  ]) => (
-                                    <option
-                                      key={
-                                        value
-                                      }
-                                      value={
-                                        value
-                                      }
-                                    >
-                                      {label}
+                              <p className="mt-2 text-sm leading-6 text-slate-400">
+                                Otelin EB, dönemsel indirim, uzun konaklama
+                                ve son dakika kampanyalarını burada tanımlayın.
+                              </p>
+
+                            </div>
+
+
+                            <div className="mt-6 space-y-5">
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Kampanya Adı *
+                                </span>
+
+                                <input
+                                  value={
+                                    promotionName
+                                  }
+                                  onChange={
+                                    e =>
+                                      setPromotionName(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="Örn: 31 Mart'a Kadar EB %20"
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                                <span className="mt-2 block text-xs text-slate-500">
+                                  Yönetim ekranlarında görülecek kampanya adı.
+                                </span>
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Kampanya Türü
+                                </span>
+
+                                <select
+                                  value={
+                                    promotionType
+                                  }
+                                  onChange={
+                                    e =>
+                                      setPromotionType(
+                                        e.target.value
+                                      )
+                                  }
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                >
+
+                                  {
+                                    Object.entries(
+                                      promotionLabels
+                                    ).map(
+                                      ([
+                                        value,
+                                        label,
+                                      ]) => (
+                                        <option
+                                          key={
+                                            value
+                                          }
+                                          value={
+                                            value
+                                          }
+                                        >
+                                          {label}
+                                        </option>
+                                      )
+                                    )
+                                  }
+
+                                </select>
+
+                              </label>
+
+
+                              <div className="grid grid-cols-2 gap-3">
+
+                                <label>
+
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    İndirim Tipi
+                                  </span>
+
+                                  <select
+                                    value={
+                                      promotionDiscountType
+                                    }
+                                    onChange={
+                                      e =>
+                                        setPromotionDiscountType(
+                                          e.target.value as "percent" | "fixed"
+                                        )
+                                    }
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                  >
+
+                                    <option value="percent">
+                                      Yüzde %
                                     </option>
-                                  )
-                                )
-                              }
 
-                            </select>
+                                    <option value="fixed">
+                                      Sabit TL
+                                    </option>
+
+                                  </select>
+
+                                </label>
 
 
-                            <div className="mt-3 grid grid-cols-2 gap-3">
+                                <label>
 
-                              <select
-                                value={
-                                  promotionDiscountType
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    İndirim Değeri
+                                  </span>
+
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max={
+                                      promotionDiscountType ===
+                                      "percent"
+                                        ? "100"
+                                        : undefined
+                                    }
+                                    step="0.01"
+                                    value={
+                                      promotionValue
+                                    }
+                                    onChange={
+                                      e =>
+                                        setPromotionValue(
+                                          e.target.value
+                                        )
+                                    }
+                                    placeholder={
+                                      promotionDiscountType ===
+                                      "percent"
+                                        ? "Örn: 20"
+                                        : "Örn: 1500"
+                                    }
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                  />
+
+                                </label>
+
+                              </div>
+
+
+                              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+
+                                <div className="text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Rezervasyon Yapılabilecek Dönem
+                                </div>
+
+                                <p className="mt-2 text-xs leading-5 text-slate-500">
+                                  Müşterinin bu kampanyadan yararlanmak için
+                                  rezervasyonu hangi tarihler arasında yapması gerektiğini belirtir.
+                                </p>
+
+
+                                <div className="mt-4 grid grid-cols-2 gap-3">
+
+                                  <label>
+
+                                    <span className="mb-1 block text-xs text-slate-500">
+                                      Başlangıç
+                                    </span>
+
+                                    <input
+                                      type="date"
+                                      value={
+                                        promotionBookingFrom
+                                      }
+                                      onChange={
+                                        e =>
+                                          setPromotionBookingFrom(
+                                            e.target.value
+                                          )
+                                      }
+                                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 [color-scheme:dark]"
+                                    />
+
+                                  </label>
+
+
+                                  <label>
+
+                                    <span className="mb-1 block text-xs text-slate-500">
+                                      Bitiş
+                                    </span>
+
+                                    <input
+                                      type="date"
+                                      value={
+                                        promotionBookingTo
+                                      }
+                                      min={
+                                        promotionBookingFrom ||
+                                        undefined
+                                      }
+                                      onChange={
+                                        e =>
+                                          setPromotionBookingTo(
+                                            e.target.value
+                                          )
+                                      }
+                                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 [color-scheme:dark]"
+                                    />
+
+                                  </label>
+
+                                </div>
+
+                              </div>
+
+
+                              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+
+                                <div className="text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Konaklama Dönemi
+                                </div>
+
+                                <p className="mt-2 text-xs leading-5 text-slate-500">
+                                  Kampanyanın geçerli olacağı otel konaklama tarihleri.
+                                </p>
+
+
+                                <div className="mt-4 grid grid-cols-2 gap-3">
+
+                                  <label>
+
+                                    <span className="mb-1 block text-xs text-slate-500">
+                                      Başlangıç
+                                    </span>
+
+                                    <input
+                                      type="date"
+                                      value={
+                                        promotionStayFrom
+                                      }
+                                      onChange={
+                                        e =>
+                                          setPromotionStayFrom(
+                                            e.target.value
+                                          )
+                                      }
+                                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 [color-scheme:dark]"
+                                    />
+
+                                  </label>
+
+
+                                  <label>
+
+                                    <span className="mb-1 block text-xs text-slate-500">
+                                      Bitiş
+                                    </span>
+
+                                    <input
+                                      type="date"
+                                      value={
+                                        promotionStayTo
+                                      }
+                                      min={
+                                        promotionStayFrom ||
+                                        undefined
+                                      }
+                                      onChange={
+                                        e =>
+                                          setPromotionStayTo(
+                                            e.target.value
+                                          )
+                                      }
+                                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 [color-scheme:dark]"
+                                    />
+
+                                  </label>
+
+                                </div>
+
+                              </div>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Minimum Konaklama
+                                </span>
+
+                                <div className="relative">
+
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={
+                                      promotionMinNights
+                                    }
+                                    onChange={
+                                      e =>
+                                        setPromotionMinNights(
+                                          e.target.value
+                                        )
+                                    }
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 pr-20 outline-none focus:border-orange-500/60"
+                                  />
+
+                                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                                    gece
+                                  </span>
+
+                                </div>
+
+                              </label>
+
+
+                              <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+
+                                <p className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                                  Örnek
+                                </p>
+
+                                <p className="mt-2 text-xs leading-6 text-slate-400">
+                                  “31 Mart'a kadar rezervasyon yapan,
+                                  1 Haziran–30 Eylül arasında en az 3 gece kalan
+                                  müşteriye %20 indirim” şeklinde kural oluşturabilirsiniz.
+                                </p>
+
+                              </div>
+
+
+                              <button
+                                disabled={
+                                  saving
                                 }
-                                onChange={
-                                  e =>
-                                    setPromotionDiscountType(
-                                      e.target.value as "percent" | "fixed"
-                                    )
-                                }
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
+                                className="w-full rounded-xl bg-orange-500 px-4 py-4 font-black transition hover:bg-orange-400 disabled:opacity-50"
                               >
-                                <option value="percent">
-                                  Yüzde %
-                                </option>
-                                <option value="fixed">
-                                  Sabit TL
-                                </option>
-                              </select>
-
-                              <input
-                                type="number"
-                                min="0"
-                                value={
-                                  promotionValue
+                                {
+                                  saving
+                                    ? "Kaydediliyor..."
+                                    : "Kampanyayı Kaydet"
                                 }
-                                onChange={
-                                  e =>
-                                    setPromotionValue(
-                                      e.target.value
-                                    )
-                                }
-                                placeholder="İndirim"
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                              />
+                              </button>
 
                             </div>
-
-
-                            <p className="mt-4 text-xs font-black uppercase text-slate-500">
-                              Rezervasyon Yapılabilecek Tarih
-                            </p>
-
-                            <div className="mt-2 grid grid-cols-2 gap-3">
-
-                              <input
-                                type="date"
-                                value={
-                                  promotionBookingFrom
-                                }
-                                onChange={
-                                  e =>
-                                    setPromotionBookingFrom(
-                                      e.target.value
-                                    )
-                                }
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
-                              />
-
-                              <input
-                                type="date"
-                                value={
-                                  promotionBookingTo
-                                }
-                                onChange={
-                                  e =>
-                                    setPromotionBookingTo(
-                                      e.target.value
-                                    )
-                                }
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
-                              />
-
-                            </div>
-
-
-                            <p className="mt-4 text-xs font-black uppercase text-slate-500">
-                              Konaklama Tarihi
-                            </p>
-
-                            <div className="mt-2 grid grid-cols-2 gap-3">
-
-                              <input
-                                type="date"
-                                value={
-                                  promotionStayFrom
-                                }
-                                onChange={
-                                  e =>
-                                    setPromotionStayFrom(
-                                      e.target.value
-                                    )
-                                }
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
-                              />
-
-                              <input
-                                type="date"
-                                value={
-                                  promotionStayTo
-                                }
-                                onChange={
-                                  e =>
-                                    setPromotionStayTo(
-                                      e.target.value
-                                    )
-                                }
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3 [color-scheme:dark]"
-                              />
-
-                            </div>
-
-
-                            <input
-                              type="number"
-                              min="1"
-                              value={
-                                promotionMinNights
-                              }
-                              onChange={
-                                e =>
-                                  setPromotionMinNights(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Minimum gece"
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
-
-
-                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
-                              Kampanyayı Kaydet
-                            </button>
 
                           </form>
 
 
-                          <div className="space-y-3">
+                          <div>
+
+                            <div className="mb-4 flex items-center justify-between">
+
+                              <div>
+
+                                <h3 className="text-xl font-black">
+                                  Aktif Kampanyalar
+                                </h3>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                  {contract.promotions.length} kampanya kaydı
+                                </p>
+
+                              </div>
+
+                            </div>
+
 
                             {
-                              contract.promotions.map(
-                                promo => (
+                              contract.promotions.length ===
+                              0
+                                ? (
+                                  <div className="rounded-[26px] border border-dashed border-white/10 bg-slate-900/60 p-10">
 
-                                  <div
-                                    key={
-                                      promo.id
-                                    }
-                                    className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
-                                  >
+                                    <h4 className="text-2xl font-black">
+                                      Henüz Kampanya Yok
+                                    </h4>
 
-                                    <div className="flex justify-between gap-4">
-
-                                      <div>
-
-                                        <h4 className="font-black">
-                                          {promo.name}
-                                        </h4>
-
-                                        <p className="mt-1 text-sm text-slate-400">
-                                          {
-                                            promotionLabels[
-                                              promo.promotion_type
-                                            ] ||
-                                            promo.promotion_type
-                                          }
-                                        </p>
-
-                                      </div>
-
-                                      <strong className="text-xl text-emerald-400">
-                                        {
-                                          promo.discount_type ===
-                                          "percent"
-                                            ? `%${promo.discount_value}`
-                                            : money(
-                                                promo.discount_value
-                                              )
-                                        }
-                                      </strong>
-
-                                    </div>
-
-                                    <p className="mt-3 text-xs text-slate-500">
-                                      Konaklama: {promo.stay_from || "—"} → {promo.stay_to || "—"}
+                                    <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
+                                      Erken rezervasyon veya dönemsel indirim
+                                      uygulanacaksa soldaki formdan ilk kampanyayı oluşturun.
                                     </p>
 
                                   </div>
-
                                 )
-                              )
+                                : (
+                                  <div className="space-y-4">
+
+                                    {
+                                      contract.promotions.map(
+                                        promo => (
+
+                                          <div
+                                            key={
+                                              promo.id
+                                            }
+                                            className="rounded-[22px] border border-white/10 bg-slate-900 p-5"
+                                          >
+
+                                            <div className="flex flex-wrap items-start justify-between gap-4">
+
+                                              <div>
+
+                                                <div className="flex flex-wrap items-center gap-2">
+
+                                                  <h4 className="text-lg font-black">
+                                                    {promo.name}
+                                                  </h4>
+
+                                                  <span className="rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-[10px] font-black text-orange-300">
+                                                    {
+                                                      promotionLabels[
+                                                        promo.promotion_type
+                                                      ] ||
+                                                      promo.promotion_type
+                                                    }
+                                                  </span>
+
+                                                </div>
+
+                                                <p className="mt-3 text-xs text-slate-500">
+                                                  Rezervasyon:
+                                                  {" "}
+                                                  {promo.booking_from || "Sınırsız"}
+                                                  {" → "}
+                                                  {promo.booking_to || "Sınırsız"}
+                                                </p>
+
+                                                <p className="mt-1 text-xs text-slate-500">
+                                                  Konaklama:
+                                                  {" "}
+                                                  {promo.stay_from || "Sınırsız"}
+                                                  {" → "}
+                                                  {promo.stay_to || "Sınırsız"}
+                                                </p>
+
+                                                <p className="mt-1 text-xs text-slate-500">
+                                                  Minimum {promo.minimum_nights} gece
+                                                </p>
+
+                                              </div>
+
+
+                                              <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-right">
+
+                                                <div className="text-[10px] font-black uppercase text-emerald-300/60">
+                                                  İndirim
+                                                </div>
+
+                                                <div className="mt-1 text-2xl font-black text-emerald-400">
+                                                  {
+                                                    promo.discount_type ===
+                                                    "percent"
+                                                      ? `%${promo.discount_value}`
+                                                      : money(
+                                                          promo.discount_value
+                                                        )
+                                                  }
+                                                </div>
+
+                                              </div>
+
+                                            </div>
+
+                                          </div>
+
+                                        )
+                                      )
+                                    }
+
+                                  </div>
+                                )
                             }
 
                           </div>
@@ -4877,241 +5118,427 @@ export default function PackageHotelsPage() {
                         </div>
                       )
                     }
-
 
                     {
                       tab ===
                       "children" &&
                       (
-                        <div className="mt-4 grid gap-5 xl:grid-cols-[420px_1fr]">
+                        <div className="mt-5 grid gap-5 xl:grid-cols-[440px_1fr]">
 
                           <form
                             onSubmit={
                               addChildPolicy
                             }
-                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                            className="h-fit rounded-[26px] border border-white/10 bg-slate-900 p-6"
                           >
 
-                            <h3 className="font-black">
-                              Çocuk Yaş / İndirim Kuralı
-                            </h3>
+                            <div>
 
-                            <select
-                              value={
-                                childRoomId
-                              }
-                              onChange={
-                                e =>
-                                  setChildRoomId(
-                                    e.target.value
-                                  )
-                              }
-                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            >
+                              <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+                                ÇOCUK FİYAT MOTORU
+                              </p>
 
-                              <option value="">
-                                Tüm oda tipleri
-                              </option>
+                              <h3 className="mt-2 text-xl font-black">
+                                Çocuk Konaklama Politikası
+                              </h3>
 
-                              {
-                                contract.room_types.map(
-                                  room => (
-                                    <option
-                                      key={
-                                        room.id
-                                      }
-                                      value={
-                                        room.id
-                                      }
-                                    >
-                                      {room.name}
-                                    </option>
-                                  )
-                                )
-                              }
-
-                            </select>
-
-
-                            <div className="mt-3 grid grid-cols-3 gap-3">
-
-                              <input
-                                type="number"
-                                min="1"
-                                value={
-                                  childOrder
-                                }
-                                onChange={
-                                  e =>
-                                    setChildOrder(
-                                      e.target.value
-                                    )
-                                }
-                                placeholder="Kaçıncı çocuk"
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                              />
-
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={
-                                  childAgeFrom
-                                }
-                                onChange={
-                                  e =>
-                                    setChildAgeFrom(
-                                      e.target.value
-                                    )
-                                }
-                                placeholder="Yaş başlangıç"
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                              />
-
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={
-                                  childAgeTo
-                                }
-                                onChange={
-                                  e =>
-                                    setChildAgeTo(
-                                      e.target.value
-                                    )
-                                }
-                                placeholder="Yaş bitiş"
-                                className="rounded-xl border border-white/10 bg-slate-950 p-3"
-                              />
+                              <p className="mt-2 text-sm leading-6 text-slate-400">
+                                Otelin çocuk yaş sınırlarını ve fiyat kurallarını
+                                oda tipi ve çocuk sırasına göre tanımlayın.
+                              </p>
 
                             </div>
 
 
-                            <select
-                              value={
-                                childPricingType
-                              }
-                              onChange={
-                                e =>
-                                  setChildPricingType(
-                                    e.target.value as "free" | "percent" | "fixed"
-                                  )
-                              }
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            >
-                              <option value="free">
-                                Ücretsiz
-                              </option>
-                              <option value="percent">
-                                İndirim %
-                              </option>
-                              <option value="fixed">
-                                Sabit Çocuk Fiyatı
-                              </option>
-                            </select>
+                            <div className="mt-6 space-y-5">
 
+                              <label className="block">
 
-                            {
-                              childPricingType !==
-                              "free" &&
-                              (
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Geçerli Oda Tipi
+                                </span>
+
+                                <select
                                   value={
-                                    childValue
+                                    childRoomId
                                   }
                                   onChange={
                                     e =>
-                                      setChildValue(
+                                      setChildRoomId(
                                         e.target.value
                                       )
                                   }
-                                  placeholder={
-                                    childPricingType ===
-                                    "percent"
-                                      ? "İndirim yüzdesi"
-                                      : "Sabit fiyat"
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                >
+
+                                  <option value="">
+                                    Tüm Oda Tipleri
+                                  </option>
+
+                                  {
+                                    contract.room_types.map(
+                                      room => (
+                                        <option
+                                          key={
+                                            room.id
+                                          }
+                                          value={
+                                            room.id
+                                          }
+                                        >
+                                          {room.name}
+                                        </option>
+                                      )
+                                    )
                                   }
-                                  className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                                />
-                              )
-                            }
+
+                                </select>
+
+                                <span className="mt-2 block text-xs text-slate-500">
+                                  Kural yalnızca belirli bir oda için geçerliyse oda seçin.
+                                </span>
+
+                              </label>
 
 
-                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
-                              Çocuk Kuralını Kaydet
-                            </button>
+                              <div className="grid grid-cols-3 gap-3">
+
+                                <label>
+
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    Çocuk Sırası
+                                  </span>
+
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={
+                                      childOrder
+                                    }
+                                    onChange={
+                                      e =>
+                                        setChildOrder(
+                                          e.target.value
+                                        )
+                                    }
+                                    placeholder="1"
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 outline-none focus:border-orange-500/60"
+                                  />
+
+                                </label>
+
+
+                                <label>
+
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    Yaş Başlangıç
+                                  </span>
+
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={
+                                      childAgeFrom
+                                    }
+                                    onChange={
+                                      e =>
+                                        setChildAgeFrom(
+                                          e.target.value
+                                        )
+                                    }
+                                    placeholder="0"
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 outline-none focus:border-orange-500/60"
+                                  />
+
+                                </label>
+
+
+                                <label>
+
+                                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                    Yaş Bitiş
+                                  </span>
+
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={
+                                      childAgeTo
+                                    }
+                                    onChange={
+                                      e =>
+                                        setChildAgeTo(
+                                          e.target.value
+                                        )
+                                    }
+                                    placeholder="11.99"
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-3 outline-none focus:border-orange-500/60"
+                                  />
+
+                                </label>
+
+                              </div>
+
+
+                              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+
+                                <p className="text-xs leading-6 text-slate-400">
+                                  <strong className="text-white">
+                                    Çocuk sırası
+                                  </strong>
+                                  {" "}
+                                  otelde aynı odada kalan 1. çocuk, 2. çocuk gibi
+                                  farklı fiyat kuralları varsa kullanılır.
+                                </p>
+
+                              </div>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Fiyatlandırma Tipi
+                                </span>
+
+                                <select
+                                  value={
+                                    childPricingType
+                                  }
+                                  onChange={
+                                    e =>
+                                      setChildPricingType(
+                                        e.target.value as "free" | "percent" | "fixed"
+                                      )
+                                  }
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                >
+
+                                  <option value="free">
+                                    Ücretsiz Konaklama
+                                  </option>
+
+                                  <option value="percent">
+                                    Yüzde İndirim
+                                  </option>
+
+                                  <option value="fixed">
+                                    Sabit Çocuk Fiyatı
+                                  </option>
+
+                                </select>
+
+                              </label>
+
+
+                              {
+                                childPricingType !==
+                                "free" &&
+                                (
+                                  <label className="block">
+
+                                    <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                      {
+                                        childPricingType ===
+                                        "percent"
+                                          ? "İndirim Oranı"
+                                          : "Sabit Çocuk Fiyatı"
+                                      }
+                                    </span>
+
+                                    <div className="relative">
+
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max={
+                                          childPricingType ===
+                                          "percent"
+                                            ? "100"
+                                            : undefined
+                                        }
+                                        step="0.01"
+                                        value={
+                                          childValue
+                                        }
+                                        onChange={
+                                          e =>
+                                            setChildValue(
+                                              e.target.value
+                                            )
+                                        }
+                                        placeholder={
+                                          childPricingType ===
+                                          "percent"
+                                            ? "Örn: 50"
+                                            : "Örn: 2500"
+                                        }
+                                        className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 pr-16 outline-none focus:border-orange-500/60"
+                                      />
+
+                                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                                        {
+                                          childPricingType ===
+                                          "percent"
+                                            ? "%"
+                                            : "TL"
+                                        }
+                                      </span>
+
+                                    </div>
+
+                                  </label>
+                                )
+                              }
+
+
+                              <div className="rounded-2xl border border-orange-500/15 bg-orange-500/5 p-4">
+
+                                <p className="text-xs font-black uppercase tracking-wider text-orange-300">
+                                  Örnek Kural
+                                </p>
+
+                                <p className="mt-2 text-xs leading-6 text-slate-400">
+                                  1. çocuk 0–5.99 yaş ücretsiz,
+                                  1. çocuk 6–11.99 yaş %50 indirimli,
+                                  2. çocuk için farklı bir kural tanımlanabilir.
+                                </p>
+
+                              </div>
+
+
+                              <button
+                                disabled={
+                                  saving
+                                }
+                                className="w-full rounded-xl bg-orange-500 px-4 py-4 font-black transition hover:bg-orange-400 disabled:opacity-50"
+                              >
+                                {
+                                  saving
+                                    ? "Kaydediliyor..."
+                                    : "Çocuk Kuralını Kaydet"
+                                }
+                              </button>
+
+                            </div>
 
                           </form>
 
 
-                          <div className="space-y-3">
+                          <div>
+
+                            <div className="mb-4">
+
+                              <h3 className="text-xl font-black">
+                                Tanımlı Çocuk Kuralları
+                              </h3>
+
+                              <p className="mt-1 text-sm text-slate-500">
+                                {contract.child_policies.length} aktif kural
+                              </p>
+
+                            </div>
+
 
                             {
-                              contract.child_policies.map(
-                                policy => {
+                              contract.child_policies.length ===
+                              0
+                                ? (
+                                  <div className="rounded-[26px] border border-dashed border-white/10 bg-slate-900/60 p-10">
 
-                                  const room =
-                                    contract.room_types.find(
-                                      item =>
-                                        item.id ===
-                                        policy.room_type_id
-                                    );
+                                    <h4 className="text-2xl font-black">
+                                      Henüz Çocuk Kuralı Yok
+                                    </h4>
+
+                                    <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
+                                      Çocuklu ailelerde doğru fiyat hesaplanabilmesi için
+                                      otel kontratındaki yaş ve fiyat kurallarını girin.
+                                    </p>
+
+                                  </div>
+                                )
+                                : (
+                                  <div className="space-y-4">
+
+                                    {
+                                      contract.child_policies.map(
+                                        policy => {
+
+                                          const room =
+                                            contract.room_types.find(
+                                              item =>
+                                                item.id ===
+                                                policy.room_type_id
+                                            );
+
+                                          return (
+
+                                            <div
+                                              key={
+                                                policy.id
+                                              }
+                                              className="rounded-[22px] border border-white/10 bg-slate-900 p-5"
+                                            >
+
+                                              <div className="flex flex-wrap items-start justify-between gap-4">
+
+                                                <div>
+
+                                                  <div className="flex flex-wrap items-center gap-2">
+
+                                                    <h4 className="text-lg font-black">
+                                                      {policy.child_order}. Çocuk
+                                                    </h4>
+
+                                                    <span className="rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-[10px] text-slate-400">
+                                                      {room?.name || "Tüm odalar"}
+                                                    </span>
+
+                                                  </div>
+
+                                                  <p className="mt-2 text-sm text-slate-400">
+                                                    {policy.age_from} – {policy.age_to} yaş
+                                                  </p>
+
+                                                </div>
 
 
-                                  return (
+                                                <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-right">
 
-                                    <div
-                                      key={
-                                        policy.id
-                                      }
-                                      className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
-                                    >
+                                                  <div className="text-[10px] font-black uppercase text-emerald-300/60">
+                                                    Uygulama
+                                                  </div>
 
-                                      <div className="flex justify-between gap-4">
+                                                  <div className="mt-1 font-black text-emerald-400">
 
-                                        <div>
+                                                    {
+                                                      policy.pricing_type ===
+                                                      "free"
+                                                        ? "ÜCRETSİZ"
+                                                        : policy.pricing_type ===
+                                                          "percent"
+                                                          ? `%${policy.value} İNDİRİM`
+                                                          : money(
+                                                              policy.value
+                                                            )
+                                                    }
 
-                                          <h4 className="font-black">
-                                            {policy.child_order}. Çocuk
-                                          </h4>
+                                                  </div>
 
-                                          <p className="mt-1 text-sm text-slate-400">
-                                            {policy.age_from} – {policy.age_to} yaş
-                                          </p>
+                                                </div>
 
-                                          <p className="mt-1 text-xs text-slate-500">
-                                            {room?.name || "Tüm odalar"}
-                                          </p>
+                                              </div>
 
-                                        </div>
+                                            </div>
 
-                                        <strong className="text-emerald-400">
+                                          );
+                                        }
+                                      )
+                                    }
 
-                                          {
-                                            policy.pricing_type ===
-                                            "free"
-                                              ? "ÜCRETSİZ"
-                                              : policy.pricing_type ===
-                                                "percent"
-                                                ? `%${policy.value} indirim`
-                                                : money(
-                                                    policy.value
-                                                  )
-                                          }
-
-                                        </strong>
-
-                                      </div>
-
-                                    </div>
-
-                                  );
-                                }
-                              )
+                                  </div>
+                                )
                             }
 
                           </div>
@@ -5120,150 +5547,344 @@ export default function PackageHotelsPage() {
                       )
                     }
 
-
                     {
                       tab ===
                       "api" &&
                       (
-                        <div className="mt-4 grid gap-5 xl:grid-cols-[420px_1fr]">
+                        <div className="mt-5 grid gap-5 xl:grid-cols-[440px_1fr]">
 
                           <form
                             onSubmit={
                               addIntegration
                             }
-                            className="h-fit rounded-[24px] border border-white/10 bg-slate-900 p-5"
+                            className="h-fit rounded-[26px] border border-white/10 bg-slate-900 p-6"
                           >
 
-                            <h3 className="font-black">
-                              API / Entegrasyon Kaynağı
-                            </h3>
+                            <div>
 
-                            <select
-                              value={
-                                integrationProvider
-                              }
-                              onChange={
-                                e =>
-                                  setIntegrationProvider(
-                                    e.target.value
-                                  )
-                              }
-                              className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            >
-                              <option value="hotelrunner">
-                                HotelRunner
-                              </option>
-                              <option value="elektra">
-                                Elektra
-                              </option>
-                              <option value="booking">
-                                Booking / Connectivity
-                              </option>
-                              <option value="custom_api">
-                                Özel API
-                              </option>
-                            </select>
+                              <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+                                HOTEL CONNECTIVITY
+                              </p>
 
-                            <input
-                              value={
-                                integrationName
-                              }
-                              onChange={
-                                e =>
-                                  setIntegrationName(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Bağlantı adı"
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
+                              <h3 className="mt-2 text-xl font-black">
+                                API / Entegrasyon Merkezi
+                              </h3>
 
-                            <input
-                              value={
-                                integrationAccount
-                              }
-                              onChange={
-                                e =>
-                                  setIntegrationAccount(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="Harici hesap / tesis ID"
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
+                              <p className="mt-2 text-sm leading-6 text-slate-400">
+                                HotelRunner, Elektra, Booking bağlantıları
+                                veya özel otel API kaynaklarını burada tanımlayın.
+                              </p>
 
-                            <input
-                              value={
-                                integrationBaseUrl
-                              }
-                              onChange={
-                                e =>
-                                  setIntegrationBaseUrl(
-                                    e.target.value
-                                  )
-                              }
-                              placeholder="API base URL (opsiyonel)"
-                              className="mt-3 w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-                            />
-
-                            <div className="mt-3 rounded-xl bg-amber-500/10 p-3 text-xs leading-5 text-amber-200">
-                              API anahtarı ve şifre bu ekranda saklanmayacak.
-                              Güvenli bağlantı bilgileri sunucu/Vault katmanında tutulacak.
                             </div>
 
-                            <button className="mt-4 w-full rounded-xl bg-orange-500 p-3 font-black">
-                              Entegrasyon Kaydı Oluştur
-                            </button>
+
+                            <div className="mt-6 space-y-5">
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Sağlayıcı
+                                </span>
+
+                                <select
+                                  value={
+                                    integrationProvider
+                                  }
+                                  onChange={
+                                    e =>
+                                      setIntegrationProvider(
+                                        e.target.value
+                                      )
+                                  }
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                >
+
+                                  <option value="hotelrunner">
+                                    HotelRunner
+                                  </option>
+
+                                  <option value="elektra">
+                                    Elektra
+                                  </option>
+
+                                  <option value="booking">
+                                    Booking / Connectivity
+                                  </option>
+
+                                  <option value="custom_api">
+                                    Özel API
+                                  </option>
+
+                                </select>
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Bağlantı Adı *
+                                </span>
+
+                                <input
+                                  value={
+                                    integrationName
+                                  }
+                                  onChange={
+                                    e =>
+                                      setIntegrationName(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="Örn: Sunshine Hotel - HotelRunner"
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Harici Hesap / Tesis ID
+                                </span>
+
+                                <input
+                                  value={
+                                    integrationAccount
+                                  }
+                                  onChange={
+                                    e =>
+                                      setIntegrationAccount(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="Örn: HOTEL-45821"
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                                <span className="mt-2 block text-xs text-slate-500">
+                                  Dış sistemde oteli veya hesabı tanımlayan kimlik.
+                                </span>
+
+                              </label>
+
+
+                              <label className="block">
+
+                                <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                                  API Base URL
+                                </span>
+
+                                <input
+                                  value={
+                                    integrationBaseUrl
+                                  }
+                                  onChange={
+                                    e =>
+                                      setIntegrationBaseUrl(
+                                        e.target.value
+                                      )
+                                  }
+                                  placeholder="https://api.provider.com"
+                                  className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 outline-none focus:border-orange-500/60"
+                                />
+
+                                <span className="mt-2 block text-xs text-slate-500">
+                                  Özel API kullanılıyorsa servis adresini girin.
+                                </span>
+
+                              </label>
+
+
+                              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+
+                                <div className="text-sm font-black text-amber-200">
+                                  Güvenlik Katmanı
+                                </div>
+
+                                <p className="mt-2 text-xs leading-6 text-amber-100/70">
+                                  API anahtarları, kullanıcı adı, şifre ve secret
+                                  değerleri bu ekranda veya tarayıcıda saklanmaz.
+                                  Bu bilgiler sunucu/Vault katmanında tutulmalıdır.
+                                </p>
+
+                              </div>
+
+
+                              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+
+                                <div className="text-xs font-black uppercase tracking-wider text-slate-400">
+                                  Entegrasyon Akışı
+                                </div>
+
+                                <div className="mt-3 space-y-2 text-xs leading-5 text-slate-500">
+
+                                  <p>
+                                    1. Sağlayıcı bağlantısı oluşturulur.
+                                  </p>
+
+                                  <p>
+                                    2. Otel ve oda kimlikleri eşleştirilir.
+                                  </p>
+
+                                  <p>
+                                    3. Fiyat, kontenjan ve stop-sale verileri normalize edilir.
+                                  </p>
+
+                                  <p>
+                                    4. Turobus iç fiyat motoru tek standart veri kullanır.
+                                  </p>
+
+                                </div>
+
+                              </div>
+
+
+                              <button
+                                disabled={
+                                  saving
+                                }
+                                className="w-full rounded-xl bg-orange-500 px-4 py-4 font-black transition hover:bg-orange-400 disabled:opacity-50"
+                              >
+                                {
+                                  saving
+                                    ? "Kaydediliyor..."
+                                    : "Entegrasyon Kaydı Oluştur"
+                                }
+                              </button>
+
+                            </div>
 
                           </form>
 
 
-                          <div className="space-y-3">
+                          <div>
+
+                            <div className="mb-4">
+
+                              <h3 className="text-xl font-black">
+                                Bağlantı Kayıtları
+                              </h3>
+
+                              <p className="mt-1 text-sm text-slate-500">
+                                {contract.integrations.length} entegrasyon
+                              </p>
+
+                            </div>
+
 
                             {
-                              contract.integrations.map(
-                                integration => (
+                              contract.integrations.length ===
+                              0
+                                ? (
+                                  <div className="rounded-[26px] border border-dashed border-white/10 bg-slate-900/60 p-10">
 
-                                  <div
-                                    key={
-                                      integration.id
-                                    }
-                                    className="rounded-[20px] border border-white/10 bg-slate-900 p-5"
-                                  >
+                                    <h4 className="text-2xl font-black">
+                                      Henüz API Bağlantısı Yok
+                                    </h4>
 
-                                    <div className="flex justify-between gap-4">
-
-                                      <div>
-
-                                        <h4 className="font-black">
-                                          {integration.display_name}
-                                        </h4>
-
-                                        <p className="mt-1 text-sm text-slate-400">
-                                          {
-                                            sourceLabels[
-                                              integration.provider
-                                            ] ||
-                                            integration.provider
-                                          }
-                                        </p>
-
-                                        <p className="mt-2 text-xs text-slate-500">
-                                          Hesap: {integration.external_account_id || "—"}
-                                        </p>
-
-                                      </div>
-
-                                      <Badge>
-                                        {integration.status}
-                                      </Badge>
-
-                                    </div>
+                                    <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
+                                      Manuel oteller API olmadan çalışabilir.
+                                      Otel fiyatlarını dış sistemden almak istediğinizde
+                                      bağlantıyı buradan tanımlayacağız.
+                                    </p>
 
                                   </div>
-
                                 )
-                              )
+                                : (
+                                  <div className="space-y-4">
+
+                                    {
+                                      contract.integrations.map(
+                                        integration => (
+
+                                          <div
+                                            key={
+                                              integration.id
+                                            }
+                                            className="rounded-[22px] border border-white/10 bg-slate-900 p-5"
+                                          >
+
+                                            <div className="flex flex-wrap items-start justify-between gap-4">
+
+                                              <div>
+
+                                                <h4 className="text-lg font-black">
+                                                  {integration.display_name}
+                                                </h4>
+
+                                                <p className="mt-1 text-sm text-slate-400">
+                                                  {
+                                                    sourceLabels[
+                                                      integration.provider
+                                                    ] ||
+                                                    integration.provider
+                                                  }
+                                                </p>
+
+                                                <div className="mt-4 space-y-1 text-xs text-slate-500">
+
+                                                  <p>
+                                                    Hesap / Tesis ID:
+                                                    {" "}
+                                                    {integration.external_account_id || "Tanımlanmadı"}
+                                                  </p>
+
+                                                  <p>
+                                                    Son Senkron:
+                                                    {" "}
+                                                    {
+                                                      integration.last_sync_at
+                                                        ? new Date(
+                                                            integration.last_sync_at
+                                                          ).toLocaleString(
+                                                            "tr-TR"
+                                                          )
+                                                        : "Henüz yapılmadı"
+                                                    }
+                                                  </p>
+
+                                                  {
+                                                    integration.last_sync_error &&
+                                                    (
+                                                      <p className="text-red-300">
+                                                        Hata:
+                                                        {" "}
+                                                        {integration.last_sync_error}
+                                                      </p>
+                                                    )
+                                                  }
+
+                                                </div>
+
+                                              </div>
+
+
+                                              <div
+                                                className={`rounded-xl px-3 py-2 text-xs font-black ${
+                                                  integration.status ===
+                                                  "active"
+                                                    ? "bg-emerald-500/10 text-emerald-300"
+                                                    : integration.status ===
+                                                      "error"
+                                                      ? "bg-red-500/10 text-red-300"
+                                                      : "bg-slate-950 text-slate-300"
+                                                }`}
+                                              >
+                                                {integration.status.toUpperCase()}
+                                              </div>
+
+                                            </div>
+
+                                          </div>
+
+                                        )
+                                      )
+                                    }
+
+                                  </div>
+                                )
                             }
 
                           </div>
