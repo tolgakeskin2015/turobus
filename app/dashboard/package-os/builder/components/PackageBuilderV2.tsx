@@ -1233,59 +1233,54 @@ export default function PackageBuilderV2() {
               description="Rezervasyona dahil olacak tüm misafirlerin iletişim ve konaklama bilgilerini kaydedin."
             >
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                <Field
+                <DatePickerField
                   label="Giriş Tarihi"
-                >
-                  <input
-                    type="date"
-                    value={
-                      checkIn
-                    }
-                    onChange={
-                      event => {
-                        setCheckIn(
-                          event.target.value
-                        );
+                  value={
+                    checkIn
+                  }
+                  onChange={
+                    value => {
+                      setCheckIn(
+                        value
+                      );
 
-                        if (
-                          checkOut &&
-                          event.target.value >=
-                            checkOut
-                        ) {
-                          setCheckOut(
-                            ""
-                          );
-                        }
+                      if (
+                        checkOut &&
+                        value >=
+                          checkOut
+                      ) {
+                        setCheckOut(
+                          ""
+                        );
                       }
                     }
-                    className="input date-input"
-                  />
-                </Field>
+                  }
+                />
 
-                <Field
+                <DatePickerField
                   label="Çıkış Tarihi"
-                >
-                  <input
-                    type="date"
-                    min={
-                      checkIn ||
-                      undefined
-                    }
-                    disabled={
-                      !checkIn
-                    }
-                    value={
-                      checkOut
-                    }
-                    onChange={
-                      event =>
-                        setCheckOut(
-                          event.target.value
-                        )
-                    }
-                    className="input date-input disabled:opacity-40"
-                  />
-                </Field>
+                  value={
+                    checkOut
+                  }
+                  min={
+                    checkIn ||
+                    undefined
+                  }
+                  disabled={
+                    !checkIn
+                  }
+                  placeholder={
+                    checkIn
+                      ? "Çıkış tarihini seçin"
+                      : "Önce giriş tarihini seçin"
+                  }
+                  onChange={
+                    value =>
+                      setCheckOut(
+                        value
+                      )
+                  }
+                />
 
                 <div className="rounded-xl border border-white/10 bg-slate-950 p-4">
                   <div className="text-xs text-slate-500">
@@ -2035,29 +2030,6 @@ export default function PackageBuilderV2() {
           border-color: rgba(249,115,22,0.6);
         }
 
-        .date-input {
-          color-scheme: dark;
-          color: white !important;
-          -webkit-text-fill-color: white;
-        }
-
-        .date-input::-webkit-datetime-edit {
-          color: white;
-        }
-
-        .date-input::-webkit-datetime-edit-fields-wrapper {
-          color: white;
-        }
-
-        .date-input::-webkit-datetime-edit-text {
-          color: rgb(148 163 184);
-        }
-
-        .date-input::-webkit-calendar-picker-indicator {
-          cursor: pointer;
-          filter: invert(1);
-          opacity: 0.85;
-        }
       `}</style>
     </main>
   );
@@ -2087,6 +2059,135 @@ function Panel({
         {children}
       </div>
     </section>
+  );
+}
+
+function formatPackageDate(
+  value: string
+) {
+  if (!value) {
+    return "";
+  }
+
+  const [
+    year,
+    month,
+    day,
+  ] =
+    value
+      .split("-")
+      .map(Number);
+
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "tr-TR",
+    {
+      day:
+        "2-digit",
+      month:
+        "long",
+      year:
+        "numeric",
+      weekday:
+        "short",
+    }
+  ).format(
+    new Date(
+      year,
+      month - 1,
+      day
+    )
+  );
+}
+
+function DatePickerField({
+  label,
+  value,
+  min,
+  disabled = false,
+  placeholder = "Tarih seçin",
+  onChange,
+}: {
+  label: string;
+  value: string;
+  min?: string;
+  disabled?: boolean;
+  placeholder?: string;
+  onChange:
+    (value: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+        {label}
+      </span>
+
+      <div
+        className={`relative overflow-hidden rounded-xl border px-4 py-3 transition ${
+          disabled
+            ? "cursor-not-allowed border-white/5 bg-slate-950/50 opacity-50"
+            : "cursor-pointer border-white/10 bg-slate-950 hover:border-orange-500/50"
+        }`}
+      >
+        <div className="pointer-events-none flex min-h-[46px] items-center justify-between gap-4">
+          <div>
+            <div
+              className={`font-black ${
+                value
+                  ? "text-white"
+                  : "text-slate-500"
+              }`}
+            >
+              {value
+                ? formatPackageDate(
+                    value
+                  )
+                : placeholder}
+            </div>
+
+            {value && (
+              <div className="mt-1 text-xs font-bold text-orange-400">
+                {value}
+              </div>
+            )}
+          </div>
+
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-500/20 bg-orange-500/10 text-lg">
+            📅
+          </div>
+        </div>
+
+        <input
+          type="date"
+          value={
+            value
+          }
+          min={
+            min
+          }
+          disabled={
+            disabled
+          }
+          onChange={
+            event =>
+              onChange(
+                event.target.value
+              )
+          }
+          aria-label={
+            label
+          }
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+        />
+      </div>
+    </label>
   );
 }
 
