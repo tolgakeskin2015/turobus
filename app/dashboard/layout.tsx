@@ -19,6 +19,7 @@ import {
   FaUsers,
   FaHotel,} from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
+import ManagerNotificationBell from "./components/ManagerNotificationBell";
 import {
   AppRole,
   CurrentMembership,
@@ -1077,15 +1078,25 @@ export default function DashboardLayout({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() =>
-              setMobileOpen((value) => !value)
-            }
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.05]"
-          >
-            {mobileOpen ? <FaTimes /> : <FaBars />}
-          </button>
+          <div className="flex items-center gap-2">
+
+            <ManagerNotificationBell
+              companyId={
+                membership.company_id
+              }
+            />
+
+            <button
+              type="button"
+              onClick={() =>
+                setMobileOpen((value) => !value)
+              }
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.05]"
+            >
+              {mobileOpen ? <FaTimes /> : <FaBars />}
+            </button>
+
+          </div>
         </div>
       </header>
 
