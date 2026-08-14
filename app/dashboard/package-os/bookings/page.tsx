@@ -57,6 +57,14 @@ type Booking = {
     | "cancelled";
 
   booked_at: string;
+
+  quote_id:
+    string |
+    null;
+
+  quote_snapshot_created_at:
+    string |
+    null;
 };
 
 function money(value: number) {
@@ -167,7 +175,9 @@ export default function PackageBookingsPage() {
             balance_amount,
             payment_status,
             status,
-            booked_at
+            booked_at,
+            quote_id,
+            quote_snapshot_created_at
           `)
           .eq(
             "company_id",
@@ -448,7 +458,7 @@ export default function PackageBookingsPage() {
         />
 
         <div className="mt-5 overflow-x-auto rounded-[28px] border border-white/10 bg-slate-900">
-          <table className="w-full min-w-[1100px] text-sm">
+          <table className="w-full min-w-[1280px] text-sm">
             <thead className="text-left text-xs uppercase tracking-wider text-slate-500">
               <tr>
                 <th className="p-4">
@@ -481,6 +491,10 @@ export default function PackageBookingsPage() {
 
                 <th className="p-4">
                   Tahsilat
+                </th>
+
+                <th className="p-4">
+                  Kayıt Güvenliği
                 </th>
 
                 <th className="p-4">
@@ -596,6 +610,24 @@ export default function PackageBookingsPage() {
                           )
                         )}
                       </p>
+                    </td>
+
+                    <td className="p-4">
+                      {booking.quote_snapshot_created_at ? (
+                        <div>
+                          <span className="inline-flex rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-300">
+                            🔒 Fiyat Kilitli
+                          </span>
+
+                          <p className="mt-2 max-w-[180px] text-xs leading-5 text-slate-500">
+                            Teklif fiyatı, misafirler ve hizmetler rezervasyon anında snapshot olarak korundu.
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-300">
+                          Eski Kayıt
+                        </span>
+                      )}
                     </td>
 
                     <td className="p-4">
