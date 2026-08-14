@@ -48,9 +48,70 @@ type NotificationRow = {
   read_at:
     string | null;
 
+  acknowledged_at:
+    string | null;
+
+  acknowledged_by:
+    string | null;
+
+  acknowledgement_seconds:
+    number | null;
+
   created_at:
     string;
 };
+
+
+function responseTime(
+  seconds:
+    number | null
+) {
+
+  if (
+    seconds === null
+    ||
+    seconds < 0
+  ) {
+    return "-";
+  }
+
+
+  if (
+    seconds <
+    60
+  ) {
+    return `${seconds} sn`;
+  }
+
+
+  const minutes =
+    Math.floor(
+      seconds /
+      60
+    );
+
+
+  if (
+    minutes <
+    60
+  ) {
+    return `${minutes} dk`;
+  }
+
+
+  const hours =
+    Math.floor(
+      minutes /
+      60
+    );
+
+  const remainingMinutes =
+    minutes %
+    60;
+
+
+  return `${hours} sa ${remainingMinutes} dk`;
+}
 
 
 function dateTime(
@@ -351,7 +412,8 @@ ManagerNotificationBell({
     actionName:
       "read" |
       "unread" |
-      "read_all",
+      "read_all" |
+      "acknowledge",
     notificationId?:
       string
   ) {
@@ -590,6 +652,16 @@ ManagerNotificationBell({
                                         )
                                       }
 
+
+                                      {
+                                        notification.acknowledged_at &&
+                                        (
+                                          <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[9px] font-black text-emerald-300">
+                                            ÜSTLENİLDİ
+                                          </span>
+                                        )
+                                      }
+
                                     </div>
 
 
@@ -608,6 +680,55 @@ ManagerNotificationBell({
                                             notification.body
                                           }
                                         </p>
+                                      )
+                                    }
+
+
+                                    {
+                                      notification.acknowledged_at &&
+                                      (
+                                        <div className="mt-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
+
+                                          <div className="text-[9px] font-black uppercase tracking-wider text-emerald-300">
+                                            Yönetici Müdahalesi
+                                          </div>
+
+                                          <div className="mt-1 text-xs font-black text-white">
+                                            {
+                                              responseTime(
+                                                notification.acknowledgement_seconds
+                                              )
+                                            }
+                                            {" içinde üstlenildi"}
+                                          </div>
+
+                                        </div>
+                                      )
+                                    }
+
+
+                                    {
+                                      !notification.acknowledged_at &&
+                                      notification.source_alert_id &&
+                                      notification.escalation_level &&
+                                      (
+                                        <button
+                                          type="button"
+                                          onClick={
+                                            event => {
+                                              event.preventDefault();
+                                              event.stopPropagation();
+
+                                              void action(
+                                                "acknowledge",
+                                                notification.id
+                                              );
+                                            }
+                                          }
+                                          className="mt-3 w-full rounded-xl bg-emerald-500 px-3 py-2.5 text-xs font-black text-white transition hover:bg-emerald-400"
+                                        >
+                                          Alarmı Üstlendim
+                                        </button>
                                       )
                                     }
 
