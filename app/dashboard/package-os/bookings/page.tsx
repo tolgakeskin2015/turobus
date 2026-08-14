@@ -511,11 +511,14 @@ export default function PackageBookingsPage() {
                     className="border-t border-white/5"
                   >
                     <td className="p-4">
-                      <p className="font-black">
+                      <Link
+                        href={`/dashboard/package-os/bookings/${booking.id}`}
+                        className="font-black text-orange-300 hover:text-orange-200"
+                      >
                         {
                           booking.booking_code
                         }
-                      </p>
+                      </Link>
 
                       <p className="mt-1 text-xs text-slate-500">
                         {
@@ -642,6 +645,13 @@ export default function PackageBookingsPage() {
                           booking.payment_status
                         )}
                       </p>
+
+                      <Link
+                        href={`/dashboard/package-os/bookings/${booking.id}`}
+                        className="mt-3 block rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-center text-xs font-black text-cyan-300"
+                      >
+                        Detay Merkezi
+                      </Link>
 
                       <a
                         href={`/seyahat/${booking.public_token}`}
