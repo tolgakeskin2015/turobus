@@ -636,6 +636,19 @@ const menuGroups: MenuGroup[] = [
           "accounting",
         ],
       },
+
+      {
+        href: "/dashboard/package-os/alarm-center",
+        label: "Operasyon Alarm Merkezi",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
       {
         href: "/dashboard/package-os/vouchers",
         label: "Voucher & QR",
