@@ -54,6 +54,35 @@ type Item = {
 };
 
 
+type Payable = {
+  id: string;
+
+  booking_item_id:
+    string |
+    null;
+
+  supplier_id:
+    string |
+    null;
+
+  amount: number;
+
+  paid_amount: number;
+
+  due_date:
+    string |
+    null;
+
+  status:
+    "open" |
+    "partial" |
+    "paid" |
+    "cancelled";
+
+  currency: string;
+};
+
+
 type EventRow = {
   id: string;
 
@@ -241,6 +270,29 @@ BookingActionCenter({
     );
 
   const [
+    payables,
+    setPayables,
+  ] =
+    useState<
+      Payable[]
+    >(
+      []
+    );
+
+  const [
+    payableInputs,
+    setPayableInputs,
+  ] =
+    useState<
+      Record<
+        string,
+        string
+      >
+    >(
+      {}
+    );
+
+  const [
     busy,
     setBusy,
   ] =
@@ -312,6 +364,58 @@ BookingActionCenter({
     );
 
 
+  const loadPayables =
+    useCallback(
+      async () => {
+        const {
+          data,
+          error,
+        } =
+          await supabase
+            .from(
+              "package_supplier_payables"
+            )
+            .select(`
+              id,
+              booking_item_id,
+              supplier_id,
+              amount,
+              paid_amount,
+              due_date,
+              status,
+              currency
+            `)
+            .eq(
+              "booking_id",
+              bookingId
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  true,
+              }
+            );
+
+        if (error) {
+          throw new Error(
+            error.message
+          );
+        }
+
+        setPayables(
+          (
+            data ??
+            []
+          ) as Payable[]
+        );
+      },
+      [
+        bookingId,
+      ]
+    );
+
+
   useEffect(
     () => {
       setStatus(
@@ -334,9 +438,20 @@ BookingActionCenter({
   );
 
 
+  useEffect(
+    () => {
+      void loadPayables();
+    },
+    [
+      loadPayables,
+    ]
+  );
+
+
   async function refreshAll() {
     await Promise.all([
       loadEvents(),
+      loadPayables(),
       onChanged(),
     ]);
   }
@@ -542,6 +657,277 @@ BookingActionCenter({
         },
       })
     );
+  }
+
+
+  function payableForItem(
+    itemId: string
+  ) {
+    return payables.find(
+      payable =>
+        payable.booking_item_id ===
+        itemId
+    );
+  }
+
+
+  function payableBalance(
+    payable:
+      Payable |
+      undefined
+  ) {
+    if (!payable) {
+      return 0;
+    }
+
+    return Math.max(
+      Number(
+        payable.amount ||
+        0
+      ) -
+      Number(
+        payable.paid_amount ||
+        0
+      ),
+      0
+    );
+  }
+
+
+  async function recordSupplierPayment(
+    item: Item
+  ) {
+    setMessage("");
+    setErrorMessage("");
+
+    const payable =
+      payableForItem(
+        item.id
+      );
+
+    if (!payable) {
+      setErrorMessage(
+        "Bu hizmet için henüz hakediş kaydı oluşmamış."
+      );
+
+      return;
+    }
+
+    const remaining =
+      payableBalance(
+        payable
+      );
+
+    const amount =
+      Number(
+        payableInputs[
+          payable.id
+        ] ||
+        0
+      );
+
+    if (
+      !Number.isFinite(
+        amount
+      ) ||
+      amount <= 0
+    ) {
+      setErrorMessage(
+        "Geçerli bir tedarikçi ödeme tutarı girin."
+      );
+
+      return;
+    }
+
+    if (
+      amount >
+      remaining
+    ) {
+      setErrorMessage(
+        "Ödeme tutarı kalan hakedişten büyük olamaz."
+      );
+
+      return;
+    }
+
+    setBusy(
+      `payable-${payable.id}`
+    );
+
+    try {
+      const {
+        error,
+      } =
+        await supabase
+          .rpc(
+            "record_package_supplier_payment",
+            {
+              p_payable_id:
+                payable.id,
+
+              p_amount:
+                amount,
+
+              p_notes:
+                "Rezervasyon Detay Merkezi üzerinden tedarikçi ödemesi.",
+            }
+          );
+
+      if (error) {
+        throw new Error(
+          error.message
+        );
+      }
+
+      setPayableInputs(
+        current => ({
+          ...current,
+
+          [payable.id]:
+            "",
+        })
+      );
+
+      setMessage(
+        "Tedarikçi ödemesi kaydedildi."
+      );
+
+      await refreshAll();
+    } catch (
+      error
+    ) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Tedarikçi ödemesi kaydedilemedi."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+
+  async function supplierPortalLink(
+    item: Item
+  ) {
+    if (
+      !item.supplier_id
+    ) {
+      throw new Error(
+        "Bu hizmete tedarikçi atanmadı."
+      );
+    }
+
+    const {
+      data,
+      error,
+    } =
+      await supabase
+        .rpc(
+          "ensure_package_supplier_portal",
+          {
+            p_supplier_id:
+              item.supplier_id,
+          }
+        );
+
+    if (
+      error ||
+      !data
+    ) {
+      throw new Error(
+        error?.message ||
+        "Tedarikçi portalı hazırlanamadı."
+      );
+    }
+
+    const portal =
+      data as {
+        portal_token:
+          string;
+      };
+
+    return (
+      `${window.location.origin}` +
+      `/tedarikci/${portal.portal_token}`
+    );
+  }
+
+
+  async function copySupplierPortal(
+    item: Item
+  ) {
+    setMessage("");
+    setErrorMessage("");
+
+    setBusy(
+      `portal-copy-${item.id}`
+    );
+
+    try {
+      const link =
+        await supplierPortalLink(
+          item
+        );
+
+      await navigator.clipboard
+        .writeText(
+          link
+        );
+
+      setMessage(
+        "Tedarikçi portal bağlantısı kopyalandı."
+      );
+    } catch (
+      error
+    ) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Portal bağlantısı kopyalanamadı."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+
+  async function openSupplierPortal(
+    item: Item
+  ) {
+    setMessage("");
+    setErrorMessage("");
+
+    setBusy(
+      `portal-open-${item.id}`
+    );
+
+    try {
+      const link =
+        await supplierPortalLink(
+          item
+        );
+
+      window.open(
+        link,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+      setMessage(
+        "Tedarikçi portalı açıldı."
+      );
+    } catch (
+      error
+    ) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Tedarikçi portalı açılamadı."
+      );
+    } finally {
+      setBusy("");
+    }
   }
 
 
@@ -1206,6 +1592,16 @@ BookingActionCenter({
                   item.supplier_status ===
                   "completed";
 
+                const payable =
+                  payableForItem(
+                    item.id
+                  );
+
+                const remainingPayable =
+                  payableBalance(
+                    payable
+                  );
+
                 return (
                   <div
                     key={
@@ -1413,7 +1809,224 @@ BookingActionCenter({
                     }
 
 
+                    {
+                      payable &&
+                      (
+                        <div className="mt-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+
+                          <div className="flex flex-wrap items-start justify-between gap-4">
+
+                            <div>
+
+                              <p className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                                Tedarikçi Hakedişi
+                              </p>
+
+                              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+
+                                <div>
+                                  <p className="text-[11px] text-slate-500">
+                                    Toplam
+                                  </p>
+
+                                  <p className="mt-1 font-black">
+                                    {
+                                      money(
+                                        payable.amount
+                                      )
+                                    }
+                                  </p>
+                                </div>
+
+                                <div>
+                                  <p className="text-[11px] text-slate-500">
+                                    Ödenen
+                                  </p>
+
+                                  <p className="mt-1 font-black text-emerald-300">
+                                    {
+                                      money(
+                                        payable.paid_amount
+                                      )
+                                    }
+                                  </p>
+                                </div>
+
+                                <div>
+                                  <p className="text-[11px] text-slate-500">
+                                    Kalan
+                                  </p>
+
+                                  <p className="mt-1 font-black text-amber-300">
+                                    {
+                                      money(
+                                        remainingPayable
+                                      )
+                                    }
+                                  </p>
+                                </div>
+
+                              </div>
+
+                            </div>
+
+
+                            <div className="text-right">
+
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-black ${
+                                  payable.status ===
+                                  "paid"
+                                    ? "bg-emerald-500/10 text-emerald-300"
+                                    : payable.status ===
+                                      "partial"
+                                      ? "bg-blue-500/10 text-blue-300"
+                                      : payable.status ===
+                                        "cancelled"
+                                        ? "bg-red-500/10 text-red-300"
+                                        : "bg-amber-500/10 text-amber-300"
+                                }`}
+                              >
+                                {
+                                  payable.status ===
+                                  "paid"
+                                    ? "Ödendi"
+                                    : payable.status ===
+                                      "partial"
+                                      ? "Kısmi Ödendi"
+                                      : payable.status ===
+                                        "cancelled"
+                                        ? "İptal"
+                                        : "Ödeme Bekliyor"
+                                }
+                              </span>
+
+                              {
+                                payable.due_date &&
+                                (
+                                  <p className="mt-3 text-xs text-slate-500">
+                                    Vade:{" "}
+                                    {
+                                      new Intl.DateTimeFormat(
+                                        "tr-TR"
+                                      ).format(
+                                        new Date(
+                                          `${payable.due_date}T12:00:00`
+                                        )
+                                      )
+                                    }
+                                  </p>
+                                )
+                              }
+
+                            </div>
+
+                          </div>
+
+
+                          {
+                            payable.status !==
+                              "paid" &&
+                            payable.status !==
+                              "cancelled" &&
+                            remainingPayable >
+                              0 &&
+                            (
+                              <div className="mt-4 flex flex-wrap gap-2 border-t border-white/10 pt-4">
+
+                                <input
+                                  type="number"
+                                  min="0.01"
+                                  step="0.01"
+                                  max={
+                                    remainingPayable
+                                  }
+                                  value={
+                                    payableInputs[
+                                      payable.id
+                                    ] ??
+                                    ""
+                                  }
+                                  onChange={
+                                    event =>
+                                      setPayableInputs(
+                                        current => ({
+                                          ...current,
+
+                                          [payable.id]:
+                                            event.target.value,
+                                        })
+                                      )
+                                  }
+                                  placeholder="Ödenecek tutar"
+                                  className="min-w-[180px] flex-1 rounded-xl border border-white/10 bg-slate-900 p-3 text-sm"
+                                />
+
+                                <button
+                                  type="button"
+                                  disabled={
+                                    busy ===
+                                    `payable-${payable.id}`
+                                  }
+                                  onClick={
+                                    () =>
+                                      void recordSupplierPayment(
+                                        item
+                                      )
+                                  }
+                                  className="rounded-xl bg-emerald-500 px-4 py-3 text-xs font-black text-slate-950 disabled:opacity-40"
+                                >
+                                  Tedarikçi Ödemesi Kaydet
+                                </button>
+
+                              </div>
+                            )
+                          }
+
+                        </div>
+                      )
+                    }
+
+
                     <div className="mt-5 flex flex-wrap gap-2">
+
+                      <button
+                        type="button"
+                        disabled={
+                          !item.supplier_id ||
+                          busy ===
+                            `portal-open-${item.id}`
+                        }
+                        onClick={
+                          () =>
+                            void openSupplierPortal(
+                              item
+                            )
+                        }
+                        className="rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-xs font-black text-sky-300 disabled:opacity-40"
+                      >
+                        Portalı Aç
+                      </button>
+
+
+                      <button
+                        type="button"
+                        disabled={
+                          !item.supplier_id ||
+                          busy ===
+                            `portal-copy-${item.id}`
+                        }
+                        onClick={
+                          () =>
+                            void copySupplierPortal(
+                              item
+                            )
+                        }
+                        className="rounded-xl border border-slate-500/30 bg-slate-500/10 px-4 py-2 text-xs font-black text-slate-300 disabled:opacity-40"
+                      >
+                        Portal Linkini Kopyala
+                      </button>
+
 
                       <button
                         type="button"
