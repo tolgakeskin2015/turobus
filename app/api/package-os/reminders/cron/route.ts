@@ -123,6 +123,7 @@ async function run(
     const [
       reminderResult,
       overdueResult,
+      taskAlertResult,
     ] =
       await Promise.all([
 
@@ -136,6 +137,14 @@ async function run(
 
         admin.rpc(
           "run_package_operation_overdue_alerts",
+          {
+            p_now:
+              executionTime,
+          }
+        ),
+
+        admin.rpc(
+          "run_package_task_sla_alerts",
           {
             p_now:
               executionTime,
@@ -155,6 +164,13 @@ async function run(
       overdueResult.error
     ) {
       throw overdueResult.error;
+    }
+
+
+    if (
+      taskAlertResult.error
+    ) {
+      throw taskAlertResult.error;
     }
 
 
@@ -180,6 +196,9 @@ async function run(
 
       overdue:
         overdueResult.data,
+
+      taskAlerts:
+        taskAlertResult.data,
 
       whatsappQueue:
         whatsappQueueResult.data,
