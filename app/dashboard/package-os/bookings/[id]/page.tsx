@@ -24,6 +24,7 @@ import {
 
 import BookingActionCenter from "./components/BookingActionCenter";
 import BookingHealthCenter from "./components/BookingHealthCenter";
+import SupplierRoomConfirmationPanel from "./components/SupplierRoomConfirmationPanel";
 
 
 type Booking = {
@@ -158,6 +159,17 @@ type BookingItem = {
   supplier_note:
     string |
     null;
+
+  supplier_room_confirmation:
+    Array<{
+      room_order: number;
+      status:
+        | "confirmed"
+        | "pending"
+        | "rejected";
+      room_number?: string;
+      note?: string;
+    }>;
 
   supplier_due_date:
     string |
@@ -641,6 +653,7 @@ PackageBookingDetailPage() {
                 supplier_completed_at,
                 supplier_confirmation_code,
                 supplier_note,
+                supplier_room_confirmation,
                 supplier_due_date,
                 voucher_created_at,
                 cost_snapshot
@@ -1169,6 +1182,10 @@ PackageBookingDetailPage() {
                 supplier_status:
                   item.supplier_status,
 
+                supplier_room_confirmation:
+                  item.supplier_room_confirmation ||
+                  [],
+
                 voucher_created_at:
                   item.voucher_created_at,
               })
@@ -1194,6 +1211,47 @@ PackageBookingDetailPage() {
 
                 status:
                   payable.status,
+              })
+            )
+          }
+        />
+
+
+        <SupplierRoomConfirmationPanel
+          roomPlan={
+            booking.room_plan ||
+            []
+          }
+          items={
+            items.map(
+              item => ({
+                id:
+                  item.id,
+
+                name:
+                  item.name,
+
+                item_type:
+                  item.item_type,
+
+                supplier_id:
+                  item.supplier_id,
+
+                supplier_status:
+                  item.supplier_status,
+
+                supplier_confirmation_code:
+                  item.supplier_confirmation_code,
+
+                supplier_note:
+                  item.supplier_note,
+
+                supplier_confirmed_at:
+                  item.supplier_confirmed_at,
+
+                supplier_room_confirmation:
+                  item.supplier_room_confirmation ||
+                  [],
               })
             )
           }

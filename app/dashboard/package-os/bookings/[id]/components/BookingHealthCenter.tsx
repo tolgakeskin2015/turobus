@@ -4,6 +4,17 @@ type HealthItem = {
   id: string;
   supplier_id: string | null;
   supplier_status: string;
+
+  supplier_room_confirmation: Array<{
+    room_order: number;
+    status:
+      | "confirmed"
+      | "pending"
+      | "rejected";
+    room_number?: string;
+    note?: string;
+  }>;
+
   voucher_created_at: string | null;
 };
 
@@ -57,6 +68,21 @@ export default function BookingHealthCenter({
   const voucherMissing = supplierItems.filter(
     (item) => !item.voucher_created_at
   ).length;
+
+  const rejectedRooms =
+    supplierItems.reduce(
+      (total, item) =>
+        total +
+        (
+          item.supplier_room_confirmation ||
+          []
+        ).filter(
+          room =>
+            room.status ===
+            "rejected"
+        ).length,
+      0
+    );
   const guestMissing = guests.filter(
     (guest) => !guest.full_name?.trim() || (!guest.phone && !guest.email)
   ).length;
@@ -74,15 +100,29 @@ export default function BookingHealthCenter({
     supplierWaiting +
     voucherMissing +
     guestMissing +
-    overduePayables;
+    overduePayables +
+    rejectedRooms;
 
-  const health = problems === 0 ? "Hazır" : problems <= 2 ? "Kontrol Gerekli" : "Kritik Aksiyon";
+  const hasCriticalRoomIssue =
+    rejectedRooms > 0;
+
+  const health =
+    hasCriticalRoomIssue
+      ? "Kritik Aksiyon"
+      : problems === 0
+        ? "Hazır"
+        : problems <= 2
+          ? "Kontrol Gerekli"
+          : "Kritik Aksiyon";
+
   const healthClass =
-    problems === 0
-      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-      : problems <= 2
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
-        : "border-red-500/30 bg-red-500/10 text-red-300";
+    hasCriticalRoomIssue
+      ? "border-red-500/30 bg-red-500/10 text-red-300"
+      : problems === 0
+        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+        : problems <= 2
+          ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+          : "border-red-500/30 bg-red-500/10 text-red-300";
 
   const cards = [
     {
@@ -174,7 +214,8 @@ export default function BookingHealthCenter({
           {supplierWaiting ? `${supplierWaiting} hizmet tedarikçi teyidi bekliyor. ` : ""}
           {voucherMissing ? `${voucherMissing} voucher eksik. ` : ""}
           {guestMissing ? `${guestMissing} misafirin iletişim bilgisi eksik. ` : ""}
-          {overduePayables ? `${overduePayables} hakediş vadesi geçmiş.` : ""}
+          {overduePayables ? `${overduePayables} hakediş vadesi geçmiş. ` : ""}
+          {rejectedRooms ? `${rejectedRooms} oda tedarikçi tarafından uygun değil olarak işaretlendi.` : ""}
         </div>
       )}
     </section>
