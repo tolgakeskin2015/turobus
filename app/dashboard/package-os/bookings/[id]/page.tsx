@@ -23,6 +23,7 @@ import {
 } from "@/lib/current-user";
 
 import BookingActionCenter from "./components/BookingActionCenter";
+import BookingHealthCenter from "./components/BookingHealthCenter";
 
 
 type Booking = {
@@ -1120,6 +1121,73 @@ PackageBookingDetailPage() {
           />
 
         </div>
+
+
+        <BookingHealthCenter
+          checkIn={
+            booking.check_in
+          }
+          balanceAmount={
+            Number(
+              booking.balance_amount ||
+              0
+            )
+          }
+          guests={
+            guests.map(
+              guest => ({
+                full_name:
+                  guest.full_name,
+
+                phone:
+                  guest.phone,
+
+                email:
+                  guest.email,
+              })
+            )
+          }
+          items={
+            items.map(
+              item => ({
+                id:
+                  item.id,
+
+                supplier_id:
+                  item.supplier_id,
+
+                supplier_status:
+                  item.supplier_status,
+
+                voucher_created_at:
+                  item.voucher_created_at,
+              })
+            )
+          }
+          payables={
+            payables.map(
+              payable => ({
+                amount:
+                  Number(
+                    payable.amount ||
+                    0
+                  ),
+
+                paid_amount:
+                  Number(
+                    payable.paid_amount ||
+                    0
+                  ),
+
+                due_date:
+                  payable.due_date,
+
+                status:
+                  payable.status,
+              })
+            )
+          }
+        />
 
 
         {
