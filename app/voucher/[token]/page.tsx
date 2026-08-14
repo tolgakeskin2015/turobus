@@ -35,6 +35,19 @@ type Voucher = {
 
   customer_status: string | null;
   supplier_status: string | null;
+
+  room_plan: Array<{
+    adults: number;
+    children: number;
+  }>;
+
+  guests: Array<{
+    guest_order: number;
+    guest_type: "adult" | "child";
+    full_name: string;
+    child_age: number | null;
+    is_primary: boolean;
+  }>;
 };
 
 function formatDate(
@@ -94,7 +107,7 @@ export default function PackageVoucherPage() {
           error,
         } =
           await supabase.rpc(
-            "get_package_voucher_public",
+            "get_package_voucher_public_v2",
             {
               p_token:
                 token,
@@ -259,6 +272,148 @@ export default function PackageVoucherPage() {
                 </p>
               </div>
             </div>
+
+            {
+              voucher.room_plan &&
+              voucher.room_plan.length >
+                0 &&
+              (
+                <div className="mt-7 rounded-2xl border border-orange-500/20 bg-orange-500/5 p-5">
+
+                  <p className="text-xs font-black uppercase tracking-wider text-orange-300">
+                    ODA DAĞILIMI
+                  </p>
+
+                  <div className="mt-4 space-y-3">
+
+                    {
+                      voucher.room_plan.map(
+                        (
+                          room,
+                          index
+                        ) => {
+
+                          const occupancy =
+                            Number(
+                              room.adults ||
+                              0
+                            ) +
+                            Number(
+                              room.children ||
+                              0
+                            );
+
+                          return (
+                            <div
+                              key={
+                                index
+                              }
+                              className="flex items-center justify-between rounded-xl bg-slate-950 p-4"
+                            >
+
+                              <div>
+
+                                <div className="font-black">
+                                  {
+                                    index +
+                                    1
+                                  }
+                                  . Oda · {
+                                    occupancy === 1
+                                      ? "Single"
+                                      : occupancy === 2
+                                        ? "Double"
+                                        : occupancy === 3
+                                          ? "Triple"
+                                          : `${occupancy} Kişilik`
+                                  }
+                                </div>
+
+                                <div className="mt-1 text-xs text-slate-400">
+                                  {
+                                    room.adults
+                                  }
+                                  {" yetişkin"}
+
+                                  {
+                                    room.children >
+                                      0
+                                      ? ` · ${room.children} çocuk`
+                                      : ""
+                                  }
+                                </div>
+
+                              </div>
+
+                              <span className="font-black text-orange-300">
+                                {
+                                  occupancy
+                                }
+                                {" kişi"}
+                              </span>
+
+                            </div>
+                          );
+                        }
+                      )
+                    }
+
+                  </div>
+
+                </div>
+              )
+            }
+
+
+            {
+              voucher.guests &&
+              voucher.guests.length >
+                0 &&
+              (
+                <div className="mt-5">
+
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    MİSAFİR LİSTESİ
+                  </p>
+
+                  <div className="mt-3 space-y-2">
+
+                    {
+                      voucher.guests.map(
+                        guest => (
+                          <div
+                            key={
+                              guest.guest_order
+                            }
+                            className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-950 p-3"
+                          >
+
+                            <span className="font-bold">
+                              {
+                                guest.full_name
+                              }
+                            </span>
+
+                            <span className="text-xs text-slate-400">
+                              {
+                                guest.guest_type ===
+                                "child"
+                                  ? `Çocuk${guest.child_age !== null ? ` · ${guest.child_age} yaş` : ""}`
+                                  : "Yetişkin"
+                              }
+                            </span>
+
+                          </div>
+                        )
+                      )
+                    }
+
+                  </div>
+
+                </div>
+              )
+            }
+
 
             <div className="mt-7 flex justify-center rounded-[24px] bg-white p-6">
               {qrCode && (

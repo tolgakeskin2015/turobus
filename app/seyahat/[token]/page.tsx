@@ -58,6 +58,19 @@ type Trip = {
 
   payment_token: string;
 
+  room_plan: Array<{
+    adults: number;
+    children: number;
+  }>;
+
+  guests: Array<{
+    guest_order: number;
+    guest_type: "adult" | "child";
+    full_name: string;
+    child_age: number | null;
+    is_primary: boolean;
+  }>;
+
   items: TripItem[];
 };
 
@@ -151,7 +164,7 @@ export default function TripWalletPage() {
           error,
         } =
           await supabase.rpc(
-            "get_package_trip_public",
+            "get_package_trip_public_v2",
             {
               p_token:
                 token,
@@ -293,6 +306,170 @@ export default function TripWalletPage() {
             </p>
           </div>
         </section>
+
+        {
+          trip.room_plan &&
+          trip.room_plan.length >
+            0 &&
+          (
+            <section className="mt-7 rounded-[28px] border border-orange-500/20 bg-slate-900 p-6">
+
+              <p className="text-xs font-black uppercase tracking-wider text-orange-400">
+                KONAKLAMA PLANI
+              </p>
+
+              <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+
+                <div>
+
+                  <h2 className="text-3xl font-black">
+                    Oda Dağılımınız
+                  </h2>
+
+                  <p className="mt-2 text-sm text-slate-400">
+                    Otel rezervasyonunuzdaki oda yerleşimi.
+                  </p>
+
+                </div>
+
+                <span className="rounded-full bg-orange-500/10 px-4 py-2 text-sm font-black text-orange-300">
+                  {
+                    trip.room_plan.length
+                  }
+                  {" oda"}
+                </span>
+
+              </div>
+
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+                {
+                  trip.room_plan.map(
+                    (
+                      room,
+                      index
+                    ) => {
+
+                      const occupancy =
+                        Number(
+                          room.adults ||
+                          0
+                        ) +
+                        Number(
+                          room.children ||
+                          0
+                        );
+
+                      return (
+                        <div
+                          key={
+                            index
+                          }
+                          className="rounded-2xl border border-white/10 bg-slate-950 p-5"
+                        >
+
+                          <p className="text-xs font-black uppercase text-orange-400">
+                            {
+                              index +
+                              1
+                            }
+                            . ODA
+                          </p>
+
+                          <h3 className="mt-2 text-xl font-black">
+                            {
+                              occupancy === 1
+                                ? "Single"
+                                : occupancy === 2
+                                  ? "Double"
+                                  : occupancy === 3
+                                    ? "Triple"
+                                    : `${occupancy} Kişilik`
+                            }
+                          </h3>
+
+                          <p className="mt-3 text-sm text-slate-400">
+                            {
+                              room.adults
+                            }
+                            {" yetişkin"}
+
+                            {
+                              room.children >
+                                0
+                                ? ` · ${room.children} çocuk`
+                                : ""
+                            }
+                          </p>
+
+                        </div>
+                      );
+                    }
+                  )
+                }
+
+              </div>
+
+
+              {
+                trip.guests &&
+                trip.guests.some(
+                  guest =>
+                    guest.guest_type ===
+                      "child" &&
+                    guest.child_age !==
+                      null
+                ) &&
+                (
+                  <div className="mt-5 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
+
+                    <p className="text-xs font-black uppercase text-cyan-300">
+                      ÇOCUK MİSAFİRLER
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+
+                      {
+                        trip.guests
+                          .filter(
+                            guest =>
+                              guest.guest_type ===
+                              "child"
+                          )
+                          .map(
+                            guest => (
+                              <span
+                                key={
+                                  guest.guest_order
+                                }
+                                className="rounded-full bg-slate-950 px-3 py-2 text-sm font-bold"
+                              >
+                                {
+                                  guest.full_name
+                                }
+
+                                {
+                                  guest.child_age !==
+                                    null
+                                    ? ` · ${guest.child_age} yaş`
+                                    : ""
+                                }
+                              </span>
+                            )
+                          )
+                      }
+
+                    </div>
+
+                  </div>
+                )
+              }
+
+            </section>
+          )
+        }
+
 
         <section className="mt-7 rounded-[28px] border border-white/10 bg-slate-900 p-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
