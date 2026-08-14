@@ -25,6 +25,7 @@ import {
 import BookingActionCenter from "./components/BookingActionCenter";
 import BookingHealthCenter from "./components/BookingHealthCenter";
 import SupplierRoomConfirmationPanel from "./components/SupplierRoomConfirmationPanel";
+import BookingTimelineSlaCenter from "./components/BookingTimelineSlaCenter";
 
 
 type Booking = {
@@ -1307,6 +1308,21 @@ PackageBookingDetailPage() {
             }
           }
         />
+
+
+        {
+          membership &&
+          (
+            <BookingTimelineSlaCenter
+              bookingId={
+                booking.id
+              }
+              companyId={
+                membership.company_id
+              }
+            />
+          )
+        }
 
 
         {
