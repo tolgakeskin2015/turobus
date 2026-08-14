@@ -30,6 +30,22 @@ type PayableRow = {
   status: string;
 };
 
+type TaskRow = {
+  id: string;
+
+  supplier_room_issue_status:
+    string;
+
+  supplier_room_issue_priority:
+    string;
+
+  supplier_room_issue_assigned_to:
+    string | null;
+
+  supplier_room_issue_sla_due_at:
+    string | null;
+};
+
 const modules = [
   {
     title: "Paket Oluştur",
@@ -81,6 +97,13 @@ const modules = [
     status: "Aktif",
   },
   {
+    title: "Operasyon Görev Havuzu",
+    description:
+      "Tüm açık, kritik, geciken ve sorumlusuz operasyon görevlerini personel bazında tek ekrandan yönet.",
+    href: "/dashboard/package-os/task-pool",
+    status: "Canlı",
+  },
+  {
     title: "Tedarikçi Uyarıları",
     description:
       "Yeni atanan ve tedarikçiye bildirilmesi gereken operasyonları takip et.",
@@ -130,11 +153,12 @@ export default function PackageOsPage() {
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [payables, setPayables] = useState<PayableRow[]>([]);
+  const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   const loadDashboard = useCallback(async (companyId: string) => {
-    const [quoteResult, bookingResult, payableResult] = await Promise.all([
+    const [quoteResult, bookingResult, payableResult, taskResult] = await Promise.all([
       supabase
         .from("package_quotes")
         .select("id, created_at, status")
@@ -147,15 +171,29 @@ export default function PackageOsPage() {
         .from("package_supplier_payables")
         .select("amount, paid_amount, status")
         .eq("company_id", companyId),
+
+      supabase
+        .from("package_booking_items")
+        .select(`
+          id,
+          supplier_room_issue_status,
+          supplier_room_issue_priority,
+          supplier_room_issue_assigned_to,
+          supplier_room_issue_sla_due_at
+        `)
+        .eq("company_id", companyId)
+        .neq("supplier_room_issue_status", "none"),
     ]);
 
     if (quoteResult.error) throw new Error(quoteResult.error.message);
     if (bookingResult.error) throw new Error(bookingResult.error.message);
     if (payableResult.error) throw new Error(payableResult.error.message);
+    if (taskResult.error) throw new Error(taskResult.error.message);
 
     setQuotes((quoteResult.data ?? []) as QuoteRow[]);
     setBookings((bookingResult.data ?? []) as BookingRow[]);
     setPayables((payableResult.data ?? []) as PayableRow[]);
+    setTasks((taskResult.data ?? []) as TaskRow[]);
   }, []);
 
   useEffect(() => {
@@ -231,6 +269,31 @@ export default function PackageOsPage() {
       (booking) => booking.check_in === localDay
     ).length;
 
+    const now = Date.now();
+
+    const openTasks = tasks.filter(
+      (task) =>
+        task.supplier_room_issue_status !== "resolved"
+    );
+
+    const criticalTasks = openTasks.filter(
+      (task) =>
+        task.supplier_room_issue_priority === "critical"
+    ).length;
+
+    const overdueTasks = openTasks.filter(
+      (task) =>
+        Boolean(task.supplier_room_issue_sla_due_at) &&
+        new Date(
+          task.supplier_room_issue_sla_due_at as string
+        ).getTime() < now
+    ).length;
+
+    const unassignedTasks = openTasks.filter(
+      (task) =>
+        !task.supplier_room_issue_assigned_to
+    ).length;
+
     return {
       todayQuotes,
       activeBookings: activeBookings.length,
@@ -238,8 +301,12 @@ export default function PackageOsPage() {
       netProfit,
       supplierBalance,
       arrivalsToday,
+      openTasks: openTasks.length,
+      criticalTasks,
+      overdueTasks,
+      unassignedTasks,
     };
-  }, [bookings, payables, quotes]);
+  }, [bookings, payables, quotes, tasks]);
 
   return (
     <main className="min-h-screen bg-slate-950 p-5 text-white md:p-10">
@@ -289,6 +356,49 @@ export default function PackageOsPage() {
               {errorMessage}
             </div>
           )}
+
+          <Link
+            href="/dashboard/package-os/task-pool"
+            className={`mt-6 flex flex-col gap-4 rounded-2xl border p-5 transition hover:-translate-y-0.5 md:flex-row md:items-center md:justify-between ${
+              stats.overdueTasks > 0 || stats.criticalTasks > 0
+                ? "border-red-500/30 bg-red-500/10"
+                : stats.openTasks > 0
+                  ? "border-amber-500/30 bg-amber-500/10"
+                  : "border-emerald-500/20 bg-emerald-500/5"
+            }`}
+          >
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+                OPERASYON GÖREV HAVUZU
+              </p>
+
+              <p className="mt-2 text-xl font-black">
+                {loading
+                  ? "Görevler yükleniyor..."
+                  : stats.openTasks === 0
+                    ? "Açık operasyon görevi yok"
+                    : `${stats.openTasks} açık görev`}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-red-500/15 px-3 py-2 text-xs font-black text-red-300">
+                Kritik {loading ? "…" : stats.criticalTasks}
+              </span>
+
+              <span className="rounded-full bg-orange-500/15 px-3 py-2 text-xs font-black text-orange-300">
+                Geciken {loading ? "…" : stats.overdueTasks}
+              </span>
+
+              <span className="rounded-full bg-cyan-500/15 px-3 py-2 text-xs font-black text-cyan-300">
+                Sorumlusuz {loading ? "…" : stats.unassignedTasks}
+              </span>
+
+              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-black">
+                Görev Havuzunu Aç →
+              </span>
+            </div>
+          </Link>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
             {[
