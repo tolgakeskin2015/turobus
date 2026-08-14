@@ -22,6 +22,8 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 
+import BookingActionCenter from "./components/BookingActionCenter";
+
 
 type Booking = {
   id: string;
@@ -1084,6 +1086,52 @@ PackageBookingDetailPage() {
 
         </div>
 
+
+        {
+          membership &&
+          (
+            <div className="mt-8">
+              <BookingActionCenter
+                bookingId={
+                  booking.id
+                }
+                bookingStatus={
+                  booking.status
+                }
+                balanceAmount={
+                  Number(
+                    booking.balance_amount ||
+                    0
+                  )
+                }
+                items={
+                  items.map(
+                    item => ({
+                      id:
+                        item.id,
+
+                      name:
+                        item.name,
+
+                      supplier_id:
+                        item.supplier_id,
+
+                      supplier_status:
+                        item.supplier_status,
+                    })
+                  )
+                }
+                onChanged={
+                  async () => {
+                    await loadAll(
+                      membership.company_id
+                    );
+                  }
+                }
+              />
+            </div>
+          )
+        }
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_430px]">
 
