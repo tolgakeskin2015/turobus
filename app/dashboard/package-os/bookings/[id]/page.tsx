@@ -130,6 +130,34 @@ type BookingItem = {
 
   supplier_id: string | null;
 
+  supplier_requested_at:
+    string |
+    null;
+
+  supplier_confirmed_at:
+    string |
+    null;
+
+  supplier_completed_at:
+    string |
+    null;
+
+  supplier_confirmation_code:
+    string |
+    null;
+
+  supplier_note:
+    string |
+    null;
+
+  supplier_due_date:
+    string |
+    null;
+
+  voucher_created_at:
+    string |
+    null;
+
   cost_snapshot:
     Record<
       string,
@@ -597,6 +625,13 @@ PackageBookingDetailPage() {
                 supplier_status,
                 customer_status,
                 supplier_id,
+                supplier_requested_at,
+                supplier_confirmed_at,
+                supplier_completed_at,
+                supplier_confirmation_code,
+                supplier_note,
+                supplier_due_date,
+                voucher_created_at,
                 cost_snapshot
               `)
               .eq(
@@ -1118,6 +1153,27 @@ PackageBookingDetailPage() {
 
                       supplier_status:
                         item.supplier_status,
+
+                      supplier_requested_at:
+                        item.supplier_requested_at,
+
+                      supplier_confirmed_at:
+                        item.supplier_confirmed_at,
+
+                      supplier_completed_at:
+                        item.supplier_completed_at,
+
+                      supplier_confirmation_code:
+                        item.supplier_confirmation_code,
+
+                      supplier_note:
+                        item.supplier_note,
+
+                      supplier_due_date:
+                        item.supplier_due_date,
+
+                      voucher_created_at:
+                        item.voucher_created_at,
                     })
                   )
                 }

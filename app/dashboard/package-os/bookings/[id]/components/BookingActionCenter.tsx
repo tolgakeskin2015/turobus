@@ -14,9 +14,43 @@ import {
 
 type Item = {
   id: string;
+
   name: string;
-  supplier_id: string | null;
-  supplier_status: string;
+
+  supplier_id:
+    string |
+    null;
+
+  supplier_status:
+    string;
+
+  supplier_requested_at:
+    string |
+    null;
+
+  supplier_confirmed_at:
+    string |
+    null;
+
+  supplier_completed_at:
+    string |
+    null;
+
+  supplier_confirmation_code:
+    string |
+    null;
+
+  supplier_note:
+    string |
+    null;
+
+  supplier_due_date:
+    string |
+    null;
+
+  voucher_created_at:
+    string |
+    null;
 };
 
 
@@ -183,6 +217,28 @@ BookingActionCenter({
     setOperationNote,
   ] =
     useState("");
+
+  const [
+    supplierForms,
+    setSupplierForms,
+  ] =
+    useState<
+      Record<
+        string,
+        {
+          confirmationCode:
+            string;
+
+          note:
+            string;
+
+          dueDate:
+            string;
+        }
+      >
+    >(
+      {}
+    );
 
   const [
     busy,
@@ -423,6 +479,323 @@ BookingActionCenter({
         error instanceof Error
           ? error.message
           : "Rezervasyon durumu güncellenemedi."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+
+  function supplierForm(
+    item: Item
+  ) {
+    return (
+      supplierForms[
+        item.id
+      ] ?? {
+        confirmationCode:
+          item.supplier_confirmation_code ??
+          "",
+
+        note:
+          item.supplier_note ??
+          "",
+
+        dueDate:
+          item.supplier_due_date ??
+          "",
+      }
+    );
+  }
+
+
+  function changeSupplierForm(
+    itemId: string,
+    key:
+      "confirmationCode" |
+      "note" |
+      "dueDate",
+    value: string
+  ) {
+    setSupplierForms(
+      current => ({
+        ...current,
+
+        [itemId]: {
+          confirmationCode:
+            current[itemId]
+              ?.confirmationCode ??
+            "",
+
+          note:
+            current[itemId]
+              ?.note ??
+            "",
+
+          dueDate:
+            current[itemId]
+              ?.dueDate ??
+            "",
+
+          [key]:
+            value,
+        },
+      })
+    );
+  }
+
+
+  async function sendSupplierRequest(
+    item: Item
+  ) {
+    setMessage("");
+    setErrorMessage("");
+
+    if (
+      !item.supplier_id
+    ) {
+      setErrorMessage(
+        "Önce hizmete tedarikçi atanmalıdır."
+      );
+
+      return;
+    }
+
+    const form =
+      supplierForm(
+        item
+      );
+
+    setBusy(
+      `request-${item.id}`
+    );
+
+    try {
+      const {
+        data,
+        error,
+      } =
+        await supabase
+          .rpc(
+            "package_booking_send_supplier_request",
+            {
+              p_booking_item_id:
+                item.id,
+
+              p_note:
+                form.note ||
+                null,
+            }
+          );
+
+      if (error) {
+        throw new Error(
+          error.message
+        );
+      }
+
+      const result =
+        data as {
+          portal_path?:
+            string;
+        };
+
+      setMessage(
+        result.portal_path
+          ? `Tedarikçi talebi hazırlandı. Portal: ${result.portal_path}`
+          : "Tedarikçi talebi gönderildi."
+      );
+
+      await refreshAll();
+    } catch (
+      error
+    ) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Tedarikçi talebi gönderilemedi."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+
+  async function confirmSupplierService(
+    item: Item
+  ) {
+    setMessage("");
+    setErrorMessage("");
+
+    const form =
+      supplierForm(
+        item
+      );
+
+    setBusy(
+      `confirm-${item.id}`
+    );
+
+    try {
+      const {
+        error,
+      } =
+        await supabase
+          .rpc(
+            "package_booking_confirm_supplier_service",
+            {
+              p_booking_item_id:
+                item.id,
+
+              p_confirmation_code:
+                form.confirmationCode ||
+                null,
+
+              p_note:
+                form.note ||
+                null,
+
+              p_due_date:
+                form.dueDate ||
+                null,
+            }
+          );
+
+      if (error) {
+        throw new Error(
+          error.message
+        );
+      }
+
+      setMessage(
+        "Tedarikçi teyidi kaydedildi ve hakediş kontrol edildi."
+      );
+
+      await refreshAll();
+    } catch (
+      error
+    ) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Tedarikçi teyidi kaydedilemedi."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+
+  async function ensureVoucher(
+    item: Item
+  ) {
+    setMessage("");
+    setErrorMessage("");
+
+    setBusy(
+      `voucher-${item.id}`
+    );
+
+    try {
+      const {
+        data,
+        error,
+      } =
+        await supabase
+          .rpc(
+            "package_booking_ensure_voucher",
+            {
+              p_booking_item_id:
+                item.id,
+            }
+          );
+
+      if (error) {
+        throw new Error(
+          error.message
+        );
+      }
+
+      const result =
+        data as {
+          voucher_code?:
+            string;
+
+          voucher_path?:
+            string;
+        };
+
+      setMessage(
+        result.voucher_code
+          ? `${result.voucher_code} voucherı hazır.`
+          : "Voucher hazırlandı."
+      );
+
+      await refreshAll();
+    } catch (
+      error
+    ) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Voucher oluşturulamadı."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+
+  async function completeSupplierService(
+    item: Item
+  ) {
+    setMessage("");
+    setErrorMessage("");
+
+    const form =
+      supplierForm(
+        item
+      );
+
+    setBusy(
+      `complete-${item.id}`
+    );
+
+    try {
+      const {
+        error,
+      } =
+        await supabase
+          .rpc(
+            "package_booking_complete_supplier_service",
+            {
+              p_booking_item_id:
+                item.id,
+
+              p_note:
+                form.note ||
+                null,
+            }
+          );
+
+      if (error) {
+        throw new Error(
+          error.message
+        );
+      }
+
+      setMessage(
+        "Hizmet tamamlandı olarak işaretlendi."
+      );
+
+      await refreshAll();
+    } catch (
+      error
+    ) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Hizmet tamamlanamadı."
       );
     } finally {
       setBusy("");
@@ -785,86 +1158,364 @@ BookingActionCenter({
 
       <section className="rounded-[26px] border border-white/10 bg-slate-900 p-6">
 
-        <p className="text-xs font-black uppercase tracking-wider text-violet-400">
-          Operasyon
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
 
-        <h2 className="mt-2 text-xl font-black">
-          Tedarikçi Onay Merkezi
-        </h2>
+          <div>
+
+            <p className="text-xs font-black uppercase tracking-wider text-violet-400">
+              Operasyon
+            </p>
+
+            <h2 className="mt-2 text-xl font-black">
+              Tedarikçi Operasyon Merkezi
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Talep, teyit numarası, ödeme vadesi,
+              voucher ve hizmet tamamlanma sürecini
+              tek yerden yönetin.
+            </p>
+
+          </div>
+
+        </div>
 
 
-        <div className="mt-5 space-y-3">
+        <div className="mt-6 space-y-4">
 
           {
             items.map(
-              item => (
-                <div
-                  key={
-                    item.id
-                  }
-                  className="grid gap-3 rounded-2xl border border-white/10 bg-slate-950 p-4 md:grid-cols-[1fr_220px]"
-                >
+              item => {
+                const form =
+                  supplierForm(
+                    item
+                  );
 
-                  <div>
-                    <p className="font-black">
-                      {
-                        item.name
-                      }
-                    </p>
+                const requested =
+                  Boolean(
+                    item.supplier_requested_at
+                  );
 
-                    <p className="mt-1 text-xs text-slate-500">
-                      {
-                        item.supplier_id
-                          ? "Tedarikçili hizmet"
-                          : "İç hizmet"
-                      }
-                    </p>
-                  </div>
+                const confirmed =
+                  item.supplier_status ===
+                    "confirmed" ||
+                  item.supplier_status ===
+                    "completed";
 
+                const completed =
+                  item.supplier_status ===
+                  "completed";
 
-                  <select
-                    value={
-                      item.supplier_status
-                    }
-                    disabled={
-                      busy ===
+                return (
+                  <div
+                    key={
                       item.id
                     }
-                    onChange={
-                      event =>
-                        void updateSupplier(
-                          item.id,
-                          event.target.value
-                        )
-                    }
-                    className="rounded-xl border border-white/10 bg-slate-900 p-3 text-sm font-bold"
+                    className="rounded-2xl border border-white/10 bg-slate-950 p-5"
                   >
 
-                    <option value="pending">
-                      Bekliyor
-                    </option>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
 
-                    <option value="requested">
-                      Talep Gönderildi
-                    </option>
+                      <div>
 
-                    <option value="confirmed">
-                      Onaylandı
-                    </option>
+                        <p className="text-lg font-black">
+                          {
+                            item.name
+                          }
+                        </p>
 
-                    <option value="completed">
-                      Tamamlandı
-                    </option>
+                        <div className="mt-2 flex flex-wrap gap-2">
 
-                    <option value="cancelled">
-                      İptal
-                    </option>
+                          <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-black text-slate-300">
+                            {
+                              item.supplier_id
+                                ? "Tedarikçili Hizmet"
+                                : "İç Hizmet"
+                            }
+                          </span>
 
-                  </select>
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-black ${
+                              completed
+                                ? "bg-emerald-500/10 text-emerald-300"
+                                : confirmed
+                                  ? "bg-cyan-500/10 text-cyan-300"
+                                  : requested
+                                    ? "bg-violet-500/10 text-violet-300"
+                                    : "bg-amber-500/10 text-amber-300"
+                            }`}
+                          >
+                            {
+                              completed
+                                ? "Hizmet Tamamlandı"
+                                : confirmed
+                                  ? "Tedarikçi Onayladı"
+                                  : requested
+                                    ? "Talep Gönderildi"
+                                    : "Talep Bekliyor"
+                            }
+                          </span>
 
-                </div>
-              )
+                          {
+                            item.voucher_created_at &&
+                            (
+                              <span className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-300">
+                                Voucher Hazır
+                              </span>
+                            )
+                          }
+
+                        </div>
+
+                      </div>
+
+
+                      <div className="text-right text-xs text-slate-500">
+
+                        {
+                          item.supplier_requested_at &&
+                          (
+                            <div>
+                              Talep:{" "}
+                              {
+                                dateTime(
+                                  item.supplier_requested_at
+                                )
+                              }
+                            </div>
+                          )
+                        }
+
+                        {
+                          item.supplier_confirmed_at &&
+                          (
+                            <div className="mt-1">
+                              Teyit:{" "}
+                              {
+                                dateTime(
+                                  item.supplier_confirmed_at
+                                )
+                              }
+                            </div>
+                          )
+                        }
+
+                        {
+                          item.supplier_completed_at &&
+                          (
+                            <div className="mt-1">
+                              Tamamlandı:{" "}
+                              {
+                                dateTime(
+                                  item.supplier_completed_at
+                                )
+                              }
+                            </div>
+                          )
+                        }
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="mt-5 grid gap-3 md:grid-cols-3">
+
+                      <div>
+
+                        <label className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">
+                          Tedarikçi Teyit No
+                        </label>
+
+                        <input
+                          value={
+                            form.confirmationCode
+                          }
+                          onChange={
+                            event =>
+                              changeSupplierForm(
+                                item.id,
+                                "confirmationCode",
+                                event.target.value
+                              )
+                          }
+                          placeholder="Örn. HR-458921"
+                          className="w-full rounded-xl border border-white/10 bg-slate-900 p-3"
+                        />
+
+                      </div>
+
+
+                      <div>
+
+                        <label className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">
+                          Hakediş / Ödeme Vadesi
+                        </label>
+
+                        <input
+                          type="date"
+                          value={
+                            form.dueDate
+                          }
+                          onChange={
+                            event =>
+                              changeSupplierForm(
+                                item.id,
+                                "dueDate",
+                                event.target.value
+                              )
+                          }
+                          className="w-full rounded-xl border border-white/10 bg-slate-900 p-3"
+                        />
+
+                      </div>
+
+
+                      <div>
+
+                        <label className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">
+                          Tedarikçi Notu
+                        </label>
+
+                        <input
+                          value={
+                            form.note
+                          }
+                          onChange={
+                            event =>
+                              changeSupplierForm(
+                                item.id,
+                                "note",
+                                event.target.value
+                              )
+                          }
+                          placeholder="Oda, saat, buluşma, özel not..."
+                          className="w-full rounded-xl border border-white/10 bg-slate-900 p-3"
+                        />
+
+                      </div>
+
+                    </div>
+
+
+                    {
+                      item.supplier_confirmation_code &&
+                      (
+                        <div className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-sm text-cyan-200">
+                          Teyit No:{" "}
+                          <strong>
+                            {
+                              item.supplier_confirmation_code
+                            }
+                          </strong>
+                        </div>
+                      )
+                    }
+
+
+                    <div className="mt-5 flex flex-wrap gap-2">
+
+                      <button
+                        type="button"
+                        disabled={
+                          !item.supplier_id ||
+                          busy ===
+                            `request-${item.id}` ||
+                          completed
+                        }
+                        onClick={
+                          () =>
+                            void sendSupplierRequest(
+                              item
+                            )
+                        }
+                        className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-xs font-black text-violet-300 disabled:opacity-40"
+                      >
+                        {
+                          requested
+                            ? "Talebi Yeniden Gönder"
+                            : "Tedarikçiye Talep Gönder"
+                        }
+                      </button>
+
+
+                      <button
+                        type="button"
+                        disabled={
+                          !item.supplier_id ||
+                          busy ===
+                            `confirm-${item.id}` ||
+                          completed
+                        }
+                        onClick={
+                          () =>
+                            void confirmSupplierService(
+                              item
+                            )
+                        }
+                        className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-xs font-black text-cyan-300 disabled:opacity-40"
+                      >
+                        Tedarikçi Teyidini Kaydet
+                      </button>
+
+
+                      <button
+                        type="button"
+                        disabled={
+                          !confirmed ||
+                          busy ===
+                            `voucher-${item.id}`
+                        }
+                        onClick={
+                          () =>
+                            void ensureVoucher(
+                              item
+                            )
+                        }
+                        className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-black text-orange-300 disabled:opacity-40"
+                      >
+                        {
+                          item.voucher_created_at
+                            ? "Voucherı Kontrol Et"
+                            : "Voucher Oluştur"
+                        }
+                      </button>
+
+
+                      <button
+                        type="button"
+                        disabled={
+                          !confirmed ||
+                          completed ||
+                          busy ===
+                            `complete-${item.id}`
+                        }
+                        onClick={
+                          () =>
+                            void completeSupplierService(
+                              item
+                            )
+                        }
+                        className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-black text-emerald-300 disabled:opacity-40"
+                      >
+                        Hizmeti Tamamla
+                      </button>
+
+                    </div>
+
+
+                    {
+                      !item.supplier_id &&
+                      (
+                        <p className="mt-4 text-xs text-amber-300">
+                          Bu hizmet için henüz tedarikçi atanmamış.
+                        </p>
+                      )
+                    }
+
+                  </div>
+                );
+              }
             )
           }
 
