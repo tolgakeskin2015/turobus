@@ -498,6 +498,28 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
+        href: "/dashboard/package-os/hotels",
+        label: "Paket Otelleri",
+        icon: FaHotel,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
+        href: "/dashboard/package-os/activities",
+        label: "Paket Aktiviteleri",
+        icon: FaBus,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
         href: "/dashboard/package-os/quotes",
         label: "Teklifler",
         icon: FaClipboardList,
@@ -606,28 +628,6 @@ const menuGroups: MenuGroup[] = [
         href: "/dashboard/package-os/vouchers",
         label: "Voucher & QR",
         icon: FaClipboardList,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "sales",
-        ],
-      },
-      {
-        href: "/dashboard/package-os/hotels",
-        label: "Paket Otelleri",
-        icon: FaHotel,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "sales",
-        ],
-      },
-      {
-        href: "/dashboard/package-os/activities",
-        label: "Paket Aktiviteleri",
-        icon: FaBus,
         roles: [
           "super_admin",
           "company_owner",
