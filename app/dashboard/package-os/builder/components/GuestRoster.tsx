@@ -14,6 +14,9 @@ export type Guest = {
   email: string;
 
   address: string;
+
+  childAge:
+    number | null;
 };
 
 type Props = {
@@ -49,6 +52,12 @@ function blankGuest(
 
     address:
       "",
+
+    childAge:
+      guestType ===
+        "child"
+        ? 0
+        : null,
   };
 }
 
@@ -376,6 +385,48 @@ export default function GuestRoster({
                     className="input"
                   />
                 </label>
+
+                {
+                  guest.guestType ===
+                    "child" &&
+                  (
+                    <label>
+                      <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">
+                        Çocuk Yaşı *
+                      </span>
+
+                      <input
+                        type="number"
+                        min="0"
+                        max="17"
+                        value={
+                          guest.childAge ??
+                          0
+                        }
+                        onChange={
+                          event =>
+                            updateGuest(
+                              guest.id,
+                              {
+                                childAge:
+                                  Math.max(
+                                    0,
+                                    Math.min(
+                                      17,
+                                      Number(
+                                        event.target.value
+                                      ) || 0
+                                    )
+                                  ),
+                              }
+                            )
+                        }
+                        className="input"
+                      />
+                    </label>
+                  )
+                }
+
 
                 <label>
                   <span className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">

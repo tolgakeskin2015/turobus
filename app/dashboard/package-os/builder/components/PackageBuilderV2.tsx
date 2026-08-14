@@ -23,6 +23,11 @@ import GuestRoster, {
   type Guest,
 } from "./GuestRoster";
 
+import RoomPlanManager, {
+  createAutomaticRoomPlan,
+  type RoomPlan,
+} from "./RoomPlanManager";
+
 type Hotel = {
   id: string;
   name: string;
@@ -369,6 +374,21 @@ export default function PackageBuilderV2() {
     useState<
       SelectedActivity[]
     >([]);
+
+
+  const [
+    roomPlan,
+    setRoomPlan,
+  ] =
+    useState<
+      RoomPlan[]
+    >(
+      () =>
+        createAutomaticRoomPlan(
+          2,
+          0
+        )
+    );
 
   const [
     expenses,
@@ -727,6 +747,24 @@ export default function PackageBuilderV2() {
 
   useEffect(
     () => {
+
+      setRoomPlan(
+        createAutomaticRoomPlan(
+          adults,
+          children
+        )
+      );
+
+    },
+    [
+      adults,
+      children,
+    ]
+  );
+
+
+  useEffect(
+    () => {
       setSelectedActivities(
         current =>
           current.map(
@@ -1077,6 +1115,26 @@ export default function PackageBuilderV2() {
         people ||
       !guests[0]?.fullName.trim() ||
       !guests[0]?.phone.trim() ||
+      roomPlan.reduce(
+        (
+          total,
+          room
+        ) =>
+          total +
+          room.adults,
+        0
+      ) !==
+        adults ||
+      roomPlan.reduce(
+        (
+          total,
+          room
+        ) =>
+          total +
+          room.children,
+        0
+      ) !==
+        children ||
       !selectedHotelId ||
       !selectedRateId ||
       !checkIn ||
@@ -1120,6 +1178,9 @@ export default function PackageBuilderV2() {
 
                 address:
                   guest.address.trim(),
+
+                childAge:
+                  guest.childAge,
               })
             ),
 
@@ -1456,6 +1517,27 @@ export default function PackageBuilderV2() {
                     setGuests
                   }
                 />
+
+
+                <div className="mt-7 border-t border-white/10 pt-7">
+
+                  <RoomPlanManager
+                    rooms={
+                      roomPlan
+                    }
+                    totalAdults={
+                      adults
+                    }
+                    totalChildren={
+                      children
+                    }
+                    onChange={
+                      setRoomPlan
+                    }
+                  />
+
+                </div>
+
               </div>
             </Panel>
 
