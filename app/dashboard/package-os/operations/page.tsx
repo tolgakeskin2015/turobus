@@ -805,6 +805,14 @@ export default function PackageOperationsPage() {
             <div className="flex flex-wrap gap-3">
 
               <Link
+                href="/dashboard/package-os/task-pool"
+                className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-slate-950"
+              >
+                Görev Havuzu →
+              </Link>
+
+
+              <Link
                 href="/dashboard/package-os/payables"
                 className="rounded-xl bg-orange-500 px-5 py-3 text-sm font-black text-black"
               >
