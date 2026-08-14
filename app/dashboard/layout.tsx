@@ -44,6 +44,11 @@ type MenuGroup = {
   items: MenuItem[];
 };
 
+type SidebarAlertSummary = {
+  unread: number;
+  critical: number;
+};
+
 const allRoles: AppRole[] = [
   "super_admin",
   "company_owner",
@@ -784,6 +789,14 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const [
+    sidebarAlertSummary,
+    setSidebarAlertSummary,
+  ] = useState<SidebarAlertSummary>({
+    unread: 0,
+    critical: 0,
+  });
+
   const [openMenuGroups, setOpenMenuGroups] = useState<
     Set<string>
   >(
@@ -858,6 +871,91 @@ export default function DashboardLayout({
   useEffect(() => {
     void loadSession();
   }, [loadSession]);
+
+
+  const loadSidebarAlertSummary =
+    useCallback(
+      async (
+        companyId: string
+      ) => {
+
+        const result =
+          await supabase.rpc(
+            "get_package_operation_alert_summary",
+            {
+              p_company_id:
+                companyId,
+            }
+          );
+
+
+        if (result.error) {
+
+          console.error(
+            "Alarm özeti yüklenemedi:",
+            result.error.message
+          );
+
+          return;
+        }
+
+
+        setSidebarAlertSummary({
+          unread:
+            Number(
+              result.data?.unread ??
+              0
+            ),
+
+          critical:
+            Number(
+              result.data?.critical ??
+              0
+            ),
+        });
+
+      },
+      []
+    );
+
+
+  useEffect(() => {
+
+    if (!membership) {
+      return;
+    }
+
+
+    void loadSidebarAlertSummary(
+      membership.company_id
+    );
+
+
+    const timer =
+      window.setInterval(
+        () => {
+
+          void loadSidebarAlertSummary(
+            membership.company_id
+          );
+
+        },
+        30000
+      );
+
+
+    return () => {
+      window.clearInterval(
+        timer
+      );
+    };
+
+  }, [
+    membership,
+    pathname,
+    loadSidebarAlertSummary,
+  ]);
+
 
   useEffect(() => {
     setMobileOpen(false);
@@ -1097,7 +1195,19 @@ export default function DashboardLayout({
                             : "text-slate-600"
                         }`}
                       >
-                        {group.title}
+                        <span className="flex items-center gap-2">
+                          {group.title}
+
+                          {group.title ===
+                            "PAKET SATIŞ MERKEZİ" &&
+                            sidebarAlertSummary.unread > 0 && (
+                              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-black text-white">
+                                {sidebarAlertSummary.unread > 99
+                                  ? "99+"
+                                  : sidebarAlertSummary.unread}
+                              </span>
+                            )}
+                        </span>
                       </span>
 
                       <FaChevronDown
@@ -1148,9 +1258,25 @@ export default function DashboardLayout({
                                   <Icon className="text-sm" />
                                 </span>
 
-                                <span className="truncate">
+                                <span className="min-w-0 flex-1 truncate">
                                   {item.label}
                                 </span>
+
+                                {item.href ===
+                                  "/dashboard/package-os/alarm-center" &&
+                                  sidebarAlertSummary.unread > 0 && (
+                                    <span
+                                      className={`ml-auto inline-flex min-w-6 shrink-0 items-center justify-center rounded-full px-2 py-1 text-[10px] font-black ${
+                                        sidebarAlertSummary.critical > 0
+                                          ? "bg-red-500 text-white"
+                                          : "bg-orange-500 text-white"
+                                      }`}
+                                    >
+                                      {sidebarAlertSummary.unread > 99
+                                        ? "99+"
+                                        : sidebarAlertSummary.unread}
+                                    </span>
+                                  )}
                               </Link>
                             );
                           })}

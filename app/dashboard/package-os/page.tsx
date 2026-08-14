@@ -46,6 +46,22 @@ type TaskRow = {
     string | null;
 };
 
+type AlertSummary = {
+  unread: number;
+  critical: number;
+  sla: number;
+  active: number;
+  muted: number;
+};
+
+const emptyAlertSummary: AlertSummary = {
+  unread: 0,
+  critical: 0,
+  sla: 0,
+  active: 0,
+  muted: 0,
+};
+
 const modules = [
   {
     title: "Paket Oluştur",
@@ -104,6 +120,13 @@ const modules = [
     status: "Canlı",
   },
   {
+    title: "Operasyon Alarm Merkezi",
+    description:
+      "Kritik görev ve SLA alarmlarını, okunmamış uyarıları ve sessize alınan kayıtları tek merkezden yönet.",
+    href: "/dashboard/package-os/alarm-center",
+    status: "Canlı",
+  },
+  {
     title: "Tedarikçi Uyarıları",
     description:
       "Yeni atanan ve tedarikçiye bildirilmesi gereken operasyonları takip et.",
@@ -154,11 +177,21 @@ export default function PackageOsPage() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [payables, setPayables] = useState<PayableRow[]>([]);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [alertSummary, setAlertSummary] =
+    useState<AlertSummary>(
+      emptyAlertSummary
+    );
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   const loadDashboard = useCallback(async (companyId: string) => {
-    const [quoteResult, bookingResult, payableResult, taskResult] = await Promise.all([
+    const [
+      quoteResult,
+      bookingResult,
+      payableResult,
+      taskResult,
+      alertResult,
+    ] = await Promise.all([
       supabase
         .from("package_quotes")
         .select("id, created_at, status")
@@ -183,17 +216,58 @@ export default function PackageOsPage() {
         `)
         .eq("company_id", companyId)
         .neq("supplier_room_issue_status", "none"),
+
+      supabase.rpc(
+        "get_package_operation_alert_summary",
+        {
+          p_company_id:
+            companyId,
+        }
+      ),
     ]);
 
     if (quoteResult.error) throw new Error(quoteResult.error.message);
     if (bookingResult.error) throw new Error(bookingResult.error.message);
     if (payableResult.error) throw new Error(payableResult.error.message);
     if (taskResult.error) throw new Error(taskResult.error.message);
+    if (alertResult.error) throw new Error(alertResult.error.message);
 
     setQuotes((quoteResult.data ?? []) as QuoteRow[]);
     setBookings((bookingResult.data ?? []) as BookingRow[]);
     setPayables((payableResult.data ?? []) as PayableRow[]);
     setTasks((taskResult.data ?? []) as TaskRow[]);
+
+    setAlertSummary({
+      unread:
+        Number(
+          alertResult.data?.unread ??
+          0
+        ),
+
+      critical:
+        Number(
+          alertResult.data?.critical ??
+          0
+        ),
+
+      sla:
+        Number(
+          alertResult.data?.sla ??
+          0
+        ),
+
+      active:
+        Number(
+          alertResult.data?.active ??
+          0
+        ),
+
+      muted:
+        Number(
+          alertResult.data?.muted ??
+          0
+        ),
+    });
   }, []);
 
   useEffect(() => {
@@ -358,8 +432,60 @@ export default function PackageOsPage() {
           )}
 
           <Link
-            href="/dashboard/package-os/task-pool"
+            href="/dashboard/package-os/alarm-center"
             className={`mt-6 flex flex-col gap-4 rounded-2xl border p-5 transition hover:-translate-y-0.5 md:flex-row md:items-center md:justify-between ${
+              alertSummary.critical > 0
+                ? "border-red-500/40 bg-red-500/10 shadow-lg shadow-red-500/5"
+                : alertSummary.unread > 0
+                  ? "border-orange-500/30 bg-orange-500/10"
+                  : "border-emerald-500/20 bg-emerald-500/5"
+            }`}
+          >
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-red-300">
+                  OPERASYON ALARM MERKEZİ
+                </p>
+
+                {alertSummary.unread > 0 && (
+                  <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-red-500 px-2 py-1 text-[10px] font-black text-white">
+                    {alertSummary.unread}
+                  </span>
+                )}
+              </div>
+
+              <p className="mt-2 text-xl font-black">
+                {loading
+                  ? "Alarmlar yükleniyor..."
+                  : alertSummary.unread > 0
+                    ? `${alertSummary.unread} okunmamış operasyon alarmı`
+                    : "Okunmamış operasyon alarmı yok"}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-red-500/15 px-3 py-2 text-xs font-black text-red-300">
+                Kritik {loading ? "…" : alertSummary.critical}
+              </span>
+
+              <span className="rounded-full bg-orange-500/15 px-3 py-2 text-xs font-black text-orange-300">
+                SLA {loading ? "…" : alertSummary.sla}
+              </span>
+
+              <span className="rounded-full bg-cyan-500/15 px-3 py-2 text-xs font-black text-cyan-300">
+                Aktif {loading ? "…" : alertSummary.active}
+              </span>
+
+              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-black">
+                Alarm Merkezini Aç →
+              </span>
+            </div>
+          </Link>
+
+
+          <Link
+            href="/dashboard/package-os/task-pool"
+            className={`mt-4 flex flex-col gap-4 rounded-2xl border p-5 transition hover:-translate-y-0.5 md:flex-row md:items-center md:justify-between ${
               stats.overdueTasks > 0 || stats.criticalTasks > 0
                 ? "border-red-500/30 bg-red-500/10"
                 : stats.openTasks > 0
