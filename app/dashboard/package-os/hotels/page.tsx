@@ -647,7 +647,20 @@ export default function PackageHotelsPage() {
     useState(false);
 
 
+
+
   const [
+    editingRateId,
+    setEditingRateId,
+  ] =
+    useState("");
+
+  const [
+    rateActionBusy,
+    setRateActionBusy,
+  ] =
+    useState("");
+const [
     promotionName,
     setPromotionName,
   ] =
@@ -1804,6 +1817,376 @@ export default function PackageHotelsPage() {
   }
 
 
+  function resetRateForm() {
+    setEditingRateId("");
+
+    setRateRoomId("");
+    setRateBoard("room_only");
+
+    setRateFrom("");
+    setRateTo("");
+
+    setRatePriceType("net");
+
+    setRateNet("");
+    setRateList("");
+    setRateDiscount("");
+
+    setRateAllotment("");
+    setRateMinStay("1");
+    setRateReleaseDays("0");
+
+    setRateStopSale(false);
+  }
+
+  function editRate(
+    rate: Rate
+  ) {
+    clearMessages();
+
+    setEditingRateId(
+      rate.id
+    );
+
+    setRateRoomId(
+      rate.room_type_id ??
+      ""
+    );
+
+    setRateBoard(
+      rate.board_type ||
+      "room_only"
+    );
+
+    setRateFrom(
+      rate.valid_from ||
+      ""
+    );
+
+    setRateTo(
+      rate.valid_to ||
+      ""
+    );
+
+    const inputType =
+      rate.price_input_type ===
+      "list_discount"
+        ? "list_discount"
+        : "net";
+
+    setRatePriceType(
+      inputType
+    );
+
+    if (
+      inputType ===
+      "list_discount"
+    ) {
+      setRateList(
+        rate.list_price === null ||
+        rate.list_price === undefined
+          ? ""
+          : String(
+              rate.list_price
+            )
+      );
+
+      setRateDiscount(
+        rate.agency_discount_percent === null ||
+        rate.agency_discount_percent === undefined
+          ? ""
+          : String(
+              rate.agency_discount_percent
+            )
+      );
+
+      setRateNet("");
+    } else {
+      setRateNet(
+        rate.nightly_cost === null ||
+        rate.nightly_cost === undefined
+          ? ""
+          : String(
+              rate.nightly_cost
+            )
+      );
+
+      setRateList("");
+      setRateDiscount("");
+    }
+
+    setRateAllotment(
+      rate.allotment === null ||
+      rate.allotment === undefined
+        ? ""
+        : String(
+            rate.allotment
+          )
+    );
+
+    setRateMinStay(
+      String(
+        rate.minimum_stay ??
+        1
+      )
+    );
+
+    setRateReleaseDays(
+      String(
+        rate.release_days ??
+        0
+      )
+    );
+
+    setRateStopSale(
+      Boolean(
+        rate.stop_sale
+      )
+    );
+
+    window.setTimeout(
+      () => {
+        document
+          .getElementById(
+            "hotel-rate-editor"
+          )
+          ?.scrollIntoView({
+            behavior:
+              "smooth",
+            block:
+              "start",
+          });
+      },
+      50
+    );
+  }
+
+  async function toggleRateStopSale(
+    rate: Rate
+  ) {
+    if (!membership) {
+      return;
+    }
+
+    clearMessages();
+
+    setRateActionBusy(
+      rate.id
+    );
+
+    try {
+      const {
+        error,
+      } =
+        await supabase
+          .from(
+            "package_hotel_rates"
+          )
+          .update({
+            stop_sale:
+              !rate.stop_sale,
+
+            updated_at:
+              new Date()
+                .toISOString(),
+          })
+          .eq(
+            "id",
+            rate.id
+          )
+          .eq(
+            "company_id",
+            membership.company_id
+          );
+
+      if (error) {
+        throw error;
+      }
+
+      setSuccessMessage(
+        rate.stop_sale
+          ? "Fiyat dönemi yeniden satışa açıldı."
+          : "Fiyat dönemi Stop Sale durumuna alındı."
+      );
+
+      await refresh();
+    } catch (
+      caught
+    ) {
+      console.error(
+        caught
+      );
+
+      setErrorMessage(
+        caught instanceof Error
+          ? caught.message
+          : "Stop Sale durumu değiştirilemedi."
+      );
+    } finally {
+      setRateActionBusy("");
+    }
+  }
+
+  async function deactivateRate(
+    rate: Rate
+  ) {
+    if (!membership) {
+      return;
+    }
+
+    const approved =
+      window.confirm(
+        "Bu fiyat dönemini pasife almak istediğinize emin misiniz? Geçmiş teklifler ve kayıtlar korunacaktır."
+      );
+
+    if (!approved) {
+      return;
+    }
+
+    clearMessages();
+
+    setRateActionBusy(
+      rate.id
+    );
+
+    try {
+      const {
+        error,
+      } =
+        await supabase
+          .from(
+            "package_hotel_rates"
+          )
+          .update({
+            is_active:
+              false,
+
+            stop_sale:
+              true,
+
+            updated_at:
+              new Date()
+                .toISOString(),
+          })
+          .eq(
+            "id",
+            rate.id
+          )
+          .eq(
+            "company_id",
+            membership.company_id
+          );
+
+      if (error) {
+        throw error;
+      }
+
+      if (
+        editingRateId ===
+        rate.id
+      ) {
+        resetRateForm();
+      }
+
+      setSuccessMessage(
+        "Fiyat dönemi pasife alındı."
+      );
+
+      await refresh();
+    } catch (
+      caught
+    ) {
+      console.error(
+        caught
+      );
+
+      setErrorMessage(
+        caught instanceof Error
+          ? caught.message
+          : "Fiyat dönemi pasife alınamadı."
+      );
+    } finally {
+      setRateActionBusy("");
+    }
+  }
+
+  async function deleteRate(
+    rate: Rate
+  ) {
+    if (!membership) {
+      return;
+    }
+
+    const approved =
+      window.confirm(
+        "Bu fiyat dönemini kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+      );
+
+    if (!approved) {
+      return;
+    }
+
+    clearMessages();
+
+    setRateActionBusy(
+      rate.id
+    );
+
+    try {
+      const {
+        error,
+      } =
+        await supabase
+          .from(
+            "package_hotel_rates"
+          )
+          .delete()
+          .eq(
+            "id",
+            rate.id
+          )
+          .eq(
+            "company_id",
+            membership.company_id
+          );
+
+      if (error) {
+        throw error;
+      }
+
+      if (
+        editingRateId ===
+        rate.id
+      ) {
+        resetRateForm();
+      }
+
+      setSuccessMessage(
+        "Fiyat dönemi silindi."
+      );
+
+      await refresh();
+    } catch (
+      caught
+    ) {
+      console.error(
+        caught
+      );
+
+      setErrorMessage(
+        caught instanceof Error
+          ? (
+              "Bu fiyat dönemi silinemedi: "
+              + caught.message
+              + " Kullanılmış bir kayıtsa Sil yerine Pasife Al kullanın."
+            )
+          : "Fiyat dönemi silinemedi. Kullanılmış bir kayıtsa Pasife Al kullanın."
+      );
+    } finally {
+      setRateActionBusy("");
+    }
+  }
+
   async function addRate(
     event:
       FormEvent
@@ -1819,9 +2202,7 @@ export default function PackageHotelsPage() {
       return;
     }
 
-
     clearMessages();
-
 
     const room =
       contract.room_types
@@ -1830,7 +2211,6 @@ export default function PackageHotelsPage() {
             item.id ===
             rateRoomId
         );
-
 
     if (
       !room ||
@@ -1845,7 +2225,6 @@ export default function PackageHotelsPage() {
       return;
     }
 
-
     if (
       rateTo <
       rateFrom
@@ -1858,160 +2237,197 @@ export default function PackageHotelsPage() {
       return;
     }
 
-
-    setSaving(
-      true
-    );
-
-
-    const {
-      error,
-    } =
-      await supabase
-        .from(
-          "package_hotel_rates"
-        )
-        .insert({
-          company_id:
-            membership.company_id,
-
-          package_hotel_id:
-            selectedHotelId,
-
-          room_type_id:
-            room.id,
-
-          room_type_name:
-            room.name,
-
-          board_type:
-            rateBoard,
-
-          valid_from:
-            rateFrom,
-
-          valid_to:
-            rateTo,
-
-          occupancy_adults:
-            room.max_adults,
-
-          occupancy_children:
-            room.max_children,
-
-          price_input_type:
-            ratePriceType,
-
-          nightly_cost:
-            ratePriceType ===
-            "net"
-              ? calculatedNet
-              : 0,
-
-          list_price:
-            ratePriceType ===
-            "list_discount"
-              ? num(
-                  rateList
-                )
-              : null,
-
-          agency_discount_percent:
-            ratePriceType ===
-            "list_discount"
-              ? num(
-                  rateDiscount
-                )
-              : null,
-
-          nightly_sale_price:
-            null,
-
-          currency:
-            "TRY",
-
-          allotment:
-            rateAllotment
-              ? num(
-                  rateAllotment
-                )
-              : null,
-
-          minimum_stay:
-            Math.max(
-              1,
-              num(
-                rateMinStay
-              )
-            ),
-
-          release_days:
-            Math.max(
-              0,
-              num(
-                rateReleaseDays
-              )
-            ),
-
-          stop_sale:
-            rateStopSale,
-
-          closed_to_arrival:
-            false,
-
-          closed_to_departure:
-            false,
-
-          source_type:
-            "manual",
-
-          is_active:
-            true,
-
-          updated_at:
-            new Date()
-              .toISOString(),
-        });
-
-
-    if (error) {
-
+    if (
+      calculatedNet <=
+      0
+    ) {
       setErrorMessage(
-        error.message
-      );
-
-      setSaving(
-        false
+        "Geçerli bir otel alış fiyatı girin."
       );
 
       return;
     }
 
-
-    setRateRoomId("");
-    setRateFrom("");
-    setRateTo("");
-    setRateNet("");
-    setRateList("");
-    setRateDiscount("");
-    setRateAllotment("");
-    setRateMinStay("1");
-    setRateReleaseDays("0");
-    setRateStopSale(false);
-
-
-    setSuccessMessage(
-      "Kontrat fiyat dönemi eklendi."
-    );
-
-
-    await refresh();
-
     setSaving(
-      false
+      true
     );
-  }
 
+    try {
+      const ratePayload = {
+        company_id:
+          membership.company_id,
+
+        package_hotel_id:
+          selectedHotelId,
+
+        room_type_id:
+          room.id,
+
+        room_type_name:
+          room.name,
+
+        board_type:
+          rateBoard,
+
+        valid_from:
+          rateFrom,
+
+        valid_to:
+          rateTo,
+
+        occupancy_adults:
+          room.max_adults,
+
+        occupancy_children:
+          room.max_children,
+
+        price_input_type:
+          ratePriceType,
+
+        /*
+         * ÖNEMLİ:
+         * Net girişte de liste+indirim girişinde de
+         * gerçek gecelik alış maliyeti burada tutulur.
+         */
+        nightly_cost:
+          calculatedNet,
+
+        list_price:
+          ratePriceType ===
+          "list_discount"
+            ? num(
+                rateList
+              )
+            : null,
+
+        agency_discount_percent:
+          ratePriceType ===
+          "list_discount"
+            ? num(
+                rateDiscount
+              )
+            : null,
+
+        nightly_sale_price:
+          null,
+
+        currency:
+          "TRY",
+
+        allotment:
+          rateAllotment
+            ? num(
+                rateAllotment
+              )
+            : null,
+
+        minimum_stay:
+          Math.max(
+            1,
+            num(
+              rateMinStay
+            )
+          ),
+
+        release_days:
+          Math.max(
+            0,
+            num(
+              rateReleaseDays
+            )
+          ),
+
+        stop_sale:
+          rateStopSale,
+
+        closed_to_arrival:
+          false,
+
+        closed_to_departure:
+          false,
+
+        source_type:
+          "manual",
+
+        is_active:
+          true,
+
+        updated_at:
+          new Date()
+            .toISOString(),
+      };
+
+      if (
+        editingRateId
+      ) {
+        const {
+          error,
+        } =
+          await supabase
+            .from(
+              "package_hotel_rates"
+            )
+            .update(
+              ratePayload
+            )
+            .eq(
+              "id",
+              editingRateId
+            )
+            .eq(
+              "company_id",
+              membership.company_id
+            );
+
+        if (error) {
+          throw error;
+        }
+
+        setSuccessMessage(
+          "Kontrat fiyat dönemi güncellendi."
+        );
+      } else {
+        const {
+          error,
+        } =
+          await supabase
+            .from(
+              "package_hotel_rates"
+            )
+            .insert(
+              ratePayload
+            );
+
+        if (error) {
+          throw error;
+        }
+
+        setSuccessMessage(
+          "Kontrat fiyat dönemi eklendi."
+        );
+      }
+
+      resetRateForm();
+
+      await refresh();
+    } catch (
+      caught
+    ) {
+      console.error(
+        caught
+      );
+
+      setErrorMessage(
+        caught instanceof Error
+          ? caught.message
+          : "Fiyat dönemi kaydedilemedi."
+      );
+    } finally {
+      setSaving(
+        false
+      );
+    }
+  }
 
   async function addPromotion(
     event:
@@ -3972,6 +4388,7 @@ export default function PackageHotelsPage() {
                         <div className="mt-5 grid gap-5 xl:grid-cols-[450px_1fr]">
 
                           <form
+                              id="hotel-rate-editor"
                             onSubmit={
                               addRate
                             }
@@ -3985,7 +4402,11 @@ export default function PackageHotelsPage() {
                               </p>
 
                               <h3 className="mt-2 text-xl font-black">
-                                Yeni Fiyat Dönemi
+                                {
+                                  editingRateId
+                                    ? "Fiyat Dönemini Düzenle"
+                                    : "Yeni Fiyat Dönemi"
+                                }
                               </h3>
 
                               <p className="mt-2 text-sm leading-6 text-slate-400">
@@ -4504,10 +4925,33 @@ export default function PackageHotelsPage() {
                               >
                                 {
                                   saving
-                                    ? "Kaydediliyor..."
-                                    : "Fiyat Dönemini Kaydet"
+                                    ? (
+                                        editingRateId
+                                          ? "Güncelleniyor..."
+                                          : "Kaydediliyor..."
+                                      )
+                                    : (
+                                        editingRateId
+                                          ? "Fiyat Dönemini Güncelle"
+                                          : "Fiyat Dönemini Kaydet"
+                                      )
                                 }
                               </button>
+
+                              {
+                                editingRateId &&
+                                (
+                                  <button
+                                    type="button"
+                                    onClick={
+                                      resetRateForm
+                                    }
+                                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-black text-slate-300 transition hover:border-white/20 hover:bg-slate-800"
+                                  >
+                                    Düzenlemeyi İptal Et
+                                  </button>
+                                )
+                              }
 
                             </div>
 
@@ -4563,6 +5007,83 @@ export default function PackageHotelsPage() {
                                             }
                                             className="rounded-[22px] border border-white/10 bg-slate-900 p-5"
                                           >
+
+                                              <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+
+                                                <button
+                                                  type="button"
+                                                  disabled={
+                                                    rateActionBusy ===
+                                                    rate.id
+                                                  }
+                                                  onClick={() =>
+                                                    editRate(
+                                                      rate
+                                                    )
+                                                  }
+                                                  className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-black text-orange-300 transition hover:bg-orange-500/20 disabled:opacity-40"
+                                                >
+                                                  Düzenle
+                                                </button>
+
+                                                <button
+                                                  type="button"
+                                                  disabled={
+                                                    rateActionBusy ===
+                                                    rate.id
+                                                  }
+                                                  onClick={() =>
+                                                    toggleRateStopSale(
+                                                      rate
+                                                    )
+                                                  }
+                                                  className={`rounded-xl px-4 py-2 text-xs font-black transition disabled:opacity-40 ${
+                                                    rate.stop_sale
+                                                      ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                                                      : "border border-amber-500/20 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+                                                  }`}
+                                                >
+                                                  {
+                                                    rate.stop_sale
+                                                      ? "Satışa Aç"
+                                                      : "Stop Sale"
+                                                  }
+                                                </button>
+
+                                                <button
+                                                  type="button"
+                                                  disabled={
+                                                    rateActionBusy ===
+                                                    rate.id
+                                                  }
+                                                  onClick={() =>
+                                                    deactivateRate(
+                                                      rate
+                                                    )
+                                                  }
+                                                  className="rounded-xl border border-slate-500/20 bg-slate-500/10 px-4 py-2 text-xs font-black text-slate-300 transition hover:bg-slate-500/20 disabled:opacity-40"
+                                                >
+                                                  Pasife Al
+                                                </button>
+
+                                                <button
+                                                  type="button"
+                                                  disabled={
+                                                    rateActionBusy ===
+                                                    rate.id
+                                                  }
+                                                  onClick={() =>
+                                                    deleteRate(
+                                                      rate
+                                                    )
+                                                  }
+                                                  className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-xs font-black text-red-300 transition hover:bg-red-500/20 disabled:opacity-40"
+                                                >
+                                                  Sil
+                                                </button>
+
+                                              </div>
+
 
                                             <div className="flex flex-wrap items-start justify-between gap-4">
 
