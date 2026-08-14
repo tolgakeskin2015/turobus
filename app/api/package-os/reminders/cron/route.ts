@@ -124,6 +124,7 @@ async function run(
       reminderResult,
       overdueResult,
       taskAlertResult,
+      escalationResult,
     ] =
       await Promise.all([
 
@@ -145,6 +146,14 @@ async function run(
 
         admin.rpc(
           "run_package_task_sla_alerts",
+          {
+            p_now:
+              executionTime,
+          }
+        ),
+
+        admin.rpc(
+          "run_package_operation_alert_escalations",
           {
             p_now:
               executionTime,
@@ -174,6 +183,13 @@ async function run(
     }
 
 
+    if (
+      escalationResult.error
+    ) {
+      throw escalationResult.error;
+    }
+
+
     const whatsappQueueResult =
       await admin.rpc(
         "enqueue_package_whatsapp_messages"
@@ -199,6 +215,9 @@ async function run(
 
       taskAlerts:
         taskAlertResult.data,
+
+      escalations:
+        escalationResult.data,
 
       whatsappQueue:
         whatsappQueueResult.data,

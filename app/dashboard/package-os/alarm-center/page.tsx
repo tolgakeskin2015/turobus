@@ -51,6 +51,21 @@ type AlertRow = {
   resolved_at:
     string | null;
 
+  escalation_level:
+    number;
+
+  escalated_at:
+    string | null;
+
+  escalated_to:
+    string | null;
+
+  escalation_target_role:
+    string | null;
+
+  escalation_target_name:
+    string | null;
+
   metadata:
     Record<string, unknown>;
 
@@ -183,7 +198,7 @@ PackageAlarmCenterPage() {
 
           const result =
             await supabase.rpc(
-              "get_package_operation_alert_center",
+              "get_package_operation_alert_center_v2",
               {
                 p_company_id:
                   membership.company_id,
@@ -327,6 +342,32 @@ PackageAlarmCenterPage() {
 
             if (
               filter ===
+              "escalated"
+            ) {
+              return (
+                alert.escalation_level >
+                  1
+                &&
+                !alert.resolved_at
+              );
+            }
+
+
+            if (
+              filter ===
+              "level3"
+            ) {
+              return (
+                alert.escalation_level ===
+                  3
+                &&
+                !alert.resolved_at
+              );
+            }
+
+
+            if (
+              filter ===
               "resolved"
             ) {
               return Boolean(
@@ -388,6 +429,24 @@ PackageAlarmCenterPage() {
                 alert.muted_until as string
               ).getTime() >
                 now
+          ).length,
+
+        escalated:
+          alerts.filter(
+            alert =>
+              alert.escalation_level >
+                1
+              &&
+              !alert.resolved_at
+          ).length,
+
+        level3:
+          alerts.filter(
+            alert =>
+              alert.escalation_level ===
+                3
+              &&
+              !alert.resolved_at
           ).length,
 
       }),
@@ -496,7 +555,7 @@ PackageAlarmCenterPage() {
           </div>
 
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
 
             <Stat
               label="Okunmamış"
@@ -534,6 +593,28 @@ PackageAlarmCenterPage() {
               }
             />
 
+            <Stat
+              label="Eskalasyonda"
+              value={
+                stats.escalated
+              }
+              danger={
+                stats.escalated >
+                0
+              }
+            />
+
+            <Stat
+              label="L3 Yönetim"
+              value={
+                stats.level3
+              }
+              danger={
+                stats.level3 >
+                0
+              }
+            />
+
           </div>
 
         </section>
@@ -562,6 +643,8 @@ PackageAlarmCenterPage() {
                 ["critical", "Kritik"],
                 ["sla", "SLA"],
                 ["muted", "Sessizde"],
+                ["escalated", "Eskalasyonda"],
+                ["level3", "L3 Yönetim"],
                 ["resolved", "Çözüldü"],
                 ["all", "Tümü"],
               ].map(
@@ -671,6 +754,23 @@ PackageAlarmCenterPage() {
                                   }
                                 </span>
 
+
+                                <span
+                                  className={`rounded-full px-3 py-1 text-[10px] font-black ${
+                                    alert.escalation_level ===
+                                      3
+                                      ? "bg-red-600 text-white"
+                                      : alert.escalation_level ===
+                                          2
+                                        ? "bg-amber-500/20 text-amber-300"
+                                        : "bg-slate-700 text-slate-300"
+                                  }`}
+                                >
+                                  {
+                                    `L${alert.escalation_level}`
+                                  }
+                                </span>
+
                                 {
                                   muted &&
                                   (
@@ -744,6 +844,58 @@ PackageAlarmCenterPage() {
                                   )
                                 }
                               </div>
+
+
+                              {
+                                alert.escalation_level >
+                                  1 &&
+                                (
+                                  <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+
+                                    <div className="text-[10px] font-black uppercase tracking-wider text-red-300">
+                                      Eskalasyon
+                                    </div>
+
+                                    <div className="mt-1 text-sm font-black">
+                                      {
+                                        `L${alert.escalation_level}`
+                                      }
+                                      {" · "}
+                                      {
+                                        alert.escalation_level ===
+                                          3
+                                          ? "Firma Sahibi"
+                                          : "Operasyon Müdürü"
+                                      }
+                                    </div>
+
+                                    {
+                                      alert.escalation_target_name &&
+                                      (
+                                        <div className="mt-1 text-xs text-slate-400">
+                                          {
+                                            alert.escalation_target_name
+                                          }
+                                        </div>
+                                      )
+                                    }
+
+                                    {
+                                      alert.escalated_at &&
+                                      (
+                                        <div className="mt-1 text-xs text-slate-500">
+                                          {
+                                            dateTime(
+                                              alert.escalated_at
+                                            )
+                                          }
+                                        </div>
+                                      )
+                                    }
+
+                                  </div>
+                                )
+                              }
 
 
                               {
