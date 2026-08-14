@@ -1,10 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const baseUrl = process.env.PACKAGE_OS_BASE_URL || "http://localhost:3000";
+const configuredBaseUrl = process.env.PACKAGE_OS_BASE_URL;
+const baseUrls = configuredBaseUrl
+  ? [configuredBaseUrl]
+  : ["http://127.0.0.1:3000", "http://localhost:3000"];
 
 let failed = 0;
 let passed = 0;
+let activeBaseUrl = baseUrls[0];
 
 function ok(name: string, detail = "") {
   passed += 1;
@@ -16,12 +20,62 @@ function fail(name: string, detail = "") {
   console.error(`❌ ${name}${detail ? ` — ${detail}` : ""}`);
 }
 
+function errorDetail(error: unknown) {
+  if (!(error instanceof Error)) return "Bilinmeyen bağlantı hatası";
+
+  const cause = (error as Error & {
+    cause?: {
+      code?: string;
+      address?: string;
+      port?: number;
+      message?: string;
+    };
+  }).cause;
+
+  const extras = [
+    cause?.code,
+    cause?.address,
+    cause?.port ? `port=${cause.port}` : undefined,
+    cause?.message,
+  ].filter(Boolean);
+
+  return extras.length > 0
+    ? `${error.message} (${extras.join(" · ")})`
+    : error.message;
+}
+
+async function resolveBaseUrl() {
+  for (const candidate of baseUrls) {
+    try {
+      const response = await fetch(`${candidate}/api/locations/turkey`, {
+        signal: AbortSignal.timeout(5000),
+      });
+
+      if (response.ok) {
+        activeBaseUrl = candidate;
+        console.log(`✅ Sunucu bulundu — ${candidate}`);
+        return true;
+      }
+    } catch (error) {
+      console.log(`ℹ️ ${candidate} erişilemedi — ${errorDetail(error)}`);
+    }
+  }
+
+  fail(
+    "Dev server bağlantısı",
+    "3000 portunda erişilebilir Next.js sunucusu bulunamadı"
+  );
+
+  return false;
+}
+
 async function checkRoute(route: string) {
   const name = `Route ${route}`;
 
   try {
-    const response = await fetch(`${baseUrl}${route}`, {
+    const response = await fetch(`${activeBaseUrl}${route}`, {
       redirect: "manual",
+      signal: AbortSignal.timeout(10000),
       headers: {
         "user-agent": "turobus-package-os-smoke-test",
       },
@@ -34,10 +88,7 @@ async function checkRoute(route: string) {
 
     fail(name, `HTTP ${response.status}`);
   } catch (error) {
-    fail(
-      name,
-      error instanceof Error ? error.message : "Bilinmeyen bağlantı hatası"
-    );
+    fail(name, errorDetail(error));
   }
 }
 
@@ -45,7 +96,9 @@ async function checkTurkeyLocations() {
   const name = "Türkiye il/ilçe API";
 
   try {
-    const response = await fetch(`${baseUrl}/api/locations/turkey`);
+    const response = await fetch(`${activeBaseUrl}/api/locations/turkey`, {
+      signal: AbortSignal.timeout(10000),
+    });
 
     if (!response.ok) {
       fail(name, `HTTP ${response.status}`);
@@ -86,10 +139,7 @@ async function checkTurkeyLocations() {
 
     ok(name, "81 il ve Muğla > Fethiye doğrulandı");
   } catch (error) {
-    fail(
-      name,
-      error instanceof Error ? error.message : "Bilinmeyen API hatası"
-    );
+    fail(name, errorDetail(error));
   }
 }
 
@@ -114,20 +164,26 @@ function checkFileContains(file: string, needles: string[]) {
 
 async function main() {
   console.log("\nTUROBUS PACKAGE OS — SMOKE TEST");
-  console.log(`Base URL: ${baseUrl}\n`);
+  console.log(`Aday URL: ${baseUrls.join(" , ")}\n`);
 
-  await checkRoute("/dashboard/package-os");
-  await checkRoute("/dashboard/package-os/builder");
-  await checkRoute("/dashboard/package-os/hotels");
-  await checkRoute("/dashboard/package-os/quotes");
-  await checkRoute("/dashboard/package-os/bookings");
-  await checkRoute("/dashboard/package-os/supplier-alerts");
-  await checkRoute("/dashboard/package-os/supplier-portals");
-  await checkRoute("/dashboard/package-os/vouchers");
-  await checkRoute("/dashboard/package-os/payables");
-  await checkRoute("/dashboard/package-os/whatsapp-queue");
+  const serverReady = await resolveBaseUrl();
 
-  await checkTurkeyLocations();
+  if (serverReady) {
+    console.log(`Aktif URL: ${activeBaseUrl}\n`);
+
+    await checkRoute("/dashboard/package-os");
+    await checkRoute("/dashboard/package-os/builder");
+    await checkRoute("/dashboard/package-os/hotels");
+    await checkRoute("/dashboard/package-os/quotes");
+    await checkRoute("/dashboard/package-os/bookings");
+    await checkRoute("/dashboard/package-os/supplier-alerts");
+    await checkRoute("/dashboard/package-os/supplier-portals");
+    await checkRoute("/dashboard/package-os/vouchers");
+    await checkRoute("/dashboard/package-os/payables");
+    await checkRoute("/dashboard/package-os/whatsapp-queue");
+
+    await checkTurkeyLocations();
+  }
 
   checkFileContains(
     "app/dashboard/package-os/bookings/[id]/components/BookingActionCenter.tsx",
