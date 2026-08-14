@@ -171,6 +171,25 @@ type BookingItem = {
       note?: string;
     }>;
 
+  supplier_room_issue_status:
+    | "none"
+    | "open"
+    | "waiting_supplier"
+    | "assigned"
+    | "resolved";
+
+  supplier_room_issue_note:
+    string | null;
+
+  supplier_room_issue_assigned_to:
+    string | null;
+
+  supplier_room_issue_opened_at:
+    string | null;
+
+  supplier_room_issue_resolved_at:
+    string | null;
+
   supplier_due_date:
     string |
     null;
@@ -654,6 +673,11 @@ PackageBookingDetailPage() {
                 supplier_confirmation_code,
                 supplier_note,
                 supplier_room_confirmation,
+                supplier_room_issue_status,
+                supplier_room_issue_note,
+                supplier_room_issue_assigned_to,
+                supplier_room_issue_opened_at,
+                supplier_room_issue_resolved_at,
                 supplier_due_date,
                 voucher_created_at,
                 cost_snapshot
@@ -1252,8 +1276,35 @@ PackageBookingDetailPage() {
                 supplier_room_confirmation:
                   item.supplier_room_confirmation ||
                   [],
+
+                supplier_room_issue_status:
+                  item.supplier_room_issue_status ||
+                  "none",
+
+                supplier_room_issue_note:
+                  item.supplier_room_issue_note,
+
+                supplier_room_issue_assigned_to:
+                  item.supplier_room_issue_assigned_to,
+
+                supplier_room_issue_opened_at:
+                  item.supplier_room_issue_opened_at,
+
+                supplier_room_issue_resolved_at:
+                  item.supplier_room_issue_resolved_at,
               })
             )
+          }
+
+
+          onChanged={
+            async () => {
+              if (membership) {
+                await loadAll(
+                  membership.company_id
+                );
+              }
+            }
           }
         />
 
