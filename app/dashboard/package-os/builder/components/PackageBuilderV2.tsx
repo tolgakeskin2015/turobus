@@ -464,6 +464,34 @@ export default function PackageBuilderV2() {
       1
     );
 
+  const selectedHotel =
+    useMemo(
+      () =>
+        hotels.find(
+          hotel =>
+            hotel.id ===
+            selectedHotelId
+        ),
+      [
+        hotels,
+        selectedHotelId,
+      ]
+    );
+
+  const selectedRate =
+    useMemo(
+      () =>
+        rates.find(
+          rate =>
+            rate.id ===
+            selectedRateId
+        ),
+      [
+        rates,
+        selectedRateId,
+      ]
+    );
+
   useEffect(
     () => {
       async function load() {
@@ -616,11 +644,17 @@ export default function PackageBuilderV2() {
               return false;
             }
 
+            const lastNight =
+              addDaysISO(
+                checkOut,
+                -1
+              );
+
             if (
               rate.valid_from >
                 checkIn ||
               rate.valid_to <
-                checkOut
+                lastNight
             ) {
               return false;
             }
@@ -1531,22 +1565,88 @@ export default function PackageBuilderV2() {
                 </Field>
               </div>
 
+              {selectedHotelId &&
+                checkIn &&
+                checkOut &&
+                availableRates.length === 0 && (
+                  <div className="mt-5 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5">
+                    <div className="font-black text-amber-200">
+                      Bu tarihler için uygun kontrat fiyatı bulunamadı.
+                    </div>
+
+                    <div className="mt-2 text-sm leading-6 text-amber-200/70">
+                      Seçilen tarih, kişi sayısı, minimum gece,
+                      kontenjan veya Stop Sale kuralı nedeniyle uygun
+                      fiyat olmayabilir.
+                    </div>
+
+                    <Link
+                      href="/dashboard/package-os/hotels"
+                      className="mt-4 inline-flex rounded-xl bg-amber-400 px-4 py-2 text-xs font-black text-slate-950"
+                    >
+                      Paket Otelleri · Kontratları Kontrol Et
+                    </Link>
+                  </div>
+                )}
+
               {selectedRateId && (
-                <RateSummary
-                  rate={
-                    rates.find(
-                      item =>
-                        item.id ===
-                        selectedRateId
-                    )
-                  }
-                  canViewCosts={
-                    canViewCosts
-                  }
-                  adults={
-                    adults
-                  }
-                />
+                <>
+                  <RateSummary
+                    rate={
+                      selectedRate
+                    }
+                    canViewCosts={
+                      canViewCosts
+                    }
+                    adults={
+                      adults
+                    }
+                  />
+
+                  <div className="mt-4 rounded-2xl border border-orange-500/20 bg-orange-500/5 p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <div className="text-xs font-black uppercase tracking-wider text-orange-400">
+                          Seçilen Kontrat
+                        </div>
+
+                        <div className="mt-2 text-lg font-black">
+                          {
+                            selectedHotel?.name ||
+                            "Otel"
+                          }
+                        </div>
+
+                        <div className="mt-1 text-sm text-slate-400">
+                          {
+                            selectedRate?.room_type_name
+                          }
+                          {" · "}
+                          {
+                            selectedRate
+                              ? (
+                                  boardLabels[
+                                    selectedRate.board_type
+                                  ] ||
+                                  selectedRate.board_type
+                                )
+                              : ""
+                          }
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="text-xs text-slate-500">
+                          Konaklama
+                        </div>
+
+                        <div className="mt-1 font-black text-orange-300">
+                          {nights} gece · {people} misafir
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
             </Panel>
 
@@ -1948,12 +2048,73 @@ export default function PackageBuilderV2() {
                         }
                       />
 
+                      <HotelCostBreakdown
+                        price={
+                          price
+                        }
+                        rate={
+                          selectedRate
+                        }
+                        nights={
+                          nights
+                        }
+                        people={
+                          people
+                        }
+                      />
+
                       <SummaryRow
                         label="Aktivite Alış"
                         value={
                           price.activity_cost
                         }
                       />
+
+                      {price.activity_lines &&
+                        price.activity_lines.length > 0 && (
+                          <div className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
+                            <div className="mb-3 text-xs font-black uppercase tracking-wider text-slate-500">
+                              Aktivite Hesabı
+                            </div>
+
+                            <div className="space-y-3">
+                              {price.activity_lines.map(
+                                line => (
+                                  <div
+                                    key={
+                                      line.id
+                                    }
+                                    className="flex items-start justify-between gap-4 text-xs"
+                                  >
+                                    <div className="min-w-0">
+                                      <div className="font-black text-slate-300">
+                                        {
+                                          line.name
+                                        }
+                                      </div>
+
+                                      <div className="mt-1 text-slate-500">
+                                        {money(
+                                          line.unit_cost
+                                        )}
+                                        {" × "}
+                                        {
+                                          line.quantity
+                                        }
+                                      </div>
+                                    </div>
+
+                                    <div className="shrink-0 font-black text-slate-200">
+                                      {money(
+                                        line.total_cost
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                       <SummaryRow
                         label="Diğer Giderler"
@@ -1981,7 +2142,7 @@ export default function PackageBuilderV2() {
                       />
 
                       <SummaryRow
-                        label="KDV Öncesi"
+                        label="Kârlı Tutar / KDV Matrahı"
                         value={
                           price.subtotal_before_tax
                         }
@@ -1994,12 +2155,21 @@ export default function PackageBuilderV2() {
                         }
                       />
 
+                      <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 text-xs text-slate-400">
+                        KDV, kâr eklenmiş tutar üzerinden hesaplanır.
+                      </div>
+
                       <SummaryRow
                         label={`Taksit / Komisyon %${price.installment_rate ?? 0}`}
                         value={
                           price.installment_amount
                         }
                       />
+
+                      <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 text-xs text-slate-400">
+                        Taksit / komisyon, KDV dahil tutar üzerinden
+                        hesaplanarak nihai paket fiyatına eklenir.
+                      </div>
                     </>
                   )}
 
@@ -2408,6 +2578,100 @@ function Field({
 
       {children}
     </label>
+  );
+}
+
+function HotelCostBreakdown({
+  price,
+  rate,
+  nights,
+  people,
+}: {
+  price: PriceResult;
+  rate:
+    Rate |
+    undefined;
+  nights: number;
+  people: number;
+}) {
+  if (
+    !rate ||
+    !price.can_view_costs
+  ) {
+    return null;
+  }
+
+  const nightly =
+    Number(
+      price.hotel_base_nightly_cost ??
+      rate.nightly_cost ??
+      0
+    );
+
+  const total =
+    Number(
+      price.hotel_cost ??
+      0
+    );
+
+  const factor =
+    Number(
+      price.hotel_factor ??
+      1
+    );
+
+  let formula =
+    "";
+
+  if (
+    rate.pricing_basis ===
+    "per_person"
+  ) {
+    formula =
+      `${money(nightly)} kişi başı/gece × ${nights} gece × ${people} kişi`;
+  } else if (
+    rate.pricing_basis ===
+    "occupancy_factor"
+  ) {
+    formula =
+      `${money(nightly)} baz fiyat × ${factor} doluluk katsayısı × ${nights} gece`;
+  } else {
+    formula =
+      `${money(nightly)} oda/gece × ${nights} gece`;
+  }
+
+  return (
+    <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-4">
+      <div className="text-xs font-black uppercase tracking-wider text-orange-400">
+        Otel Hesap Formülü
+      </div>
+
+      <div className="mt-2 text-sm font-black leading-6 text-slate-200">
+        {formula}
+      </div>
+
+      <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3">
+        <span className="text-xs text-slate-500">
+          Otel Toplam Maliyeti
+        </span>
+
+        <span className="font-black text-orange-300">
+          {money(
+            total
+          )}
+        </span>
+      </div>
+
+      <div className="mt-2 text-[11px] leading-5 text-slate-500">
+        Fiyat türü:{" "}
+        {
+          pricingBasisLabels[
+            rate.pricing_basis
+          ] ||
+          rate.pricing_basis
+        }
+      </div>
+    </div>
   );
 }
 
