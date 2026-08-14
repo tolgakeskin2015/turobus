@@ -127,6 +127,13 @@ const modules = [
     status: "Canlı",
   },
   {
+    title: "Yönetim Performansı",
+    description:
+      "L2/L3 eskalasyonlarını, yönetici müdahale sürelerini ve operasyon performansını ölç.",
+    href: "/dashboard/package-os/performance",
+    status: "Canlı",
+  },
+  {
     title: "Tedarikçi Uyarıları",
     description:
       "Yeni atanan ve tedarikçiye bildirilmesi gereken operasyonları takip et.",

@@ -126,11 +126,50 @@ async function checkTurkeyLocations() {
     const mugla = rows.find((row) => {
       if (!row || typeof row !== "object") return false;
       return (row as { name?: string }).name === "Muğla";
-    }) as { districts?: Array<{ name?: string }> } | undefined;
+    }) as { id?: number; name?: string } | undefined;
 
-    const hasFethiye = Boolean(
-      mugla?.districts?.some((district) => district.name === "Fethiye")
-    );
+    if (!mugla?.id) {
+      fail(name, "Muğla ili bulunamadı");
+      return;
+    }
+
+    const districtResponse =
+      await fetch(
+        `${activeBaseUrl}/api/locations/turkey?provinceId=${mugla.id}`,
+        {
+          signal: AbortSignal.timeout(10000),
+        }
+      );
+
+    if (!districtResponse.ok) {
+      fail(
+        name,
+        `Muğla ilçeleri alınamadı: HTTP ${districtResponse.status}`
+      );
+      return;
+    }
+
+    const districtPayload =
+      (await districtResponse.json()) as {
+        data?: Array<{
+          id?: number;
+          name?: string;
+        }>;
+      };
+
+    const districts =
+      Array.isArray(
+        districtPayload.data
+      )
+        ? districtPayload.data
+        : [];
+
+    const hasFethiye =
+      districts.some(
+        district =>
+          district.name ===
+          "Fethiye"
+      );
 
     if (!hasFethiye) {
       fail(name, "Muğla > Fethiye bulunamadı");

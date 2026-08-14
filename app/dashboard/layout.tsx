@@ -656,6 +656,16 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
+        href: "/dashboard/package-os/performance",
+        label: "Yönetim Performansı",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+        ],
+      },
+      {
         href: "/dashboard/package-os/vouchers",
         label: "Voucher & QR",
         icon: FaClipboardList,
