@@ -77,6 +77,11 @@ type Booking = {
 
   notes: string | null;
 
+  room_plan: Array<{
+    adults: number;
+    children: number;
+  }>;
+
   quote_snapshot: Record<
     string,
     unknown
@@ -101,6 +106,9 @@ type Guest = {
   phone: string | null;
   email: string | null;
   address: string | null;
+
+  child_age:
+    number | null;
 
   is_primary: boolean;
 
@@ -563,6 +571,7 @@ PackageBookingDetailPage() {
                 payment_status,
                 status,
                 notes,
+                room_plan,
                 quote_snapshot,
                 quote_snapshot_created_at,
                 booked_at
@@ -589,6 +598,7 @@ PackageBookingDetailPage() {
                 phone,
                 email,
                 address,
+                child_age,
                 is_primary,
                 snapshot_locked_at
               `)
@@ -1298,6 +1308,132 @@ PackageBookingDetailPage() {
             </Panel>
 
 
+            {
+              booking.room_plan &&
+              booking.room_plan.length >
+                0 &&
+              (
+                <Panel
+                  title={`Oda Dağılımı · ${booking.room_plan.length} Oda`}
+                >
+
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+
+                    {
+                      booking.room_plan.map(
+                        (
+                          room,
+                          index
+                        ) => {
+
+                          const occupancy =
+                            Number(
+                              room.adults ||
+                              0
+                            ) +
+                            Number(
+                              room.children ||
+                              0
+                            );
+
+                          const roomLabel =
+                            occupancy === 1
+                              ? "Single"
+                              : occupancy === 2
+                                ? "Double"
+                                : occupancy === 3
+                                  ? "Triple"
+                                  : `${occupancy} Kişilik`;
+
+                          return (
+                            <div
+                              key={
+                                index
+                              }
+                              className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-5"
+                            >
+
+                              <div className="flex items-start justify-between gap-4">
+
+                                <div>
+
+                                  <p className="text-xs font-black uppercase tracking-wider text-orange-400">
+                                    {
+                                      index +
+                                      1
+                                    }
+                                    . ODA
+                                  </p>
+
+                                  <h3 className="mt-2 text-xl font-black">
+                                    {
+                                      roomLabel
+                                    }
+                                  </h3>
+
+                                </div>
+
+                                <span className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-black text-slate-300">
+                                  {
+                                    occupancy
+                                  }
+                                  {" kişi"}
+                                </span>
+
+                              </div>
+
+
+                              <div className="mt-5 grid grid-cols-2 gap-3">
+
+                                <div className="rounded-xl bg-slate-950 p-3">
+
+                                  <div className="text-[10px] font-black uppercase text-slate-500">
+                                    Yetişkin
+                                  </div>
+
+                                  <div className="mt-1 text-xl font-black">
+                                    {
+                                      room.adults
+                                    }
+                                  </div>
+
+                                </div>
+
+
+                                <div className="rounded-xl bg-slate-950 p-3">
+
+                                  <div className="text-[10px] font-black uppercase text-slate-500">
+                                    Çocuk
+                                  </div>
+
+                                  <div className="mt-1 text-xl font-black">
+                                    {
+                                      room.children
+                                    }
+                                  </div>
+
+                                </div>
+
+                              </div>
+
+                            </div>
+                          );
+                        }
+                      )
+                    }
+
+                  </div>
+
+
+                  <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-300">
+                    🔒 Oda dağılımı teklif anındaki fiyatlandırmadan rezervasyona snapshot olarak aktarılmıştır.
+                  </div>
+
+                </Panel>
+              )
+            }
+
+
             <Panel
               title={`Misafirler · ${guests.length}`}
             >
@@ -1343,6 +1479,21 @@ PackageBookingDetailPage() {
                                     : "YETİŞKİN"
                                 }
                               </span>
+
+                              {
+                                guest.guest_type ===
+                                  "child" &&
+                                guest.child_age !==
+                                  null &&
+                                (
+                                  <span className="rounded-full bg-cyan-500/10 px-2 py-1 text-[10px] font-black text-cyan-300">
+                                    {
+                                      guest.child_age
+                                    }
+                                    {" YAŞ"}
+                                  </span>
+                                )
+                              }
 
                             </div>
 
