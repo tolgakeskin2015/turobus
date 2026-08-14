@@ -158,6 +158,19 @@ async function run(
     }
 
 
+    const whatsappQueueResult =
+      await admin.rpc(
+        "enqueue_package_whatsapp_messages"
+      );
+
+
+    if (
+      whatsappQueueResult.error
+    ) {
+      throw whatsappQueueResult.error;
+    }
+
+
     return NextResponse.json({
       ok:
         true,
@@ -167,6 +180,9 @@ async function run(
 
       overdue:
         overdueResult.data,
+
+      whatsappQueue:
+        whatsappQueueResult.data,
 
       executedAt:
         executionTime,

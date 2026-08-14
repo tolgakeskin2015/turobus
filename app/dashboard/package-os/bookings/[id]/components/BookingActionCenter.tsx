@@ -931,6 +931,73 @@ BookingActionCenter({
   }
 
 
+  async function queueSupplierWhatsApp(
+    item: Item
+  ) {
+    setMessage("");
+    setErrorMessage("");
+
+    if (
+      !item.supplier_id
+    ) {
+      setErrorMessage(
+        "Önce hizmete tedarikçi atanmalıdır."
+      );
+
+      return;
+    }
+
+    setBusy(
+      `whatsapp-${item.id}`
+    );
+
+    try {
+      const {
+        data,
+        error,
+      } =
+        await supabase
+          .rpc(
+            "package_booking_queue_supplier_whatsapp",
+            {
+              p_booking_item_id:
+                item.id,
+            }
+          );
+
+      if (error) {
+        throw new Error(
+          error.message
+        );
+      }
+
+      const result =
+        data as {
+          supplier_name?:
+            string;
+        };
+
+      setMessage(
+        result.supplier_name
+          ? `${result.supplier_name} için WhatsApp mesajı kuyruğa alındı.`
+          : "WhatsApp mesajı kuyruğa alındı."
+      );
+
+      await refreshAll();
+    } catch (
+      error
+    ) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "WhatsApp mesajı hazırlanamadı."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+
   async function sendSupplierRequest(
     item: Item
   ) {
@@ -1989,6 +2056,25 @@ BookingActionCenter({
 
 
                     <div className="mt-5 flex flex-wrap gap-2">
+
+                      <button
+                        type="button"
+                        disabled={
+                          !item.supplier_id ||
+                          busy ===
+                            `whatsapp-${item.id}`
+                        }
+                        onClick={
+                          () =>
+                            void queueSupplierWhatsApp(
+                              item
+                            )
+                        }
+                        className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-2 text-xs font-black text-green-300 disabled:opacity-40"
+                      >
+                        WhatsApp Talebi Gönder
+                      </button>
+
 
                       <button
                         type="button"
