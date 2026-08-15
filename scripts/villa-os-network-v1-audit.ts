@@ -1,6 +1,14 @@
 import fs from "node:fs";
 
-const sql = fs.readFileSync("supabase/migrations/20260815180000_villa_os_network_v1.sql", "utf8");
+const migrationDir = "supabase/migrations";
+const sql = fs
+  .readdirSync(migrationDir)
+  .filter((name) => name.endsWith(".sql"))
+  .filter((name) => name.includes("villa_os") || name.includes("villa_os_network"))
+  .sort()
+  .map((name) => fs.readFileSync(`${migrationDir}/${name}`, "utf8"))
+  .join("\n\n");
+
 const dashboard = fs.readFileSync("app/dashboard/villa-os/page.tsx", "utf8");
 const guest = fs.readFileSync("app/villa-misafir/[token]/page.tsx", "utf8");
 
@@ -29,7 +37,10 @@ let failed = 0;
 console.log("\nTUROBUS VILLA OS + NETWORK V1 AUDIT\n");
 for (const [name, ok] of checks) {
   if (ok) console.log(`✅ ${name}`);
-  else { failed++; console.log(`❌ ${name}`); }
+  else {
+    failed++;
+    console.log(`❌ ${name}`);
+  }
 }
 console.log(`\n✅ Geçen: ${checks.length - failed}`);
 console.log(`❌ Hatalı: ${failed}\n`);
