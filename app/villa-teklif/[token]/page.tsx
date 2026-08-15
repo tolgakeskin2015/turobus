@@ -59,6 +59,8 @@ export default function VillaOfferPage() {
   if (loading) return <main className="flex min-h-screen items-center justify-center bg-[#06101b] p-8 text-white">Villa teklifiniz hazırlanıyor…</main>;
   if (!offer) return <main className="flex min-h-screen items-center justify-center bg-[#06101b] p-8 text-white"><div className="max-w-xl rounded-3xl border border-red-400/20 bg-[#091724] p-8 text-center"><h1 className="text-2xl font-black">Teklif görüntülenemedi</h1><p className="mt-3 text-red-300">{error || "Teklif bulunamadı."}</p></div></main>;
 
+  const accepted = offer.status === "accepted" || offer.status === "converted";
+
   return (
     <main className="min-h-screen bg-[#06101b] text-white">
       <section className="border-b border-white/[.07] bg-gradient-to-b from-violet-500/15 to-[#06101b] px-5 py-12">
@@ -93,12 +95,20 @@ export default function VillaOfferPage() {
           <p className="mt-3 text-sm leading-6 text-slate-500">Fiyat seçilen villa ve belirtilen konaklama tarihleri için hazırlanmıştır.</p>
           {offer.expires_at && <div className="mt-4 rounded-xl bg-amber-500/[.08] p-3 text-xs text-amber-200">Teklif geçerlilik: {new Date(offer.expires_at).toLocaleString("tr-TR")}</div>}
           {error && <div className="mt-4 rounded-xl bg-red-500/10 p-3 text-xs text-red-300">{error}</div>}
-          {offer.status === "accepted" || offer.status === "converted" ? (
-            <div className="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4"><div className="font-black text-emerald-300">✓ Teklif kabul edildi</div><p className="mt-2 text-xs leading-5 text-slate-400">Satış danışmanınız rezervasyon ve ödeme işlemleri için sizinle iletişime geçecektir.</p></div>
+
+          {accepted ? (
+            <div className="mt-5 space-y-3">
+              <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+                <div className="font-black text-emerald-300">✓ Teklif kabul edildi</div>
+                <p className="mt-2 text-xs leading-5 text-slate-400">Şimdi güvenli ödeme adımına geçerek rezervasyonunuzu kesinleştirebilirsiniz.</p>
+              </div>
+              <a href={`/villa-odeme/${token}`} className="block w-full rounded-2xl bg-emerald-400 px-5 py-4 text-center text-base font-black text-slate-950">Güvenli Ödemeye Geç</a>
+            </div>
           ) : (
             <button disabled={busy} onClick={() => void accept()} className="mt-5 w-full rounded-2xl bg-violet-400 px-5 py-4 text-base font-black text-slate-950 disabled:opacity-50">{busy ? "İşleniyor…" : "Teklifi Kabul Et"}</button>
           )}
-          <div className="mt-5 border-t border-white/[.07] pt-4 text-[11px] leading-5 text-slate-600">Teklifi kabul etmek müsaitliği tek başına kesin olarak rezerve etmez. Kesin rezervasyon satış danışmanı tarafından oluşturulduğunda merkezi villa takvimi kapanır.</div>
+
+          <div className="mt-5 border-t border-white/[.07] pt-4 text-[11px] leading-5 text-slate-600">Ödeme tamamlandığında sistem rezervasyonu otomatik kesinleştirir, merkezi villa takvimini kapatır ve finans kayıtlarını oluşturur.</div>
         </aside>
       </div>
     </main>
