@@ -751,6 +751,17 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
+        href: "/dashboard/villa-os/b2b-network/offers",
+        label: "Villa B2B Teklifler",
+        icon: FaClipboardList,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
         href: "/dashboard/activity-network",
         label: "Activity Network",
         icon: FaBus,
