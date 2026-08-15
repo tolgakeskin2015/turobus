@@ -412,14 +412,15 @@ export default function VillaControlCenterPage() {
 
           {selectedVilla && (
             <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-              {[
+              {([
                 ["Villa", selectedVilla.name, FaHouseUser],
                 ["Aylık Doluluk", `%${occupancy}`, FaChartLine],
                 ["Gece Fiyatı", money(selectedVilla.base_nightly_rate), FaMoneyBillWave],
                 ["Rezervasyon", String(reservations.length), FaUsers],
                 ["Bekleyen Temizlik", String(cleaning.filter((x) => !["completed", "inspected"].includes(x.status)).length), FaClipboardCheck],
                 ["Marketplace", selectedVilla.marketplace_enabled ? "Yayında" : "Kapalı", FaBolt],
-              ].map(([label, value, Icon]) => (
+              ] as Array<[string, string, React.ComponentType<{ className?: string }>]>
+              ).map(([label, value, Icon]) => (
                 <div key={String(label)} className="rounded-2xl border border-white/10 bg-white/[.035] p-4 shadow-2xl shadow-black/10">
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500"><Icon className="text-emerald-400" /> {label}</div>
                   <div className="mt-3 truncate text-lg font-black">{value}</div>
