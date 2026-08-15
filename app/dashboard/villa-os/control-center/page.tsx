@@ -392,18 +392,22 @@ export default function VillaControlCenterPage() {
   if (loading) return <main className="min-h-screen bg-[#07111f] p-8 text-white">Villa OS hazırlanıyor…</main>;
 
   return (
-    <main className="min-h-screen bg-[#07111f] text-white">
-      <div className="border-b border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,.18),transparent_35%),linear-gradient(180deg,#0b1728_0%,#07111f_100%)] px-5 py-7 lg:px-8">
+    <main className="min-h-screen bg-[#060d17] text-white">
+      <div className="sticky top-0 z-30 border-b border-white/[.07] bg-[#081320]/95 px-4 py-3 shadow-2xl shadow-black/20 backdrop-blur-xl lg:px-6">
         <div className="mx-auto max-w-[1700px]">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[.28em] text-emerald-400"><FaBolt /> Turobus Villa OS</div>
-              <h1 className="mt-3 text-3xl font-black tracking-tight lg:text-4xl">Villa Operasyon Stüdyosu</h1>
-              <p className="mt-2 max-w-3xl text-sm text-slate-400">Takvim, fiyat, fotoğraf, ödeme, temizlik, fatura ve kanal yönetimi tek profesyonel merkezde.</p>
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20"><FaBolt /></div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[.26em] text-emerald-400">TUROBUS VILLA OS</div>
+                  <h1 className="text-xl font-black tracking-tight lg:text-2xl">Operasyon Merkezi</h1>
+                </div>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href="/dashboard/villa-os" className="rounded-xl border border-white/10 bg-white/[.04] px-4 py-3 text-sm font-bold">← Ana Merkez</Link>
-              <select value={villaId} onChange={(e) => setVillaId(e.target.value)} className="min-w-[240px] rounded-xl border border-white/10 bg-[#0d1b2d] px-4 py-3 text-sm font-bold outline-none">
+              <Link href="/dashboard/villa-os" className="rounded-lg border border-white/10 bg-white/[.035] px-3 py-2 text-xs font-bold text-slate-300 hover:bg-white/[.06]">← Portföy</Link>
+              <select value={villaId} onChange={(e) => setVillaId(e.target.value)} className="min-w-[260px] rounded-lg border border-white/10 bg-[#0c1928] px-3 py-2 text-sm font-black outline-none ring-emerald-400/30 focus:ring-2">
                 <option value="">Villa seç</option>
                 {villas.map((villa) => <option key={villa.id} value={villa.id}>{villa.name}</option>)}
               </select>
@@ -411,7 +415,7 @@ export default function VillaControlCenterPage() {
           </div>
 
           {selectedVilla && (
-            <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+            <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
               {([
                 ["Villa", selectedVilla.name, FaHouseUser],
                 ["Aylık Doluluk", `%${occupancy}`, FaChartLine],
@@ -421,9 +425,9 @@ export default function VillaControlCenterPage() {
                 ["Marketplace", selectedVilla.marketplace_enabled ? "Yayında" : "Kapalı", FaBolt],
               ] as Array<[string, string, React.ComponentType<{ className?: string }>]>
               ).map(([label, value, Icon]) => (
-                <div key={String(label)} className="rounded-2xl border border-white/10 bg-white/[.035] p-4 shadow-2xl shadow-black/10">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500"><Icon className="text-emerald-400" /> {label}</div>
-                  <div className="mt-3 truncate text-lg font-black">{value}</div>
+                <div key={String(label)} className="group rounded-xl border border-white/[.07] bg-[#0b1826] px-3 py-2.5 transition hover:border-emerald-400/20 hover:bg-[#0e1d2d]">
+                  <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[.13em] text-slate-500"><Icon className="text-emerald-400" /> {label}</div>
+                  <div className="mt-1 truncate text-base font-black">{value}</div>
                 </div>
               ))}
             </div>
@@ -431,13 +435,13 @@ export default function VillaControlCenterPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1700px] px-5 py-6 lg:px-8">
+      <div className="mx-auto max-w-[1800px] px-4 py-4 lg:px-6">
         {error && <div className="mb-4 rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-sm font-bold text-red-200">{error}</div>}
         {message && <div className="mb-4 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-200">{message}</div>}
 
-        <div className="flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/[.025] p-2">
+        <div className="flex gap-1 overflow-x-auto border-b border-white/[.07] bg-transparent pb-2">
           {tabs.map(({ id, label, icon: Icon }) => (
-            <button key={id} type="button" onClick={() => setActiveTab(id)} className={`flex min-w-max items-center gap-2 rounded-xl px-4 py-3 text-sm font-black transition ${activeTab === id ? "bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20" : "text-slate-400 hover:bg-white/[.05] hover:text-white"}`}>
+            <button key={id} type="button" onClick={() => setActiveTab(id)} className={`flex min-w-max items-center gap-2 rounded-lg px-3 py-2 text-xs font-black transition ${activeTab === id ? "bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/15" : "text-slate-400 hover:bg-white/[.04] hover:text-white"}`}>
               <Icon /> {label}
             </button>
           ))}
@@ -446,10 +450,10 @@ export default function VillaControlCenterPage() {
         {!villaId && <div className="mt-8 rounded-3xl border border-dashed border-white/15 p-12 text-center text-slate-400">Önce bir villa oluştur veya yukarıdan villa seç.</div>}
 
         {villaId && activeTab === "calendar" && (
-          <div className="mt-6 grid gap-6 2xl:grid-cols-[1fr_360px]">
-            <section className="overflow-hidden rounded-3xl border border-white/10 bg-[#0a1626] shadow-2xl shadow-black/20">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 p-5">
-                <div><h2 className="text-xl font-black">Aylık Takvim</h2><p className="mt-1 text-xs text-slate-500">Fiyat, müsaitlik ve kaynak durumunu günlük yönet.</p></div>
+          <div className="mt-4 grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
+            <section className="overflow-hidden rounded-xl border border-white/[.07] bg-[#091522] shadow-xl shadow-black/20">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[.07] px-4 py-3">
+                <div><h2 className="text-base font-black">Aylık Takvim & Fiyat</h2><p className="text-[10px] text-slate-500">Fiyat · müsaitlik · kanal · minimum gece</p></div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} className="rounded-xl border border-white/10 p-3 hover:bg-white/5"><FaChevronLeft /></button>
                   <div className="min-w-[160px] text-center font-black">{month.toLocaleDateString("tr-TR", { month: "long", year: "numeric" })}</div>
@@ -461,15 +465,15 @@ export default function VillaControlCenterPage() {
               </div>
               <div className="grid grid-cols-7">
                 {monthDays.map((cell, index) => {
-                  if (!cell.date) return <div key={`blank-${index}`} className="min-h-[116px] border-b border-r border-white/[.05] bg-black/10" />;
+                  if (!cell.date) return <div key={`blank-${index}`} className="min-h-[82px] border-b border-r border-white/[.05] bg-black/10" />;
                   const row = calendarMap.get(cell.date);
                   const status = row?.status ?? "available";
                   const price = row?.nightly_rate ?? selectedVilla?.base_nightly_rate ?? 0;
                   const accent = status === "reserved" ? "bg-rose-500/10 border-rose-400/20" : status === "available" ? "bg-emerald-500/[.035]" : "bg-amber-500/[.06] border-amber-400/10";
                   return (
-                    <div key={cell.date} className={`min-h-[116px] border-b border-r border-white/[.05] p-3 ${accent}`}>
+                    <div key={cell.date} className={`min-h-[82px] border-b border-r border-white/[.05] p-2 ${accent} transition hover:bg-white/[.04]`}>
                       <div className="flex items-start justify-between gap-2"><div className="text-sm font-black">{cell.day}</div><span className={`h-2.5 w-2.5 rounded-full ${status === "reserved" ? "bg-rose-400" : status === "available" ? "bg-emerald-400" : "bg-amber-400"}`} /></div>
-                      <div className="mt-4 text-sm font-black">{money(price)}</div>
+                      <div className="mt-2 text-xs font-black">{money(price)}</div>
                       <div className="mt-1 truncate text-[10px] font-bold text-slate-500">{statusLabel[status] ?? status}</div>
                       <div className="mt-1 text-[9px] uppercase tracking-wider text-slate-600">{row?.source ?? "varsayılan"}</div>
                     </div>
@@ -478,7 +482,7 @@ export default function VillaControlCenterPage() {
               </div>
             </section>
 
-            <aside className="rounded-3xl border border-white/10 bg-[#0a1626] p-5 shadow-2xl shadow-black/20">
+            <aside className="rounded-xl border border-white/[.07] bg-[#091522] p-4 shadow-xl shadow-black/20">
               <div className="flex items-center gap-2"><FaCalendarAlt className="text-emerald-400" /><h2 className="text-lg font-black">Toplu Güncelleme</h2></div>
               <p className="mt-2 text-xs leading-5 text-slate-500">Bir tarih aralığının fiyatını, minimum konaklamasını ve satış durumunu tek seferde değiştir.</p>
               <form onSubmit={applyRate} className="mt-5 space-y-3">
