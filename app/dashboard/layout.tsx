@@ -691,6 +691,35 @@ const menuGroups: MenuGroup[] = [
   },
 
   {
+    title: "VİLLA & AKTİVİTE",
+    items: [
+      {
+        href: "/dashboard/villa-os",
+        label: "Villa OS",
+        icon: FaHotel,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+      {
+        href: "/dashboard/activity-network",
+        label: "Activity Network",
+        icon: FaBus,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+    ],
+  },
+
+  {
     title: "CRM & SATIŞ",
     items: [
       {
@@ -817,6 +846,7 @@ export default function DashboardLayout({
         "TUR & OPERASYON",
         "PAKET SATIŞ MERKEZİ",
         "OTEL PMS",
+        "VİLLA & AKTİVİTE",
       ])
   );
   const [errorMessage, setErrorMessage] = useState("");
