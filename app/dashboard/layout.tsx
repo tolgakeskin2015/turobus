@@ -740,6 +740,17 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
+        href: "/dashboard/villa-os/b2b-network/sales-desk",
+        label: "Villa B2B Satış Masası",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+      },
+      {
         href: "/dashboard/activity-network",
         label: "Activity Network",
         icon: FaBus,
