@@ -439,6 +439,119 @@ export default function VillaControlCenterPage() {
         {error && <div className="mb-4 rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-sm font-bold text-red-200">{error}</div>}
         {message && <div className="mb-4 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-200">{message}</div>}
 
+        <div className="grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)_300px]">
+
+          <aside className="h-fit overflow-hidden rounded-xl border border-white/[.07] bg-[#091522] shadow-xl shadow-black/20 xl:sticky xl:top-[150px]">
+            <div className="border-b border-white/[.07] px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[9px] font-black uppercase tracking-[.18em] text-slate-500">
+                    PORTFÖY
+                  </div>
+                  <div className="mt-1 text-sm font-black">
+                    Villalar
+                  </div>
+                </div>
+
+                <Link
+                  href="/dashboard/villa-os"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-400 text-slate-950"
+                  title="Villa ekle"
+                >
+                  <FaPlus />
+                </Link>
+              </div>
+            </div>
+
+            <div className="max-h-[62vh] space-y-1 overflow-y-auto p-2">
+              {villas.map((villa) => {
+                const selected = villa.id === villaId;
+
+                return (
+                  <button
+                    key={villa.id}
+                    type="button"
+                    onClick={() => setVillaId(villa.id)}
+                    className={`w-full rounded-lg border px-3 py-3 text-left transition ${
+                      selected
+                        ? "border-emerald-400/30 bg-emerald-400/[.09]"
+                        : "border-transparent hover:border-white/[.07] hover:bg-white/[.035]"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                          selected
+                            ? "bg-emerald-400 text-slate-950"
+                            : "bg-white/[.05] text-slate-400"
+                        }`}
+                      >
+                        <FaHouseUser />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-xs font-black">
+                          {villa.name}
+                        </div>
+
+                        <div className="mt-1 truncate text-[10px] text-slate-500">
+                          {[villa.city, villa.district].filter(Boolean).join(" · ") || "Konum yok"}
+                        </div>
+
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-bold text-slate-400">
+                            {money(villa.base_nightly_rate)}
+                          </span>
+
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              villa.marketplace_enabled
+                                ? "bg-emerald-400"
+                                : "bg-slate-600"
+                            }`}
+                            title={villa.marketplace_enabled ? "Turobus'ta yayında" : "Marketplace kapalı"}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+
+              {!villas.length && (
+                <div className="rounded-lg border border-dashed border-white/10 p-5 text-center">
+                  <FaHouseUser className="mx-auto text-2xl text-slate-600" />
+                  <div className="mt-2 text-xs font-bold text-slate-400">
+                    Henüz villa yok
+                  </div>
+                  <Link
+                    href="/dashboard/villa-os"
+                    className="mt-3 inline-flex rounded-lg bg-emerald-400 px-3 py-2 text-[10px] font-black text-slate-950"
+                  >
+                    Villa Oluştur
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-white/[.07] p-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg bg-white/[.025] p-2.5">
+                  <div className="text-[9px] uppercase text-slate-600">Toplam</div>
+                  <div className="mt-1 text-sm font-black">{villas.length}</div>
+                </div>
+
+                <div className="rounded-lg bg-white/[.025] p-2.5">
+                  <div className="text-[9px] uppercase text-slate-600">Yayında</div>
+                  <div className="mt-1 text-sm font-black text-emerald-300">
+                    {villas.filter((v) => v.marketplace_enabled).length}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <section className="min-w-0">
         <div className="flex gap-1 overflow-x-auto border-b border-white/[.07] bg-transparent pb-2">
           {tabs.map(({ id, label, icon: Icon }) => (
             <button key={id} type="button" onClick={() => setActiveTab(id)} className={`flex min-w-max items-center gap-2 rounded-lg px-3 py-2 text-xs font-black transition ${activeTab === id ? "bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/15" : "text-slate-400 hover:bg-white/[.04] hover:text-white"}`}>
@@ -447,7 +560,48 @@ export default function VillaControlCenterPage() {
           ))}
         </div>
 
-        {!villaId && <div className="mt-8 rounded-3xl border border-dashed border-white/15 p-12 text-center text-slate-400">Önce bir villa oluştur veya yukarıdan villa seç.</div>}
+        {!villaId && (
+          <div className="mt-4">
+            <div className="overflow-hidden rounded-xl border border-white/[.07] bg-[#091522]">
+              <div className="border-b border-white/[.07] bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,.12),transparent_35%)] p-6">
+                <div className="max-w-2xl">
+                  <div className="text-[10px] font-black uppercase tracking-[.22em] text-emerald-400">
+                    TUROBUS VILLA NETWORK
+                  </div>
+
+                  <h2 className="mt-2 text-2xl font-black">
+                    Portföyünden bir villa seç
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-400">
+                    Takvim, fiyat, rezervasyon, ödeme, temizlik, fatura,
+                    Airbnb ve Turobus dağıtımını tek çalışma alanından yönet.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-px bg-white/[.06] sm:grid-cols-2 lg:grid-cols-3">
+                {([
+                  ["Merkezi Takvim", "Airbnb, direkt, acenta ve Turobus satışlarını tek stoktan yönet.", FaCalendarAlt],
+                  ["Gelir Yönetimi", "Günlük fiyat ve minimum gece kurallarını tarih aralığına uygula.", FaChartLine],
+                  ["Finans", "Tahsilat, bakiye, depozito ve iadeleri rezervasyon bazında takip et.", FaMoneyBillWave],
+                  ["Housekeeping", "Çıkış sonrası temizliği başlat, tamamlat ve kontrol onayı ver.", FaClipboardCheck],
+                  ["Channel Manager", "iCal bağlantıları ve kanal senkron durumunu tek yerde izle.", FaAirbnb],
+                  ["Marketplace", "İstediğin villayı Turobus.com satışına aç veya kapat.", FaBolt],
+                ] as Array<[string, string, React.ComponentType<{ className?: string }>]>
+                ).map(([title, description, Icon]) => (
+                  <div key={String(title)} className="bg-[#091522] p-5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[.04] text-emerald-400">
+                      <Icon />
+                    </div>
+                    <div className="mt-4 text-sm font-black">{title}</div>
+                    <div className="mt-1 text-xs leading-5 text-slate-500">{description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {villaId && activeTab === "calendar" && (
           <div className="mt-4 grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -527,6 +681,206 @@ export default function VillaControlCenterPage() {
         {villaId && activeTab === "channels" && (
           <div className="mt-6 grid gap-6 xl:grid-cols-[420px_1fr]"><section className="rounded-3xl border border-white/10 bg-[#0a1626] p-5"><div className="flex items-center gap-2"><FaLink className="text-emerald-400"/><h2 className="text-lg font-black">Yeni Kanal Bağlantısı</h2></div><p className="mt-2 text-xs leading-5 text-slate-500">Airbnb/VRBO gibi kanallardan iCal adresini ekle. Villa OS export adresini de karşı kanala yapıştır.</p><form onSubmit={addChannel} className="mt-5 space-y-3"><select value={channelForm.channel} onChange={(e) => setChannelForm({ ...channelForm, channel: e.target.value })} className="w-full rounded-xl border border-white/10 bg-[#07111f] px-3 py-3"><option value="airbnb">Airbnb</option><option value="booking">Booking</option><option value="vrbo">VRBO</option><option value="google">Google</option><option value="other">Diğer</option></select><input value={channelForm.importUrl} onChange={(e) => setChannelForm({ ...channelForm, importUrl: e.target.value })} placeholder="https://.../calendar.ics" className="w-full rounded-xl border border-white/10 bg-[#07111f] px-3 py-3"/><button className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-3 font-black text-slate-950"><FaPlus /> Kanalı Ekle</button></form></section><section className="rounded-3xl border border-white/10 bg-[#0a1626] p-5"><h2 className="text-xl font-black">Channel Manager</h2><div className="mt-5 space-y-3">{channels.map((channel) => <div key={channel.id} className="rounded-2xl border border-white/10 bg-[#07111f] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="text-sm font-black uppercase">{channel.channel}</div><div className="mt-1 text-xs text-slate-500">{channel.connection_type} · {channel.is_active ? "aktif" : "kapalı"}</div></div><span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-black text-emerald-300">{channel.last_sync_status ?? "Bağlantı hazır"}</span></div>{channel.import_url && <div className="mt-4 truncate rounded-lg bg-white/[.03] p-2 text-[11px] text-slate-500">IMPORT: {channel.import_url}</div>}<div className="mt-2 break-all rounded-lg bg-emerald-500/[.06] p-2 text-[11px] text-emerald-300">EXPORT: {typeof window !== "undefined" ? window.location.origin : ""}/api/villa-os/ical/{channel.export_token}</div></div>)}{!channels.length && <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center text-slate-500">Bağlı kanal yok.</div>}</div></section></div>
         )}
+
+          </section>
+
+          <aside className="space-y-4 xl:sticky xl:top-[150px] xl:h-fit">
+
+            <section className="overflow-hidden rounded-xl border border-white/[.07] bg-[#091522] shadow-xl shadow-black/20">
+              <div className="border-b border-white/[.07] px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[9px] font-black uppercase tracking-[.16em] text-slate-500">
+                      CANLI OPERASYON
+                    </div>
+                    <div className="mt-1 text-sm font-black">
+                      Bugün
+                    </div>
+                  </div>
+
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-300">
+                    <FaBolt />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-px bg-white/[.06]">
+                <div className="bg-[#091522] p-3 text-center">
+                  <div className="text-xl font-black">
+                    {reservations.filter((r) => r.check_in === iso(new Date())).length}
+                  </div>
+                  <div className="mt-1 text-[9px] font-black uppercase tracking-wide text-slate-500">
+                    Giriş
+                  </div>
+                </div>
+
+                <div className="bg-[#091522] p-3 text-center">
+                  <div className="text-xl font-black">
+                    {reservations.filter((r) => r.check_out === iso(new Date())).length}
+                  </div>
+                  <div className="mt-1 text-[9px] font-black uppercase tracking-wide text-slate-500">
+                    Çıkış
+                  </div>
+                </div>
+
+                <div className="bg-[#091522] p-3 text-center">
+                  <div className="text-xl font-black text-amber-300">
+                    {cleaning.filter((x) => !["completed", "inspected"].includes(x.status)).length}
+                  </div>
+                  <div className="mt-1 text-[9px] font-black uppercase tracking-wide text-slate-500">
+                    Temizlik
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 p-3">
+                {reservations
+                  .filter((r) => r.check_in === iso(new Date()) || r.check_out === iso(new Date()))
+                  .slice(0, 5)
+                  .map((r) => (
+                    <div key={r.id} className="rounded-lg border border-white/[.06] bg-white/[.025] p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-xs font-black">{r.guest_name}</span>
+                        <span className="text-[9px] font-black text-slate-500">
+                          {r.check_in === iso(new Date()) ? "GİRİŞ" : "ÇIKIŞ"}
+                        </span>
+                      </div>
+
+                      <div className="mt-1 text-[10px] text-slate-500">
+                        {r.reservation_code}
+                      </div>
+                    </div>
+                  ))}
+
+                {!reservations.some(
+                  (r) => r.check_in === iso(new Date()) || r.check_out === iso(new Date())
+                ) && (
+                  <div className="rounded-lg border border-dashed border-white/[.07] p-4 text-center text-[10px] text-slate-500">
+                    Bugün giriş veya çıkış yok.
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-white/[.07] bg-[#091522] p-4 shadow-xl shadow-black/20">
+              <div className="text-[9px] font-black uppercase tracking-[.16em] text-slate-500">
+                FİNANS DURUMU
+              </div>
+
+              <div className="mt-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">Rezervasyon Cirosu</span>
+                  <span className="text-sm font-black">
+                    {money(reservations.reduce((sum, r) => sum + Number(r.grand_total || 0), 0))}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">Tahsil Edilen</span>
+                  <span className="text-sm font-black text-emerald-300">
+                    {money(reservations.reduce((sum, r) => sum + Number(r.paid_total || 0), 0))}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">Bekleyen Bakiye</span>
+                  <span className="text-sm font-black text-amber-300">
+                    {money(reservations.reduce((sum, r) => sum + Number(r.balance || 0), 0))}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("payments")}
+                disabled={!villaId}
+                className="mt-4 w-full rounded-lg border border-white/[.08] bg-white/[.035] px-3 py-2 text-xs font-black text-slate-300 transition hover:bg-white/[.06] disabled:opacity-40"
+              >
+                Finans Merkezini Aç
+              </button>
+            </section>
+
+            <section className="rounded-xl border border-white/[.07] bg-[#091522] p-4 shadow-xl shadow-black/20">
+              <div className="flex items-center justify-between">
+                <div className="text-[9px] font-black uppercase tracking-[.16em] text-slate-500">
+                  DAĞITIM AĞI
+                </div>
+                <FaAirbnb className="text-slate-500" />
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {[
+                  ["Turobus Marketplace", selectedVilla?.marketplace_enabled ?? false],
+                  ["Airbnb / iCal", channels.some((x) => x.channel === "airbnb" && x.is_active)],
+                  ["Aktif Kanal", channels.some((x) => x.is_active)],
+                ].map(([label, active]) => (
+                  <div key={String(label)} className="flex items-center justify-between rounded-lg bg-white/[.025] px-3 py-2.5">
+                    <span className="text-xs text-slate-400">{String(label)}</span>
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        active ? "bg-emerald-400" : "bg-slate-600"
+                      }`}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("channels")}
+                disabled={!villaId}
+                className="mt-3 w-full rounded-lg border border-white/[.08] px-3 py-2 text-xs font-black text-slate-300 hover:bg-white/[.04] disabled:opacity-40"
+              >
+                Kanal Merkezini Aç
+              </button>
+            </section>
+
+            <section className="rounded-xl border border-emerald-400/15 bg-emerald-400/[.045] p-4">
+              <div className="text-[9px] font-black uppercase tracking-[.16em] text-emerald-400">
+                HIZLI İŞLEMLER
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Link
+                  href="/dashboard/villa-os"
+                  className="rounded-lg bg-emerald-400 px-3 py-2.5 text-center text-[10px] font-black text-slate-950"
+                >
+                  + Rezervasyon
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("calendar")}
+                  disabled={!villaId}
+                  className="rounded-lg bg-white/[.06] px-3 py-2.5 text-[10px] font-black text-white disabled:opacity-40"
+                >
+                  Fiyat Güncelle
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("cleaning")}
+                  disabled={!villaId}
+                  className="rounded-lg bg-white/[.06] px-3 py-2.5 text-[10px] font-black text-white disabled:opacity-40"
+                >
+                  Temizlik
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("invoices")}
+                  disabled={!villaId}
+                  className="rounded-lg bg-white/[.06] px-3 py-2.5 text-[10px] font-black text-white disabled:opacity-40"
+                >
+                  Fatura
+                </button>
+              </div>
+            </section>
+
+          </aside>
+
+        </div>
+
       </div>
     </main>
   );
