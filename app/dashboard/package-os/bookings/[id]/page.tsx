@@ -26,6 +26,7 @@ import BookingActionCenter from "./components/BookingActionCenter";
 import BookingHealthCenter from "./components/BookingHealthCenter";
 import SupplierRoomConfirmationPanel from "./components/SupplierRoomConfirmationPanel";
 import BookingTimelineSlaCenter from "./components/BookingTimelineSlaCenter";
+import NetworkOperationCenter from "./components/NetworkOperationCenter";
 
 
 type Booking = {
@@ -1241,6 +1242,30 @@ PackageBookingDetailPage() {
           }
         />
 
+
+        {
+          membership &&
+          (
+            <NetworkOperationCenter
+              companyId={
+                membership.company_id
+              }
+              bookingId={
+                booking.id
+              }
+              bookingStatus={
+                booking.status
+              }
+              onChanged={
+                async () => {
+                  await loadAll(
+                    membership.company_id
+                  );
+                }
+              }
+            />
+          )
+        }
 
         <SupplierRoomConfirmationPanel
           roomPlan={
