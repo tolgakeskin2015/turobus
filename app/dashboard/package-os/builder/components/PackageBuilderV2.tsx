@@ -32,6 +32,10 @@ import NetworkInventoryPicker, {
   type NetworkSelection,
 } from "./NetworkInventoryPicker";
 
+import ActivityNetworkPicker, {
+  type ActivityNetworkRequest,
+} from "./ActivityNetworkPicker";
+
 type Hotel = {
   id: string;
   name: string;
@@ -384,6 +388,11 @@ export default function PackageBuilderV2() {
     networkSelections,
     setNetworkSelections,
   ] = useState<NetworkSelection[]>([]);
+
+  const [
+    activityNetworkRequests,
+    setActivityNetworkRequests,
+  ] = useState<ActivityNetworkRequest[]>([]);
 
   const [
     roomPlan,
@@ -1288,6 +1297,41 @@ export default function PackageBuilderV2() {
       }
     }
 
+    if (
+      activityNetworkRequests.length >
+      0
+    ) {
+      const {
+        error:
+          activityNetworkError,
+      } =
+        await supabase.rpc(
+          "save_package_quote_activity_network_requests",
+          {
+            p_company_id:
+              companyId,
+
+            p_quote_code:
+              result.quote_code,
+
+            p_requests:
+              activityNetworkRequests,
+          }
+        );
+
+      if (
+        activityNetworkError
+      ) {
+        setErrorMessage(
+          `Teklif oluşturuldu ancak Activity Network seçimleri kaydedilemedi: ${activityNetworkError.message}`
+        );
+
+        setSaving(false);
+
+        return;
+      }
+    }
+
     setMessage(
       `Teklif oluşturuldu: ${result.quote_code} · Toplam ${money(
         result.sale_price
@@ -1779,7 +1823,33 @@ export default function PackageBuilderV2() {
             </Panel>
 
             <Panel
-              title="4 · Aktiviteler"
+              title="4 · Activity Network"
+              description="Aktiviteyi sat; tedarikçi, saat ve sorti operasyon tarafından seçilsin."
+            >
+              <ActivityNetworkPicker
+                companyId={
+                  companyId
+                }
+                checkIn={
+                  checkIn
+                }
+                checkOut={
+                  checkOut
+                }
+                people={
+                  people
+                }
+                value={
+                  activityNetworkRequests
+                }
+                onChange={
+                  setActivityNetworkRequests
+                }
+              />
+            </Panel>
+
+            <Panel
+              title="5 · Aktiviteler"
               description="Kişi başı aktivitelerde adet otomatik kişi sayısına göre güncellenir. Diğer tiplerde adet manuel değiştirilebilir."
             >
               <div className="grid gap-3 lg:grid-cols-2">
