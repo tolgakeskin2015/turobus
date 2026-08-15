@@ -204,12 +204,12 @@ export default function VillaB2BNetworkPage() {
         {message && <div className="mb-4 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3 text-sm font-bold text-emerald-200">{message}</div>}
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            ["Paylaşılan Villa", accesses.filter((x) => x.is_active).length, FaHouseUser],
-            ["B2B Portföyüm", catalog.length, FaBuilding],
-            ["Toplam B2B Satış", bookings.length, FaUsers],
+          {([
+            ["Paylaşılan Villa", String(accesses.filter((x) => x.is_active).length), FaHouseUser],
+            ["B2B Portföyüm", String(catalog.length), FaBuilding],
+            ["Toplam B2B Satış", String(bookings.length), FaUsers],
             ["Partner Marjı", money(bookings.filter((x) => x.partner_company_id === membership?.company_id).reduce((s, x) => s + Number(x.partner_margin || 0), 0)), FaChartLine],
-          ].map(([label, value, Icon]) => (
+          ] as Array<[string, string, React.ComponentType<{ className?: string }>]>).map(([label, value, Icon]) => (
             <div key={String(label)} className="rounded-xl border border-white/[.07] bg-[#091724] p-4"><div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-wider text-slate-500"><Icon className="text-violet-300" />{String(label)}</div><div className="mt-2 text-2xl font-black">{String(value)}</div></div>
           ))}
         </div>
