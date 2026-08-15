@@ -45,6 +45,7 @@ type CalendarRow = {
 type Reservation = {
   id: string;
   reservation_code: string;
+  sales_channel: string;
   guest_name: string;
   check_in: string;
   check_out: string;
@@ -143,6 +144,63 @@ const statusLabel: Record<string, string> = {
   owner_use: "Ev Sahibi",
 };
 
+const channelMeta: Record<
+  string,
+  {
+    label: string;
+    pill: string;
+    dot: string;
+  }
+> = {
+  airbnb: {
+    label: "Airbnb",
+    pill: "border-rose-400/25 bg-rose-500/15 text-rose-200",
+    dot: "bg-rose-400",
+  },
+
+  booking: {
+    label: "Booking",
+    pill: "border-blue-400/25 bg-blue-500/15 text-blue-200",
+    dot: "bg-blue-400",
+  },
+
+  vrbo: {
+    label: "VRBO",
+    pill: "border-indigo-400/25 bg-indigo-500/15 text-indigo-200",
+    dot: "bg-indigo-400",
+  },
+
+  turobus_marketplace: {
+    label: "Turobus",
+    pill: "border-emerald-400/25 bg-emerald-500/15 text-emerald-200",
+    dot: "bg-emerald-400",
+  },
+
+  direct: {
+    label: "Direkt",
+    pill: "border-cyan-400/25 bg-cyan-500/15 text-cyan-200",
+    dot: "bg-cyan-400",
+  },
+
+  agency: {
+    label: "Acenta",
+    pill: "border-amber-400/25 bg-amber-500/15 text-amber-200",
+    dot: "bg-amber-400",
+  },
+
+  b2b: {
+    label: "B2B",
+    pill: "border-violet-400/25 bg-violet-500/15 text-violet-200",
+    dot: "bg-violet-400",
+  },
+
+  external: {
+    label: "Harici",
+    pill: "border-slate-400/25 bg-slate-500/15 text-slate-200",
+    dot: "bg-slate-400",
+  },
+};
+
 export default function VillaControlCenterPage() {
   const [membership, setMembership] = useState<CurrentMembership | null>(null);
   const [villas, setVillas] = useState<Villa[]>([]);
@@ -200,7 +258,7 @@ export default function VillaControlCenterPage() {
     const end = iso(monthEnd(month));
     const [calendarR, reservationR, cleaningR, channelR, photoR] = await Promise.all([
       supabase.from("villa_calendar").select("id,calendar_date,nightly_rate,minimum_stay,status,source").eq("company_id", membership.company_id).eq("villa_id", villaId).gte("calendar_date", start).lte("calendar_date", end).order("calendar_date"),
-      supabase.from("villa_reservations").select("id,reservation_code,guest_name,check_in,check_out,grand_total,paid_total,balance,currency,status").eq("company_id", membership.company_id).eq("villa_id", villaId).order("check_in", { ascending: false }).limit(100),
+      supabase.from("villa_reservations").select("id,reservation_code,sales_channel,guest_name,check_in,check_out,grand_total,paid_total,balance,currency,status").eq("company_id", membership.company_id).eq("villa_id", villaId).order("check_in", { ascending: false }).limit(100),
       supabase.from("villa_cleaning_tasks").select("id,task_date,task_type,status,fee,reservation_id").eq("company_id", membership.company_id).eq("villa_id", villaId).order("task_date", { ascending: false }).limit(100),
       supabase.from("villa_channel_connections").select("id,channel,connection_type,import_url,export_token,is_active,last_sync_at,last_sync_status").eq("company_id", membership.company_id).eq("villa_id", villaId).order("created_at"),
       supabase.from("villa_photos").select("id,public_url,caption,category,is_cover,sort_order").eq("company_id", membership.company_id).eq("villa_id", villaId).order("sort_order"),
@@ -250,9 +308,24 @@ export default function VillaControlCenterPage() {
 
   const occupancy = useMemo(() => {
     const total = monthEnd(month).getDate();
-    const blocked = calendar.filter((d) => ["reserved", "blocked", "owner_use", "maintenance"].includes(d.status)).length;
+    const blocked = calendar.filter((d) =>
+      ["reserved", "blocked", "owner_use", "maintenance"].includes(d.status)
+    ).length;
+
     return total ? Math.round((blocked / total) * 100) : 0;
   }, [calendar, month]);
+
+  const reservationForDate = useCallback(
+    (date: string) => {
+      return reservations.find(
+        (reservation) =>
+          reservation.status !== "cancelled" &&
+          date >= reservation.check_in &&
+          date < reservation.check_out
+      );
+    },
+    [reservations]
+  );
 
   async function applyRate(e: FormEvent) {
     e.preventDefault();
@@ -614,6 +687,25 @@ export default function VillaControlCenterPage() {
                   <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="rounded-xl border border-white/10 p-3 hover:bg-white/5"><FaChevronRight /></button>
                 </div>
               </div>
+              <div className="flex flex-wrap items-center gap-3 border-b border-white/[.06] bg-black/10 px-4 py-2">
+                {[
+                  ["Airbnb", "bg-rose-400"],
+                  ["Turobus", "bg-emerald-400"],
+                  ["Direkt", "bg-cyan-400"],
+                  ["Acenta", "bg-amber-400"],
+                  ["B2B", "bg-violet-400"],
+                  ["Booking", "bg-blue-400"],
+                ].map(([label, dot]) => (
+                  <div
+                    key={label}
+                    className="flex items-center gap-1.5 text-[9px] font-bold text-slate-500"
+                  >
+                    <span className={`h-2 w-2 rounded-full ${dot}`} />
+                    {label}
+                  </div>
+                ))}
+              </div>
+
               <div className="grid grid-cols-7 border-b border-white/10 bg-white/[.02] text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
                 {["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"].map((d) => <div key={d} className="p-3">{d}</div>)}
               </div>
@@ -621,15 +713,108 @@ export default function VillaControlCenterPage() {
                 {monthDays.map((cell, index) => {
                   if (!cell.date) return <div key={`blank-${index}`} className="min-h-[82px] border-b border-r border-white/[.05] bg-black/10" />;
                   const row = calendarMap.get(cell.date);
-                  const status = row?.status ?? "available";
-                  const price = row?.nightly_rate ?? selectedVilla?.base_nightly_rate ?? 0;
-                  const accent = status === "reserved" ? "bg-rose-500/10 border-rose-400/20" : status === "available" ? "bg-emerald-500/[.035]" : "bg-amber-500/[.06] border-amber-400/10";
+                  const reservation = reservationForDate(cell.date);
+
+                  const status =
+                    reservation
+                      ? "reserved"
+                      : row?.status ?? "available";
+
+                  const price =
+                    row?.nightly_rate ??
+                    selectedVilla?.base_nightly_rate ??
+                    0;
+
+                  const channel =
+                    reservation
+                      ? channelMeta[reservation.sales_channel] ??
+                        channelMeta.external
+                      : null;
+
+                  const isCheckIn =
+                    reservation?.check_in === cell.date;
+
+                  const tomorrow = new Date(`${cell.date}T12:00:00`);
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+
+                  const tomorrowIso = iso(tomorrow);
+
+                  const isLastNight =
+                    Boolean(
+                      reservation &&
+                      tomorrowIso === reservation.check_out
+                    );
+
+                  const accent =
+                    reservation
+                      ? "bg-white/[.018]"
+                      : status === "available"
+                        ? "bg-emerald-500/[.025]"
+                        : "bg-amber-500/[.05]";
+
                   return (
-                    <div key={cell.date} className={`min-h-[82px] border-b border-r border-white/[.05] p-2 ${accent} transition hover:bg-white/[.04]`}>
-                      <div className="flex items-start justify-between gap-2"><div className="text-sm font-black">{cell.day}</div><span className={`h-2.5 w-2.5 rounded-full ${status === "reserved" ? "bg-rose-400" : status === "available" ? "bg-emerald-400" : "bg-amber-400"}`} /></div>
-                      <div className="mt-2 text-xs font-black">{money(price)}</div>
-                      <div className="mt-1 truncate text-[10px] font-bold text-slate-500">{statusLabel[status] ?? status}</div>
-                      <div className="mt-1 text-[9px] uppercase tracking-wider text-slate-600">{row?.source ?? "varsayılan"}</div>
+                    <div
+                      key={cell.date}
+                      className={`relative min-h-[100px] overflow-hidden border-b border-r border-white/[.05] p-2 ${accent} transition hover:bg-white/[.04]`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-sm font-black">
+                          {cell.day}
+                        </div>
+
+                        <span
+                          className={`h-2 w-2 rounded-full ${
+                            reservation
+                              ? channel?.dot
+                              : status === "available"
+                                ? "bg-emerald-400"
+                                : "bg-amber-400"
+                          }`}
+                        />
+                      </div>
+
+                      <div className="mt-1.5 text-[11px] font-black text-slate-300">
+                        {money(price)}
+                      </div>
+
+                      {reservation ? (
+                        <div
+                          className={`mt-2 border px-2 py-1.5 text-[9px] font-black shadow-lg ${
+                            channel?.pill
+                          } ${
+                            isCheckIn
+                              ? "rounded-l-lg"
+                              : "border-l-0"
+                          } ${
+                            isLastNight
+                              ? "rounded-r-lg"
+                              : "border-r-0"
+                          }`}
+                          title={`${reservation.guest_name} · ${reservation.check_in} / ${reservation.check_out}`}
+                        >
+                          <div className="truncate">
+                            {isCheckIn
+                              ? reservation.guest_name
+                              : "•••"}
+                          </div>
+
+                          {isCheckIn && (
+                            <div className="mt-0.5 truncate text-[8px] opacity-70">
+                              {channel?.label} · {reservation.reservation_code}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          <div className="mt-1 truncate text-[9px] font-bold text-slate-500">
+                            {statusLabel[status] ?? status}
+                          </div>
+
+                          <div className="mt-0.5 text-[8px] uppercase tracking-wider text-slate-600">
+                            {row?.source ?? "varsayılan"}
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}
