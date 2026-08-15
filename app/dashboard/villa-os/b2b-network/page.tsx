@@ -194,6 +194,7 @@ export default function VillaB2BNetworkPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href="/dashboard/villa-os/control-center" className="rounded-lg border border-white/10 px-3 py-2 text-xs font-black text-slate-300">← Villa Operasyon</Link>
+            <Link href="/dashboard/villa-os/b2b-network/partners" className="rounded-lg bg-violet-400 px-3 py-2 text-xs font-black text-slate-950">Partner & Davet Merkezi</Link>
             <button onClick={() => void load()} className="flex items-center gap-2 rounded-lg bg-white/[.05] px-3 py-2 text-xs font-black"><FaSyncAlt /> Yenile</button>
           </div>
         </div>
