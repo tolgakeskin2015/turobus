@@ -401,6 +401,71 @@ export default function VillaControlCenterPage() {
     setBusy(false);
   }
 
+  async function syncChannel(channel: Channel) {
+    if (!membership) return;
+
+    setBusy(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const token = session?.access_token;
+
+      if (!token) {
+        throw new Error("Oturum bulunamadı.");
+      }
+
+      const response = await fetch(
+        "/api/villa-os/ical/import",
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            companyId: membership.company_id,
+            connectionId: channel.id,
+          }),
+        }
+      );
+
+      const result = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+        events?: number;
+        created?: number;
+        updated?: number;
+        removed?: number;
+      };
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.error ||
+            "iCal senkronizasyonu başarısız."
+        );
+      }
+
+      setMessage(
+        `Senkron tamamlandı · ${result.events ?? 0} kayıt · ${result.created ?? 0} yeni · ${result.updated ?? 0} güncellendi · ${result.removed ?? 0} kaldırıldı`
+      );
+
+      await loadVillaData();
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "iCal senkronizasyonu başarısız."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function addChannel(e: FormEvent) {
     e.preventDefault();
     if (!membership || !villaId) return;
@@ -864,7 +929,26 @@ export default function VillaControlCenterPage() {
         )}
 
         {villaId && activeTab === "channels" && (
-          <div className="mt-6 grid gap-6 xl:grid-cols-[420px_1fr]"><section className="rounded-3xl border border-white/10 bg-[#0a1626] p-5"><div className="flex items-center gap-2"><FaLink className="text-emerald-400"/><h2 className="text-lg font-black">Yeni Kanal Bağlantısı</h2></div><p className="mt-2 text-xs leading-5 text-slate-500">Airbnb/VRBO gibi kanallardan iCal adresini ekle. Villa OS export adresini de karşı kanala yapıştır.</p><form onSubmit={addChannel} className="mt-5 space-y-3"><select value={channelForm.channel} onChange={(e) => setChannelForm({ ...channelForm, channel: e.target.value })} className="w-full rounded-xl border border-white/10 bg-[#07111f] px-3 py-3"><option value="airbnb">Airbnb</option><option value="booking">Booking</option><option value="vrbo">VRBO</option><option value="google">Google</option><option value="other">Diğer</option></select><input value={channelForm.importUrl} onChange={(e) => setChannelForm({ ...channelForm, importUrl: e.target.value })} placeholder="https://.../calendar.ics" className="w-full rounded-xl border border-white/10 bg-[#07111f] px-3 py-3"/><button className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-3 font-black text-slate-950"><FaPlus /> Kanalı Ekle</button></form></section><section className="rounded-3xl border border-white/10 bg-[#0a1626] p-5"><h2 className="text-xl font-black">Channel Manager</h2><div className="mt-5 space-y-3">{channels.map((channel) => <div key={channel.id} className="rounded-2xl border border-white/10 bg-[#07111f] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="text-sm font-black uppercase">{channel.channel}</div><div className="mt-1 text-xs text-slate-500">{channel.connection_type} · {channel.is_active ? "aktif" : "kapalı"}</div></div><span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-black text-emerald-300">{channel.last_sync_status ?? "Bağlantı hazır"}</span></div>{channel.import_url && <div className="mt-4 truncate rounded-lg bg-white/[.03] p-2 text-[11px] text-slate-500">IMPORT: {channel.import_url}</div>}<div className="mt-2 break-all rounded-lg bg-emerald-500/[.06] p-2 text-[11px] text-emerald-300">EXPORT: {typeof window !== "undefined" ? window.location.origin : ""}/api/villa-os/ical/{channel.export_token}</div></div>)}{!channels.length && <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center text-slate-500">Bağlı kanal yok.</div>}</div></section></div>
+          <div className="mt-6 grid gap-6 xl:grid-cols-[420px_1fr]"><section className="rounded-3xl border border-white/10 bg-[#0a1626] p-5"><div className="flex items-center gap-2"><FaLink className="text-emerald-400"/><h2 className="text-lg font-black">Yeni Kanal Bağlantısı</h2></div><p className="mt-2 text-xs leading-5 text-slate-500">Airbnb/VRBO gibi kanallardan iCal adresini ekle. Villa OS export adresini de karşı kanala yapıştır.</p><form onSubmit={addChannel} className="mt-5 space-y-3"><select value={channelForm.channel} onChange={(e) => setChannelForm({ ...channelForm, channel: e.target.value })} className="w-full rounded-xl border border-white/10 bg-[#07111f] px-3 py-3"><option value="airbnb">Airbnb</option><option value="booking">Booking</option><option value="vrbo">VRBO</option><option value="google">Google</option><option value="other">Diğer</option></select><input value={channelForm.importUrl} onChange={(e) => setChannelForm({ ...channelForm, importUrl: e.target.value })} placeholder="https://.../calendar.ics" className="w-full rounded-xl border border-white/10 bg-[#07111f] px-3 py-3"/><button className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-3 font-black text-slate-950"><FaPlus /> Kanalı Ekle</button></form></section><section className="rounded-3xl border border-white/10 bg-[#0a1626] p-5"><h2 className="text-xl font-black">Channel Manager</h2><div className="mt-5 space-y-3">{channels.map((channel) => <div key={channel.id} className="rounded-2xl border border-white/10 bg-[#07111f] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="text-sm font-black uppercase">{channel.channel}</div><div className="mt-1 text-xs text-slate-500">{channel.connection_type} · {channel.is_active ? "aktif" : "kapalı"}</div></div><span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-black text-emerald-300">{channel.last_sync_status ?? "Bağlantı hazır"}</span></div>{channel.import_url && <div className="mt-4 truncate rounded-lg bg-white/[.03] p-2 text-[11px] text-slate-500">IMPORT: {channel.import_url}</div>}<div className="mt-2 break-all rounded-lg bg-emerald-500/[.06] p-2 text-[11px] text-emerald-300">EXPORT: {typeof window !== "undefined" ? window.location.origin : ""}/api/villa-os/ical/{channel.export_token}</div>
+
+{channel.import_url && (
+  <button
+    type="button"
+    disabled={busy}
+    onClick={() => void syncChannel(channel)}
+    className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-400 px-3 py-2.5 text-xs font-black text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
+  >
+    <FaSyncAlt />
+    Şimdi Senkronize Et
+  </button>
+)}
+
+{channel.last_sync_at && (
+  <div className="mt-2 text-[9px] text-slate-600">
+    Son senkron: {new Date(channel.last_sync_at).toLocaleString("tr-TR")}
+  </div>
+)}
+</div>)}{!channels.length && <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center text-slate-500">Bağlı kanal yok.</div>}</div></section></div>
         )}
 
           </section>
