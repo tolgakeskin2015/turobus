@@ -28,6 +28,10 @@ import RoomPlanManager, {
   type RoomPlan,
 } from "./RoomPlanManager";
 
+import NetworkInventoryPicker, {
+  type NetworkSelection,
+} from "./NetworkInventoryPicker";
+
 type Hotel = {
   id: string;
   name: string;
@@ -375,6 +379,11 @@ export default function PackageBuilderV2() {
       SelectedActivity[]
     >([]);
 
+
+  const [
+    networkSelections,
+    setNetworkSelections,
+  ] = useState<NetworkSelection[]>([]);
 
   const [
     roomPlan,
@@ -1257,6 +1266,28 @@ export default function PackageBuilderV2() {
           number;
       };
 
+    if (networkSelections.length > 0) {
+      const { error: networkError } = await supabase.rpc(
+        "save_package_quote_network_selections",
+        {
+          p_company_id: companyId,
+          p_quote_code: result.quote_code,
+          p_selections: networkSelections.map((item) => ({
+            unitId: item.unitId,
+            quantity: item.quantity,
+          })),
+        }
+      );
+
+      if (networkError) {
+        setErrorMessage(
+          `Teklif oluşturuldu ancak Network seçimleri kaydedilemedi: ${networkError.message}`
+        );
+        setSaving(false);
+        return;
+      }
+    }
+
     setMessage(
       `Teklif oluşturuldu: ${result.quote_code} · Toplam ${money(
         result.sale_price
@@ -1733,7 +1764,22 @@ export default function PackageBuilderV2() {
             </Panel>
 
             <Panel
-              title="3 · Aktiviteler"
+              title="3 · Turobus Network"
+              description="Hotel OS ve Tour OS canlı stoklarını kullan."
+            >
+              <NetworkInventoryPicker
+                companyId={companyId}
+                checkIn={checkIn}
+                checkOut={checkOut}
+                people={people}
+                roomCount={Math.max(roomPlan.length, 1)}
+                value={networkSelections}
+                onChange={setNetworkSelections}
+              />
+            </Panel>
+
+            <Panel
+              title="4 · Aktiviteler"
               description="Kişi başı aktivitelerde adet otomatik kişi sayısına göre güncellenir. Diğer tiplerde adet manuel değiştirilebilir."
             >
               <div className="grid gap-3 lg:grid-cols-2">
