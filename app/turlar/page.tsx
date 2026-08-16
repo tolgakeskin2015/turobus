@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -17,13 +18,17 @@ import { supabase } from "@/lib/supabase";
 import {
   FaArrowRight,
   FaBusAlt,
+  FaCalendarAlt,
+  FaCheck,
   FaChevronDown,
+  FaFilter,
   FaGlobeEurope,
   FaMapMarkerAlt,
   FaPlaneDeparture,
   FaSearch,
   FaShieldAlt,
   FaStar,
+  FaTimes,
   FaUsers,
 } from "react-icons/fa";
 
@@ -89,14 +94,14 @@ const flightKeywords = [
 ];
 
 
-const packageKeywords = [
+const excludedKeywords = [
   "paket",
   "balayı",
   "balayi",
   "honeymoon",
+  "aktivite paketi",
   "otel paketi",
   "tatil paketi",
-  "aktivite paketi",
 ];
 
 
@@ -153,8 +158,8 @@ const domesticCities = [
 const previewTours = [
   {
     title:
-      "Kapadokya Otobüslü Kültür Turu",
-    location:
+      "Kapadokya Kültür Turu",
+    route:
       "İstanbul → Kapadokya",
     scope:
       "Yurt İçi",
@@ -165,12 +170,12 @@ const previewTours = [
     price:
       8990,
     image:
-      "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1200&q=90",
+      "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1400&q=90",
   },
   {
     title:
-      "Karadeniz Yaylalar Turu",
-    location:
+      "Karadeniz Yaylaları",
+    route:
       "Ankara → Trabzon · Rize",
     scope:
       "Yurt İçi",
@@ -181,12 +186,12 @@ const previewTours = [
     price:
       13990,
     image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=90",
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=90",
   },
   {
     title:
-      "Balkanlar Uçaklı Turu",
-    location:
+      "Balkanlar Büyük Turu",
+    route:
       "İstanbul → Balkanlar",
     scope:
       "Yurt Dışı",
@@ -197,12 +202,12 @@ const previewTours = [
     price:
       32900,
     image:
-      "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=90",
+      "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1400&q=90",
   },
   {
     title:
-      "Dubai Uçaklı Şehir Turu",
-    location:
+      "Dubai Şehir Turu",
+    route:
       "İstanbul → Dubai",
     scope:
       "Yurt Dışı",
@@ -213,7 +218,7 @@ const previewTours = [
     price:
       36900,
     image:
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=90",
+      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1400&q=90",
   },
 ];
 
@@ -312,13 +317,13 @@ function getTransport(
 }
 
 
-function isPackage(
+function isExcluded(
   tour: Tour
 ) {
 
   return containsAny(
     tourText(tour),
-    packageKeywords
+    excludedKeywords
   );
 
 }
@@ -367,25 +372,13 @@ function getScope(
 }
 
 
-function transportLabel(
-  mode: TransportMode
-) {
-
-  return mode ===
-    "bus"
-    ? "Otobüslü"
-    : "Uçaklı";
-
-}
-
-
 function scopeLabel(
-  scope:
+  value:
     | "domestic"
     | "international"
 ) {
 
-  return scope ===
+  return value ===
     "domestic"
     ? "Yurt İçi"
     : "Yurt Dışı";
@@ -393,7 +386,25 @@ function scopeLabel(
 }
 
 
+function transportLabel(
+  value: TransportMode
+) {
+
+  return value ===
+    "bus"
+    ? "Otobüslü"
+    : "Uçaklı";
+
+}
+
+
 export default function ToursPage() {
+
+  const resultsRef =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
 
   const [
     tours,
@@ -435,17 +446,17 @@ export default function ToursPage() {
 
 
   const [
-    search,
-    setSearch,
-  ] =
-    useState("");
-
-
-  const [
     departure,
     setDeparture,
   ] =
     useState("Tümü");
+
+
+  const [
+    destination,
+    setDestination,
+  ] =
+    useState("");
 
 
   const [
@@ -469,6 +480,20 @@ export default function ToursPage() {
     useState<SortMode>(
       "recommended"
     );
+
+
+  const [
+    guests,
+    setGuests,
+  ] =
+    useState(2);
+
+
+  const [
+    mobileFilters,
+    setMobileFilters,
+  ] =
+    useState(false);
 
 
   useEffect(
@@ -503,9 +528,7 @@ export default function ToursPage() {
             );
 
 
-        if (
-          loadError
-        ) {
+        if (loadError) {
 
           setError(
             "Turlar yüklenemedi."
@@ -540,7 +563,7 @@ export default function ToursPage() {
       () =>
         tours.filter(
           (tour) =>
-            !isPackage(
+            !isExcluded(
               tour
             ) &&
             getTransport(
@@ -556,27 +579,19 @@ export default function ToursPage() {
 
   const departureCities =
     useMemo(
-      () => {
-
-        const values =
-          validTours
-            .map(
-              (tour) =>
-                tour.city
-            )
-            .filter(Boolean);
-
-
-        return [
-          "Tümü",
-          ...Array.from(
-            new Set(
-              values
-            )
-          ).sort(),
-        ];
-
-      },
+      () => [
+        "Tümü",
+        ...Array.from(
+          new Set(
+            validTours
+              .map(
+                (tour) =>
+                  tour.city
+              )
+              .filter(Boolean)
+          )
+        ).sort(),
+      ],
       [
         validTours,
       ]
@@ -603,7 +618,7 @@ export default function ToursPage() {
     ).length;
 
 
-  const filteredTours =
+  const resultTours =
     useMemo(
       () => {
 
@@ -631,39 +646,35 @@ export default function ToursPage() {
                 );
 
 
-              const query =
-                normalize(
-                  search
-                );
-
-
-              const matchesTransport =
-                mode ===
-                transport;
-
-
-              const matchesScope =
-                scope ===
-                  "all" ||
-                scope ===
-                  tourScope;
-
-
-              const matchesSearch =
-                !query ||
+              const destinationMatch =
+                !destination ||
                 text.includes(
-                  query
+                  normalize(
+                    destination
+                  )
                 );
 
 
-              const matchesDeparture =
+              const departureMatch =
                 departure ===
                   "Tümü" ||
                 tour.city ===
                   departure;
 
 
-              const matchesPrice =
+              const transportMatch =
+                mode ===
+                transport;
+
+
+              const scopeMatch =
+                scope ===
+                  "all" ||
+                scope ===
+                  tourScope;
+
+
+              const priceMatch =
                 !maxPrice ||
                 Number(
                   tour.adult_price
@@ -673,11 +684,11 @@ export default function ToursPage() {
                   );
 
 
-              let matchesDuration =
+              let durationMatch =
                 true;
 
 
-              const normalizedDuration =
+              const durationText =
                 normalize(
                   tour.duration
                 );
@@ -688,14 +699,14 @@ export default function ToursPage() {
                 "short"
               ) {
 
-                matchesDuration =
-                  normalizedDuration.includes(
+                durationMatch =
+                  durationText.includes(
                     "1 gun"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "2 gun"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "1 gece"
                   );
 
@@ -707,23 +718,23 @@ export default function ToursPage() {
                 "medium"
               ) {
 
-                matchesDuration =
-                  normalizedDuration.includes(
+                durationMatch =
+                  durationText.includes(
                     "3 gun"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "4 gun"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "5 gun"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "2 gece"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "3 gece"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "4 gece"
                   );
 
@@ -735,23 +746,23 @@ export default function ToursPage() {
                 "long"
               ) {
 
-                matchesDuration =
-                  normalizedDuration.includes(
+                durationMatch =
+                  durationText.includes(
                     "6 gun"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "7 gun"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "8 gun"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "5 gece"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "6 gece"
                   ) ||
-                  normalizedDuration.includes(
+                  durationText.includes(
                     "7 gece"
                   );
 
@@ -759,12 +770,12 @@ export default function ToursPage() {
 
 
               return (
-                matchesTransport &&
-                matchesScope &&
-                matchesSearch &&
-                matchesDeparture &&
-                matchesPrice &&
-                matchesDuration
+                transportMatch &&
+                scopeMatch &&
+                departureMatch &&
+                destinationMatch &&
+                priceMatch &&
+                durationMatch
               );
 
             }
@@ -779,11 +790,11 @@ export default function ToursPage() {
           result =
             [...result].sort(
               (
-                a,
-                b
+                first,
+                second
               ) =>
-                a.adult_price -
-                b.adult_price
+                first.adult_price -
+                second.adult_price
             );
 
         }
@@ -797,11 +808,11 @@ export default function ToursPage() {
           result =
             [...result].sort(
               (
-                a,
-                b
+                first,
+                second
               ) =>
-                b.adult_price -
-                a.adult_price
+                second.adult_price -
+                first.adult_price
             );
 
         }
@@ -815,15 +826,15 @@ export default function ToursPage() {
           result =
             [...result].sort(
               (
-                a,
-                b
+                first,
+                second
               ) =>
                 Number(
-                  b.rating ??
+                  second.rating ??
                     0
                 ) -
                 Number(
-                  a.rating ??
+                  first.rating ??
                     0
                 )
             );
@@ -839,14 +850,14 @@ export default function ToursPage() {
           result =
             [...result].sort(
               (
-                a,
-                b
+                first,
+                second
               ) =>
                 new Date(
-                  b.created_at
+                  second.created_at
                 ).getTime() -
                 new Date(
-                  a.created_at
+                  first.created_at
                 ).getTime()
             );
 
@@ -861,41 +872,51 @@ export default function ToursPage() {
           result =
             [...result].sort(
               (
-                a,
-                b
+                first,
+                second
               ) => {
 
-                const aScore =
+                const firstScore =
                   Number(
-                    a.featured
+                    first.featured
+                  ) *
+                    4 +
+                  Number(
+                    first.bestseller
                   ) *
                     3 +
                   Number(
-                    a.bestseller
+                    first.early_booking
                   ) *
                     2 +
                   Number(
-                    a.early_booking
+                    first.rating ??
+                      0
                   );
 
 
-                const bScore =
+                const secondScore =
                   Number(
-                    b.featured
+                    second.featured
+                  ) *
+                    4 +
+                  Number(
+                    second.bestseller
                   ) *
                     3 +
                   Number(
-                    b.bestseller
+                    second.early_booking
                   ) *
                     2 +
                   Number(
-                    b.early_booking
+                    second.rating ??
+                      0
                   );
 
 
                 return (
-                  bScore -
-                  aScore
+                  secondScore -
+                  firstScore
                 );
 
               }
@@ -911,8 +932,8 @@ export default function ToursPage() {
         validTours,
         transport,
         scope,
-        search,
         departure,
+        destination,
         maxPrice,
         duration,
         sort,
@@ -920,26 +941,35 @@ export default function ToursPage() {
     );
 
 
+  const heroImage =
+    transport ===
+    "bus"
+      ? "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=2200&q=92"
+      : "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=2200&q=92";
+
+
   function clearFilters() {
 
-    setScope(
-      "all"
-    );
-
-    setSearch("");
-
-    setDeparture(
-      "Tümü"
-    );
-
+    setScope("all");
+    setDeparture("Tümü");
+    setDestination("");
     setMaxPrice("");
+    setDuration("all");
+    setSort("recommended");
+    setGuests(2);
 
-    setDuration(
-      "all"
-    );
+  }
 
-    setSort(
-      "recommended"
+
+  function scrollResults() {
+
+    window.setTimeout(
+      () =>
+        resultsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        }),
+      50
     );
 
   }
@@ -951,7 +981,9 @@ export default function ToursPage() {
       <Navbar />
 
 
-      {/* HERO */}
+      {/* ====================================================
+          HERO
+      ==================================================== */}
 
       <section className="relative overflow-hidden border-b border-white/10 pt-20">
 
@@ -959,85 +991,138 @@ export default function ToursPage() {
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage:
-              transport ===
-              "bus"
-                ? 'url("https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=2200&q=90")'
-                : 'url("https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=2200&q=90")',
+              `url("${heroImage}")`,
           }}
         />
 
 
-        <div className="absolute inset-0 bg-gradient-to-r from-[#06101b]/98 via-[#06101b]/86 to-[#06101b]/45" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#06101b]/98 via-[#06101b]/88 to-[#06101b]/35" />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#06101b] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#06101b] via-transparent to-[#06101b]/30" />
 
 
-        <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-16 lg:px-8 lg:pt-24">
+        <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-16 lg:px-8 lg:pb-20 lg:pt-24">
 
-          <div className="max-w-4xl">
+          <div className="grid items-end gap-10 lg:grid-cols-[1fr_.72fr]">
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-black/30 px-3 py-2 text-[10px] font-black uppercase tracking-[.2em] text-orange-300 backdrop-blur">
+            <div>
 
-              <FaShieldAlt />
+              <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-black/30 px-3 py-2 text-[10px] font-black uppercase tracking-[.2em] text-orange-300 backdrop-blur-xl">
 
-              Turobus Tur Marketplace
+                <FaShieldAlt />
+
+                Turobus Tur Network
+
+              </div>
+
+
+              <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[.93] tracking-tight md:text-7xl">
+
+                Rotanı Seç.
+
+                <span className="mt-3 block text-orange-500">
+                  Yolculuğa Başla.
+                </span>
+
+              </h1>
+
+
+              <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
+
+                Otobüslü ve uçaklı
+                yurt içi/yurt dışı
+                turları tek profesyonel
+                marketplace üzerinden
+                keşfet.
+
+              </p>
 
             </div>
 
 
-            <h1 className="mt-6 text-5xl font-black leading-[.95] tracking-tight md:text-7xl">
+            <div className="hidden lg:block">
 
-              Yolculuğunu
+              <div className="ml-auto max-w-[420px] rounded-[30px] border border-white/15 bg-black/30 p-6 backdrop-blur-2xl">
 
-              <span className="mt-2 block text-orange-500">
-                Turobus ile Seç
-              </span>
+                <div className="text-[10px] font-black uppercase tracking-[.18em] text-orange-300">
+                  Turobus Tur
+                </div>
 
-            </h1>
+                <div className="mt-4 text-3xl font-black">
+                  Paket değil. Gerçek tur ürünleri.
+                </div>
 
 
-            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
+                <div className="mt-6 space-y-3">
 
-              Türkiye ve dünya rotalarında
-              yalnızca otobüslü ve uçaklı
-              turları karşılaştır.
+                  {[
+                    "Otobüslü tur programları",
+                    "Uçaklı tur programları",
+                    "Yurt içi ve yurt dışı ayrımı",
+                    "Gerçek tur detayına direkt erişim",
+                  ].map(
+                    (
+                      item
+                    ) => (
 
-            </p>
+                      <div
+                        key={
+                          item
+                        }
+                        className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[.04] px-4 py-3 text-xs font-bold"
+                      >
+
+                        <FaCheck className="text-emerald-400" />
+
+                        {item}
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </div>
+
+            </div>
 
           </div>
 
 
-          {/* PRIMARY TRANSPORT */}
+          {/* ====================================================
+              TRANSPORT MODE
+          ==================================================== */}
 
-          <div className="mt-10 grid max-w-3xl gap-3 sm:grid-cols-2">
+          <div className="mt-10 grid max-w-4xl gap-3 sm:grid-cols-2">
 
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
                 setTransport(
                   "bus"
-                )
-              }
+                );
+                scrollResults();
+              }}
               className={`flex items-center justify-between rounded-[24px] border p-5 text-left transition ${
                 transport ===
                 "bus"
-                  ? "border-orange-500/50 bg-orange-500/15 shadow-xl shadow-orange-500/5"
+                  ? "border-orange-500/50 bg-orange-500/15 shadow-xl shadow-orange-500/10"
                   : "border-white/10 bg-black/35 hover:border-orange-500/30"
               }`}
             >
 
               <div className="flex items-center gap-4">
 
-                <div className={`grid h-12 w-12 place-items-center rounded-2xl ${
+                <div className={`grid h-13 w-13 place-items-center rounded-2xl p-4 ${
                   transport ===
                   "bus"
                     ? "bg-orange-500 text-white"
                     : "bg-white/[.05] text-slate-400"
                 }`}>
-
                   <FaBusAlt className="text-xl" />
-
                 </div>
+
 
                 <div>
 
@@ -1046,7 +1131,7 @@ export default function ToursPage() {
                   </div>
 
                   <div className="mt-1 text-[10px] text-slate-500">
-                    Yurt içi ve yurt dışı karayolu turları
+                    Yurt içi ve yurt dışı karayolu rotaları
                   </div>
 
                 </div>
@@ -1054,7 +1139,7 @@ export default function ToursPage() {
               </div>
 
 
-              <div className="rounded-full bg-white/[.05] px-3 py-1.5 text-[10px] font-black">
+              <div className="rounded-full bg-white/[.06] px-3 py-1.5 text-[10px] font-black">
                 {busCount}
               </div>
 
@@ -1063,31 +1148,31 @@ export default function ToursPage() {
 
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
                 setTransport(
                   "flight"
-                )
-              }
+                );
+                scrollResults();
+              }}
               className={`flex items-center justify-between rounded-[24px] border p-5 text-left transition ${
                 transport ===
                 "flight"
-                  ? "border-cyan-400/50 bg-cyan-400/10 shadow-xl shadow-cyan-500/5"
+                  ? "border-cyan-400/50 bg-cyan-400/10 shadow-xl shadow-cyan-400/10"
                   : "border-white/10 bg-black/35 hover:border-cyan-400/30"
               }`}
             >
 
               <div className="flex items-center gap-4">
 
-                <div className={`grid h-12 w-12 place-items-center rounded-2xl ${
+                <div className={`grid h-13 w-13 place-items-center rounded-2xl p-4 ${
                   transport ===
                   "flight"
                     ? "bg-cyan-300 text-slate-950"
                     : "bg-white/[.05] text-slate-400"
                 }`}>
-
                   <FaPlaneDeparture className="text-xl" />
-
                 </div>
+
 
                 <div>
 
@@ -1104,7 +1189,7 @@ export default function ToursPage() {
               </div>
 
 
-              <div className="rounded-full bg-white/[.05] px-3 py-1.5 text-[10px] font-black">
+              <div className="rounded-full bg-white/[.06] px-3 py-1.5 text-[10px] font-black">
                 {flightCount}
               </div>
 
@@ -1113,18 +1198,24 @@ export default function ToursPage() {
           </div>
 
 
-          {/* SEARCH */}
+          {/* ====================================================
+              SEARCH BAR
+          ==================================================== */}
 
-          <div className="mt-5 grid overflow-hidden rounded-[22px] border border-white/15 bg-[#07131f]/95 shadow-2xl backdrop-blur-xl md:grid-cols-[1fr_1.3fr_.7fr_auto]">
+          <div className="mt-5 grid overflow-hidden rounded-[24px] border border-white/15 bg-[#081522]/95 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:grid-cols-[1fr_1.3fr_.7fr_auto]">
 
-            <label className="border-b border-white/10 p-4 md:border-b-0 md:border-r">
+            <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
 
-              <span className="mb-2 block text-[9px] font-black uppercase text-slate-500">
+              <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
+                <FaMapMarkerAlt />
                 Kalkış Noktası
               </span>
 
+
               <select
-                value={departure}
+                value={
+                  departure
+                }
                 onChange={(event) =>
                   setDeparture(
                     event.target.value
@@ -1134,10 +1225,17 @@ export default function ToursPage() {
               >
 
                 {departureCities.map(
-                  (city) => (
+                  (
+                    city
+                  ) => (
+
                     <option
-                      key={city}
-                      value={city}
+                      key={
+                        city
+                      }
+                      value={
+                        city
+                      }
                       className="bg-slate-950"
                     >
                       {city ===
@@ -1145,6 +1243,7 @@ export default function ToursPage() {
                         ? "Tüm kalkış noktaları"
                         : city}
                     </option>
+
                   )
                 )}
 
@@ -1153,71 +1252,97 @@ export default function ToursPage() {
             </label>
 
 
-            <label className="border-b border-white/10 p-4 md:border-b-0 md:border-r">
+            <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
 
-              <span className="mb-2 block text-[9px] font-black uppercase text-slate-500">
+              <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
+                <FaSearch />
                 Tur / Destinasyon
               </span>
 
-              <div className="flex items-center gap-2">
 
-                <FaSearch className="text-slate-600" />
+              <input
+                value={
+                  destination
+                }
+                onChange={(event) =>
+                  setDestination(
+                    event.target.value
+                  )
+                }
+                placeholder={
+                  transport ===
+                  "bus"
+                    ? "Kapadokya, Karadeniz, Balkanlar..."
+                    : "Dubai, Avrupa, Balkanlar..."
+                }
+                className="w-full bg-transparent text-sm font-black outline-none placeholder:text-slate-600"
+              />
 
-                <input
-                  value={search}
-                  onChange={(event) =>
-                    setSearch(
-                      event.target.value
+            </label>
+
+
+            <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
+
+              <div className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
+                <FaUsers />
+                Kişi
+              </div>
+
+
+              <div className="flex items-center gap-3">
+
+                <button
+                  type="button"
+                  disabled={
+                    guests <= 1
+                  }
+                  onClick={() =>
+                    setGuests(
+                      Math.max(
+                        1,
+                        guests - 1
+                      )
                     )
                   }
-                  placeholder={
-                    transport ===
-                    "bus"
-                      ? "Kapadokya, Karadeniz, Balkanlar..."
-                      : "Dubai, Paris, Balkanlar..."
+                  className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 text-slate-400 disabled:opacity-30"
+                >
+                  -
+                </button>
+
+
+                <strong className="min-w-12 text-center text-sm">
+                  {guests} Kişi
+                </strong>
+
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setGuests(
+                      Math.min(
+                        20,
+                        guests + 1
+                      )
+                    )
                   }
-                  className="w-full bg-transparent text-sm font-black outline-none placeholder:text-slate-600"
-                />
+                  className="grid h-8 w-8 place-items-center rounded-lg bg-orange-500"
+                >
+                  +
+                </button>
 
               </div>
 
-            </label>
-
-
-            <label className="border-b border-white/10 p-4 md:border-b-0 md:border-r">
-
-              <span className="mb-2 block text-[9px] font-black uppercase text-slate-500">
-                Kişi
-              </span>
-
-              <div className="flex items-center gap-2">
-
-                <FaUsers className="text-slate-600" />
-
-                <span className="text-sm font-black">
-                  2 Kişi
-                </span>
-
-              </div>
-
-            </label>
+            </div>
 
 
             <div className="flex items-center p-3">
 
               <button
                 type="button"
-                onClick={() =>
-                  document
-                    .getElementById(
-                      "tour-results"
-                    )
-                    ?.scrollIntoView({
-                      behavior:
-                        "smooth",
-                    })
+                onClick={
+                  scrollResults
                 }
-                className="flex min-h-[54px] w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-7 font-black transition hover:bg-orange-600"
+                className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-7 font-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
               >
                 <FaSearch />
                 Turları Göster
@@ -1230,18 +1355,22 @@ export default function ToursPage() {
 
           {/* TRUST */}
 
-          <div className="mt-4 grid overflow-hidden rounded-[18px] border border-white/10 bg-black/30 backdrop-blur sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-4 grid overflow-hidden rounded-[18px] border border-white/10 bg-black/30 backdrop-blur-xl sm:grid-cols-2 xl:grid-cols-4">
 
             {[
-              "Doğrulanmış Acenteler",
-              "Güvenli Rezervasyon",
-              "Şeffaf Fiyat",
-              "Tek Marketplace",
+              "Doğrulanmış Tur Ürünleri",
+              "Paketlerden Ayrı",
+              "Yurt İçi & Yurt Dışı",
+              "Gerçek Tur Detayı",
             ].map(
-              (text) => (
+              (
+                text
+              ) => (
 
                 <div
-                  key={text}
+                  key={
+                    text
+                  }
                   className="flex items-center gap-3 px-5 py-4"
                 >
 
@@ -1263,37 +1392,184 @@ export default function ToursPage() {
       </section>
 
 
-      {/* CONTENT */}
+      {/* ====================================================
+          DISCOVERY
+      ==================================================== */}
 
-      <section
-        id="tour-results"
-        className="scroll-mt-24 px-5 py-14 lg:px-8"
-      >
+      <section className="px-5 py-14 lg:px-8">
 
         <div className="mx-auto max-w-7xl">
 
-          {/* HEADER */}
+          <div>
+
+            <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
+              Turunu Şekillendir
+            </div>
+
+            <h2 className="mt-2 text-3xl font-black">
+              Nasıl Yolculuk Etmek İstiyorsun?
+            </h2>
+
+          </div>
+
+
+          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+            {[
+              {
+                title:
+                  "Yurt İçi",
+                text:
+                  "Türkiye'nin seçkin rotaları",
+                scope:
+                  "domestic" as ScopeMode,
+                icon:
+                  FaMapMarkerAlt,
+              },
+              {
+                title:
+                  "Yurt Dışı",
+                text:
+                  "Avrupa ve dünya turları",
+                scope:
+                  "international" as ScopeMode,
+                icon:
+                  FaGlobeEurope,
+              },
+              {
+                title:
+                  "Kısa Kaçamak",
+                text:
+                  "1-2 günlük tur programları",
+                duration:
+                  "short",
+                icon:
+                  FaCalendarAlt,
+              },
+              {
+                title:
+                  "Uzun Rota",
+                text:
+                  "6 gün ve üzeri programlar",
+                duration:
+                  "long",
+                icon:
+                  FaStar,
+              },
+            ].map(
+              (
+                item
+              ) => {
+
+                const Icon =
+                  item.icon;
+
+
+                return (
+                  <button
+                    key={
+                      item.title
+                    }
+                    type="button"
+                    onClick={() => {
+
+                      if (
+                        item.scope
+                      ) {
+                        setScope(
+                          item.scope
+                        );
+                      }
+
+                      if (
+                        item.duration
+                      ) {
+                        setDuration(
+                          item.duration
+                        );
+                      }
+
+                      scrollResults();
+
+                    }}
+                    className="group rounded-[24px] border border-white/10 bg-[#0b1825] p-5 text-left transition hover:-translate-y-1 hover:border-orange-500/30"
+                  >
+
+                    <div className="flex items-center justify-between">
+
+                      <div className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
+                        <Icon />
+                      </div>
+
+                      <FaArrowRight className="text-slate-700 transition group-hover:text-orange-400" />
+
+                    </div>
+
+
+                    <div className="mt-4 font-black">
+                      {item.title}
+                    </div>
+
+                    <div className="mt-1 text-xs text-slate-500">
+                      {item.text}
+                    </div>
+
+                  </button>
+                );
+
+              }
+            )}
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* ====================================================
+          RESULTS
+      ==================================================== */}
+
+      <section
+        ref={
+          resultsRef
+        }
+        id="tour-results"
+        className="scroll-mt-24 border-t border-white/10 bg-[#091522] px-5 py-14 lg:px-8"
+      >
+
+        <div className="mx-auto max-w-7xl">
 
           <div className="flex flex-wrap items-end justify-between gap-5">
 
             <div>
 
-              <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
+              <div className={`text-[10px] font-black uppercase tracking-[.2em] ${
+                transport ===
+                "bus"
+                  ? "text-orange-400"
+                  : "text-cyan-300"
+              }`}>
                 {transport ===
                 "bus"
                   ? "Otobüslü Turlar"
                   : "Uçaklı Turlar"}
               </div>
 
+
               <h2 className="mt-2 text-3xl font-black md:text-4xl">
                 {transport ===
                 "bus"
-                  ? "Otobüsle Yeni Rotalar Keşfet"
-                  : "Uçakla Dünyayı Keşfet"}
+                  ? "Otobüsle Yeni Rotalar"
+                  : "Uçakla Yeni Dünyalar"}
               </h2>
 
+
               <p className="mt-2 text-sm text-slate-500">
-                {filteredTours.length} uygun tur bulundu
+                {loading
+                  ? "Tur ağı kontrol ediliyor..."
+                  : `${resultTours.length} uygun tur bulundu`}
               </p>
 
             </div>
@@ -1301,108 +1577,185 @@ export default function ToursPage() {
 
             <div className="flex flex-wrap gap-2">
 
-              <button
-                type="button"
-                onClick={() =>
-                  setScope(
-                    "all"
-                  )
-                }
-                className={`rounded-xl px-4 py-2.5 text-xs font-black ${
-                  scope ===
-                  "all"
-                    ? "bg-orange-500"
-                    : "border border-white/10 bg-white/[.03] text-slate-400"
-                }`}
-              >
-                Tümü
-              </button>
+              {[
+                [
+                  "all",
+                  "Tümü",
+                ],
+                [
+                  "domestic",
+                  "Yurt İçi",
+                ],
+                [
+                  "international",
+                  "Yurt Dışı",
+                ],
+              ].map(
+                ([
+                  key,
+                  label,
+                ]) => (
+
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() =>
+                      setScope(
+                        key as ScopeMode
+                      )
+                    }
+                    className={`rounded-xl px-4 py-3 text-xs font-black transition ${
+                      scope ===
+                      key
+                        ? "bg-orange-500 text-white"
+                        : "border border-white/10 bg-white/[.03] text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+
+                )
+              )}
 
 
               <button
                 type="button"
                 onClick={() =>
-                  setScope(
-                    "domestic"
+                  setMobileFilters(
+                    true
                   )
                 }
-                className={`rounded-xl px-4 py-2.5 text-xs font-black ${
-                  scope ===
-                  "domestic"
-                    ? "bg-orange-500"
-                    : "border border-white/10 bg-white/[.03] text-slate-400"
-                }`}
+                className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-xs font-black lg:hidden"
               >
-                Yurt İçi
+                <FaFilter />
+                Filtre
               </button>
 
 
-              <button
-                type="button"
-                onClick={() =>
-                  setScope(
-                    "international"
-                  )
-                }
-                className={`rounded-xl px-4 py-2.5 text-xs font-black ${
-                  scope ===
-                  "international"
-                    ? "bg-orange-500"
-                    : "border border-white/10 bg-white/[.03] text-slate-400"
-                }`}
-              >
-                Yurt Dışı
-              </button>
+              <div className="relative">
+
+                <select
+                  value={
+                    sort
+                  }
+                  onChange={(event) =>
+                    setSort(
+                      event.target
+                        .value as SortMode
+                    )
+                  }
+                  className="appearance-none rounded-xl border border-white/10 bg-[#07111f] px-4 py-3 pr-9 text-xs font-black outline-none"
+                >
+
+                  <option value="recommended">
+                    Önerilen
+                  </option>
+
+                  <option value="newest">
+                    En Yeniler
+                  </option>
+
+                  <option value="priceAsc">
+                    Fiyat Artan
+                  </option>
+
+                  <option value="priceDesc">
+                    Fiyat Azalan
+                  </option>
+
+                  <option value="rating">
+                    En Yüksek Puan
+                  </option>
+
+                </select>
+
+
+                <FaChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-600" />
+
+              </div>
 
             </div>
 
           </div>
 
 
-          <div className="mt-8 grid gap-7 lg:grid-cols-[270px_1fr]">
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-white/10 bg-[#07111f] px-5 py-4">
+
+            <div>
+
+              <div className="text-[9px] font-black uppercase tracking-[.14em] text-slate-600">
+                Arama Özeti
+              </div>
+
+              <div className="mt-1 text-xs font-black text-slate-300">
+                {transportLabel(
+                  transport
+                )} · {scope ===
+                "all"
+                  ? "Yurt İçi & Yurt Dışı"
+                  : scopeLabel(
+                      scope
+                    )} · {departure ===
+                "Tümü"
+                  ? "Tüm Kalkışlar"
+                  : departure} · {guests} Kişi
+              </div>
+
+            </div>
+
+
+            <button
+              type="button"
+              onClick={
+                clearFilters
+              }
+              className="text-[10px] font-black text-orange-400"
+            >
+              Filtreleri Temizle
+            </button>
+
+          </div>
+
+
+          <div className="mt-7 grid gap-7 lg:grid-cols-[270px_1fr]">
 
             {/* FILTERS */}
 
-            <aside>
+            <aside className="hidden lg:block">
 
-              <div className="sticky top-24 rounded-[24px] border border-white/10 bg-[#091522] p-5">
+              <div className="sticky top-24 rounded-[24px] border border-white/10 bg-[#07111f] p-5">
 
                 <div className="flex items-center justify-between">
 
                   <h3 className="font-black">
-                    Filtreler
+                    Tur Filtreleri
                   </h3>
 
-                  <button
-                    type="button"
-                    onClick={
-                      clearFilters
-                    }
-                    className="text-[9px] font-black text-orange-400"
-                  >
-                    Temizle
-                  </button>
+                  <FaFilter className="text-slate-600" />
 
                 </div>
 
 
                 <label className="mt-5 block">
 
-                  <span className="mb-2 block text-[9px] font-black uppercase text-slate-500">
+                  <span className="mb-2 block text-[9px] font-black uppercase text-slate-600">
                     Maksimum Fiyat
                   </span>
+
 
                   <input
                     type="number"
                     min="0"
-                    value={maxPrice}
+                    value={
+                      maxPrice
+                    }
                     onChange={(event) =>
                       setMaxPrice(
                         event.target.value
                       )
                     }
                     placeholder="Örn. 25000"
-                    className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3 text-sm outline-none"
+                    className="w-full rounded-xl border border-white/10 bg-[#0c1825] px-4 py-3 text-sm outline-none"
                   />
 
                 </label>
@@ -1410,18 +1763,21 @@ export default function ToursPage() {
 
                 <label className="mt-4 block">
 
-                  <span className="mb-2 block text-[9px] font-black uppercase text-slate-500">
+                  <span className="mb-2 block text-[9px] font-black uppercase text-slate-600">
                     Tur Süresi
                   </span>
 
+
                   <select
-                    value={duration}
+                    value={
+                      duration
+                    }
                     onChange={(event) =>
                       setDuration(
                         event.target.value
                       )
                     }
-                    className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3 text-sm font-bold outline-none"
+                    className="w-full rounded-xl border border-white/10 bg-[#0c1825] px-4 py-3 text-sm font-bold outline-none"
                   >
 
                     <option value="all">
@@ -1445,62 +1801,68 @@ export default function ToursPage() {
                 </label>
 
 
-                <label className="mt-4 block">
+                <div className="mt-5">
 
-                  <span className="mb-2 block text-[9px] font-black uppercase text-slate-500">
-                    Sıralama
-                  </span>
+                  <div className="text-[9px] font-black uppercase text-slate-600">
+                    Pazar
+                  </div>
 
-                  <div className="relative">
 
-                    <select
-                      value={sort}
-                      onChange={(event) =>
-                        setSort(
-                          event.target
-                            .value as SortMode
-                        )
-                      }
-                      className="w-full appearance-none rounded-xl border border-white/10 bg-[#07111f] px-4 py-3 pr-10 text-sm font-bold outline-none"
-                    >
+                  <div className="mt-3 space-y-1">
 
-                      <option value="recommended">
-                        Önerilen
-                      </option>
+                    {[
+                      [
+                        "all",
+                        "Tüm Turlar",
+                      ],
+                      [
+                        "domestic",
+                        "Yurt İçi",
+                      ],
+                      [
+                        "international",
+                        "Yurt Dışı",
+                      ],
+                    ].map(
+                      ([
+                        key,
+                        label,
+                      ]) => (
 
-                      <option value="newest">
-                        En Yeniler
-                      </option>
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() =>
+                            setScope(
+                              key as ScopeMode
+                            )
+                          }
+                          className={`w-full rounded-xl px-3 py-2.5 text-left text-xs font-black ${
+                            scope ===
+                            key
+                              ? "bg-orange-500 text-white"
+                              : "text-slate-400 hover:bg-white/[.04]"
+                          }`}
+                        >
+                          {label}
+                        </button>
 
-                      <option value="priceAsc">
-                        Fiyat Artan
-                      </option>
-
-                      <option value="priceDesc">
-                        Fiyat Azalan
-                      </option>
-
-                      <option value="rating">
-                        En Yüksek Puan
-                      </option>
-
-                    </select>
-
-                    <FaChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-600" />
+                      )
+                    )}
 
                   </div>
 
-                </label>
+                </div>
 
 
                 <div className="mt-5 rounded-xl border border-orange-500/15 bg-orange-500/[.04] p-4">
 
                   <div className="text-xs font-black text-orange-300">
-                    Paketlerden Ayrı
+                    Tur Marketplace
                   </div>
 
                   <p className="mt-2 text-[10px] leading-5 text-slate-500">
-                    Bu ekranda yalnızca otobüslü ve uçaklı turlar listelenir. Tatil ve balayı paketleri ayrı Marketplace bölümünde tutulur.
+                    Bu alanda yalnızca otobüslü ve uçaklı gerçek tur ürünleri listelenir. Paketler ayrı sistemde tutulur.
                   </p>
 
                 </div>
@@ -1514,16 +1876,42 @@ export default function ToursPage() {
 
             <div>
 
-              {loading && (
+              {error && (
 
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <div className="mb-5 flex items-center justify-between gap-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
 
-                  {[1,2,3,4,5,6].map(
-                    (item) => (
+                  <span>
+                    {error}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setError("")
+                    }
+                  >
+                    <FaTimes />
+                  </button>
+
+                </div>
+
+              )}
+
+
+              {loading ? (
+
+                <div className="space-y-5">
+
+                  {[1,2,3].map(
+                    (
+                      item
+                    ) => (
 
                       <div
-                        key={item}
-                        className="h-[500px] animate-pulse rounded-[28px] bg-white/[.04]"
+                        key={
+                          item
+                        }
+                        className="h-[300px] animate-pulse rounded-[28px] bg-white/[.04]"
                       />
 
                     )
@@ -1531,197 +1919,235 @@ export default function ToursPage() {
 
                 </div>
 
-              )}
+              ) : resultTours.length >
+                0 ? (
+
+                <div className="space-y-5">
+
+                  {resultTours.map(
+                    (
+                      tour
+                    ) => {
+
+                      const mode =
+                        getTransport(
+                          tour
+                        )!;
+
+                      const tourScope =
+                        getScope(
+                          tour
+                        );
 
 
-              {error && (
+                      return (
+                        <article
+                          key={
+                            tour.id
+                          }
+                          className="group grid overflow-hidden rounded-[28px] border border-white/10 bg-[#0b1825] transition hover:border-orange-500/30 hover:shadow-2xl hover:shadow-black/30 md:grid-cols-[330px_1fr]"
+                        >
 
-                <div className="rounded-[28px] border border-red-500/20 bg-red-500/10 p-7 text-red-300">
-                  {error}
-                </div>
+                          {/* IMAGE */}
 
-              )}
+                          <div className="relative min-h-[280px] overflow-hidden bg-slate-900">
 
+                            {tour.cover_image ? (
 
-              {!loading &&
-                !error &&
-                filteredTours.length >
-                  0 && (
+                              <img
+                                src={
+                                  tour.cover_image
+                                }
+                                alt={
+                                  tour.title
+                                }
+                                className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                              />
 
-                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                            ) : (
 
-                    {filteredTours.map(
-                      (tour) => {
-
-                        const mode =
-                          getTransport(
-                            tour
-                          )!;
-
-                        const tourScope =
-                          getScope(
-                            tour
-                          );
-
-
-                        return (
-                          <article
-                            key={
-                              tour.id
-                            }
-                            className="group overflow-hidden rounded-[28px] border border-white/10 bg-[#0b1825] transition duration-300 hover:-translate-y-1 hover:border-orange-500/35 hover:shadow-2xl"
-                          >
-
-                            <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
-
-                              {tour.cover_image ? (
-
-                                <img
-                                  src={
-                                    tour.cover_image
-                                  }
-                                  alt={
-                                    tour.title
-                                  }
-                                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                                />
-
-                              ) : (
-
-                                <div className="flex h-full items-center justify-center text-xs text-slate-600">
-                                  Tur görseli hazırlanıyor
-                                </div>
-
-                              )}
-
-
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
-
-
-                              <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-
-                                <span className={`rounded-full px-3 py-1.5 text-[8px] font-black ${
-                                  mode ===
-                                  "bus"
-                                    ? "bg-orange-500 text-white"
-                                    : "bg-cyan-300 text-slate-950"
-                                }`}>
-                                  {mode ===
-                                  "bus" ? (
-                                    <>
-                                      <FaBusAlt className="mr-1 inline" />
-                                      OTOBÜSLÜ
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FaPlaneDeparture className="mr-1 inline" />
-                                      UÇAKLI
-                                    </>
-                                  )}
-                                </span>
-
-
-                                <span className="rounded-full bg-black/60 px-3 py-1.5 text-[8px] font-black text-white backdrop-blur">
-                                  {scopeLabel(
-                                    tourScope
-                                  ).toUpperCase()}
-                                </span>
-
-
-                                {tour.bestseller && (
-                                  <span className="rounded-full bg-emerald-400 px-3 py-1.5 text-[8px] font-black text-slate-950">
-                                    ÇOK SATAN
-                                  </span>
-                                )}
-
+                              <div className="flex h-full min-h-[280px] items-center justify-center text-xs text-slate-600">
+                                Tur görseli hazırlanıyor
                               </div>
 
+                            )}
 
-                              <FavoriteButton
-                                tourId={
-                                  tour.id
-                                }
-                                className="absolute right-4 top-4 h-10 w-10 rounded-full bg-black/60 text-white backdrop-blur"
-                              />
+
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+
+
+                            <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+
+                              <span className={`rounded-full px-3 py-1.5 text-[8px] font-black ${
+                                mode ===
+                                "bus"
+                                  ? "bg-orange-500 text-white"
+                                  : "bg-cyan-300 text-slate-950"
+                              }`}>
+
+                                {mode ===
+                                "bus" ? (
+                                  <>
+                                    <FaBusAlt className="mr-1 inline" />
+                                    OTOBÜSLÜ
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaPlaneDeparture className="mr-1 inline" />
+                                    UÇAKLI
+                                  </>
+                                )}
+
+                              </span>
+
+
+                              <span className="rounded-full bg-black/65 px-3 py-1.5 text-[8px] font-black backdrop-blur">
+                                {scopeLabel(
+                                  tourScope
+                                ).toUpperCase()}
+                              </span>
+
+
+                              {tour.bestseller && (
+
+                                <span className="rounded-full bg-emerald-400 px-3 py-1.5 text-[8px] font-black text-slate-950">
+                                  ÇOK SATAN
+                                </span>
+
+                              )}
 
                             </div>
 
 
-                            <div className="p-5">
+                            <FavoriteButton
+                              tourId={
+                                tour.id
+                              }
+                              className="absolute right-4 top-4 h-10 w-10 rounded-full bg-black/60 text-white backdrop-blur"
+                            />
 
-                              <div className="flex items-center justify-between gap-3">
+                          </div>
 
-                                <div className="flex items-center gap-2 text-[10px] text-slate-500">
 
-                                  <FaMapMarkerAlt className="text-orange-400" />
+                          {/* INFO */}
 
-                                  {tour.city}
+                          <div className="flex min-w-0 flex-col p-5 md:p-6">
 
-                                  {tour.district
-                                    ? ` · ${tour.district}`
-                                    : ""}
+                            <div className="flex flex-wrap items-start justify-between gap-4">
+
+                              <div className="min-w-0">
+
+                                <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500">
+
+                                  <span className="flex items-center gap-1.5">
+                                    <FaMapMarkerAlt className="text-orange-400" />
+                                    {tour.city}
+                                    {tour.district
+                                      ? ` · ${tour.district}`
+                                      : ""}
+                                  </span>
+
+
+                                  {tour.duration && (
+
+                                    <span className="flex items-center gap-1.5">
+                                      <FaCalendarAlt className="text-slate-600" />
+                                      {tour.duration}
+                                    </span>
+
+                                  )}
 
                                 </div>
 
 
-                                <div className="flex items-center gap-1 text-xs font-black">
-
-                                  <FaStar className="text-yellow-400" />
-
-                                  {tour.rating ??
-                                    5}
-
-                                  <span className="text-[9px] font-normal text-slate-600">
-                                    ({tour.review_count ??
-                                      0})
-                                  </span>
-
-                                </div>
-
-                              </div>
+                                <h3 className="mt-4 text-2xl font-black">
+                                  {tour.title}
+                                </h3>
 
 
-                              <h3 className="mt-4 line-clamp-2 min-h-[56px] text-xl font-black">
-                                {tour.title}
-                              </h3>
+                                {tour.short_description && (
 
+                                  <p className="mt-3 line-clamp-2 max-w-2xl text-xs leading-6 text-slate-500">
+                                    {tour.short_description}
+                                  </p>
 
-                              {tour.short_description && (
-
-                                <p className="mt-3 line-clamp-2 min-h-[48px] text-xs leading-6 text-slate-500">
-                                  {tour.short_description}
-                                </p>
-
-                              )}
-
-
-                              <div className="mt-4 flex flex-wrap gap-2">
-
-                                <span className="rounded-full bg-white/[.05] px-3 py-2 text-[9px] font-black text-slate-400">
-                                  {transportLabel(
-                                    mode
-                                  )}
-                                </span>
-
-                                <span className="rounded-full bg-white/[.05] px-3 py-2 text-[9px] font-black text-slate-400">
-                                  {scopeLabel(
-                                    tourScope
-                                  )}
-                                </span>
-
-                                {tour.duration && (
-                                  <span className="rounded-full bg-white/[.05] px-3 py-2 text-[9px] font-black text-slate-400">
-                                    {tour.duration}
-                                  </span>
                                 )}
 
                               </div>
 
 
-                              <div className="mt-5 border-t border-white/10 pt-4">
+                              <div className="rounded-xl border border-white/10 bg-white/[.03] px-4 py-3 text-right">
+
+                                <div className="flex items-center justify-end gap-1 text-sm font-black">
+                                  <FaStar className="text-yellow-400" />
+
+                                  {tour.rating ??
+                                    5}
+                                </div>
+
+                                <div className="mt-1 text-[9px] text-slate-600">
+                                  {tour.review_count ??
+                                    0} değerlendirme
+                                </div>
+
+                              </div>
+
+                            </div>
+
+
+                            <div className="mt-5 grid gap-2 sm:grid-cols-3">
+
+                              <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+
+                                <div className="text-[9px] font-black uppercase text-slate-600">
+                                  Ulaşım
+                                </div>
+
+                                <div className="mt-1 text-sm font-black">
+                                  {transportLabel(
+                                    mode
+                                  )}
+                                </div>
+
+                              </div>
+
+
+                              <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+
+                                <div className="text-[9px] font-black uppercase text-slate-600">
+                                  Tur Bölgesi
+                                </div>
+
+                                <div className="mt-1 text-sm font-black">
+                                  {scopeLabel(
+                                    tourScope
+                                  )}
+                                </div>
+
+                              </div>
+
+
+                              <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+
+                                <div className="text-[9px] font-black uppercase text-slate-600">
+                                  Kişi
+                                </div>
+
+                                <div className="mt-1 text-sm font-black">
+                                  {guests} kişi
+                                </div>
+
+                              </div>
+
+                            </div>
+
+
+                            <div className="mt-auto flex flex-wrap items-end justify-between gap-5 border-t border-white/10 pt-5">
+
+                              <div>
 
                                 {tour.old_price >
-                                  tour.adult_price && (
+                                tour.adult_price && (
 
                                   <div className="text-xs text-slate-600 line-through">
                                     {tour.old_price.toLocaleString(
@@ -1732,128 +2158,139 @@ export default function ToursPage() {
                                 )}
 
 
-                                <div className="mt-1 flex items-end justify-between gap-4">
-
-                                  <div>
-
-                                    <div className="text-2xl font-black text-orange-400">
-                                      {tour.adult_price.toLocaleString(
-                                        "tr-TR"
-                                      )} TL
-                                    </div>
-
-                                    <div className="text-[9px] text-slate-600">
-                                      kişi başı
-                                    </div>
-
-                                  </div>
-
-
-                                  <Link
-                                    href={`/turlar/${tour.slug}`}
-                                    className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-xs font-black transition hover:bg-orange-600"
-                                  >
-                                    Turu İncele
-                                    <FaArrowRight />
-                                  </Link>
-
+                                <div className="mt-1 text-3xl font-black text-orange-400">
+                                  {tour.adult_price.toLocaleString(
+                                    "tr-TR"
+                                  )} TL
                                 </div>
+
+                                <div className="text-[9px] text-slate-600">
+                                  kişi başı başlangıç fiyatı
+                                </div>
+
+                              </div>
+
+
+                              <div className="flex flex-wrap gap-2">
+
+                                <Link
+                                  href={`/turlar/${tour.slug}`}
+                                  className="rounded-xl border border-white/10 px-4 py-3 text-xs font-black text-slate-300 transition hover:bg-white/[.05]"
+                                >
+                                  Tur Detayı
+                                </Link>
+
+
+                                <Link
+                                  href={`/turlar/${tour.slug}`}
+                                  className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-xs font-black transition hover:bg-orange-600"
+                                >
+                                  Turu İncele
+                                  <FaArrowRight />
+                                </Link>
 
                               </div>
 
                             </div>
 
-                          </article>
-                        );
+                          </div>
 
-                      }
-                    )}
+                        </article>
+                      );
+
+                    }
+                  )}
+
+                </div>
+
+              ) : (
+
+                <div>
+
+                  <div className="rounded-[24px] border border-orange-500/15 bg-orange-500/[.04] p-5">
+
+                    <div className="font-black text-orange-300">
+                      Marketplace Tasarım Önizlemesi
+                    </div>
+
+                    <p className="mt-2 text-xs leading-6 text-slate-500">
+                      Bu filtrede gerçek tur bulunmadığı için yalnızca tasarım örnekleri gösteriliyor. Tour OS&apos;a uygun otobüslü veya uçaklı tur geldiğinde bu kartlar otomatik olarak kaybolur.
+                    </p>
 
                   </div>
 
-                )}
+
+                  <div className="mt-5 grid gap-5 md:grid-cols-2">
+
+                    {previewTours
+                      .filter(
+                        (
+                          tour
+                        ) =>
+                          transport ===
+                          "bus"
+                            ? tour.transport ===
+                              "Otobüslü"
+                            : tour.transport ===
+                              "Uçaklı"
+                      )
+                      .map(
+                        (
+                          tour
+                        ) => (
+
+                          <article
+                            key={
+                              tour.title
+                            }
+                            className="overflow-hidden rounded-[26px] border border-white/10 bg-[#0b1825]"
+                          >
+
+                            <div className="relative aspect-[16/9] overflow-hidden">
+
+                              <img
+                                src={
+                                  tour.image
+                                }
+                                alt={
+                                  tour.title
+                                }
+                                className="h-full w-full object-cover"
+                              />
 
 
-              {!loading &&
-                !error &&
-                filteredTours.length ===
-                  0 && (
+                              <div className="absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1.5 text-[8px] font-black text-orange-300 backdrop-blur">
+                                TASARIM ÖNİZLEME
+                              </div>
 
-                  <div>
-
-                    <div className="rounded-[28px] border border-white/10 bg-[#091522] p-6">
-
-                      <div className="text-xs font-black text-orange-300">
-                        Henüz bu filtrelerde gerçek tur yok
-                      </div>
-
-                      <p className="mt-2 text-xs leading-6 text-slate-500">
-                        Aşağıdaki kartlar yalnızca tasarım önizlemesidir. Gerçek otobüslü/uçaklı turlar Tour OS&apos;a eklendikçe otomatik olarak bunların yerine gelir.
-                      </p>
-
-                    </div>
+                            </div>
 
 
-                    <div className="mt-5 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                            <div className="p-5">
 
-                      {previewTours
-                        .filter(
-                          (tour) =>
-                            transport ===
-                            "bus"
-                              ? tour.transport ===
-                                "Otobüslü"
-                              : tour.transport ===
-                                "Uçaklı"
-                        )
-                        .map(
-                          (tour) => (
-
-                            <div
-                              key={
-                                tour.title
-                              }
-                              className="overflow-hidden rounded-[28px] border border-white/10 bg-[#0b1825]"
-                            >
-
-                              <div className="relative aspect-[16/10] overflow-hidden">
-
-                                <img
-                                  src={
-                                    tour.image
-                                  }
-                                  alt={
-                                    tour.title
-                                  }
-                                  className="h-full w-full object-cover"
-                                />
-
-                                <div className="absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1.5 text-[8px] font-black text-orange-300 backdrop-blur">
-                                  TASARIM ÖNİZLEME
-                                </div>
-
+                              <div className="text-[10px] text-slate-500">
+                                {tour.scope} · {tour.transport}
                               </div>
 
 
-                              <div className="p-5">
+                              <h3 className="mt-2 text-xl font-black">
+                                {tour.title}
+                              </h3>
 
-                                <div className="text-[10px] text-slate-500">
-                                  {tour.scope} · {tour.transport}
-                                </div>
 
-                                <h3 className="mt-2 text-lg font-black">
-                                  {tour.title}
-                                </h3>
+                              <div className="mt-2 text-xs text-slate-500">
+                                {tour.route}
+                              </div>
 
-                                <div className="mt-2 text-xs text-slate-500">
-                                  {tour.location}
-                                </div>
 
-                                <div className="mt-2 text-xs text-slate-500">
-                                  {tour.duration}
-                                </div>
+                              <div className="mt-2 text-xs text-slate-500">
+                                {tour.duration}
+                              </div>
 
-                                <div className="mt-5 text-2xl font-black text-orange-400">
+
+                              <div className="mt-5 border-t border-white/10 pt-4">
+
+                                <div className="text-2xl font-black text-orange-400">
                                   {tour.price.toLocaleString(
                                     "tr-TR"
                                   )} TL
@@ -1867,14 +2304,16 @@ export default function ToursPage() {
 
                             </div>
 
-                          )
-                        )}
+                          </article>
 
-                    </div>
+                        )
+                      )}
 
                   </div>
 
-                )}
+                </div>
+
+              )}
 
             </div>
 
@@ -1885,75 +2324,270 @@ export default function ToursPage() {
       </section>
 
 
-      {/* NETWORK */}
+      {/* ====================================================
+          NETWORK
+      ==================================================== */}
 
-      <section className="border-t border-white/10 bg-[#091522] px-5 py-16 lg:px-8">
+      <section className="border-t border-white/10 px-5 py-16 lg:px-8">
 
-        <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_.8fr]">
 
-          {[
-            [
-              "Sadece Gerçek Turlar",
-              "Paket ve aktivite ürünleri tur listesinden ayrıdır.",
-              FaShieldAlt,
-            ],
-            [
-              "Otobüslü Turlar",
-              "Kalkış noktasından rota ve program bazlı tur satışı.",
-              FaBusAlt,
-            ],
-            [
-              "Uçaklı Turlar",
-              "Yurt içi ve yurt dışı uçuşlu tur programları.",
-              FaPlaneDeparture,
-            ],
-            [
-              "Yurt İçi / Yurt Dışı",
-              "Turun destinasyon yapısına göre profesyonel ayrım.",
-              FaGlobeEurope,
-            ],
-          ].map(
-            ([
-              title,
-              description,
-              Icon,
-            ]) => {
+          <div>
 
-              const TypedIcon =
-                Icon as typeof FaShieldAlt;
+            <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
+              Turobus Tour Network
+            </div>
 
 
-              return (
-                <div
-                  key={
-                    String(title)
-                  }
-                  className="rounded-[22px] border border-white/10 bg-white/[.025] p-5"
-                >
+            <h2 className="mt-2 max-w-2xl text-3xl font-black">
+              Tur listesi değil. Gerçek seyahat ürünlerini yöneten pazar yeri.
+            </h2>
 
-                  <TypedIcon className="text-orange-400" />
 
-                  <div className="mt-4 font-black">
-                    {String(
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+
+              {[
+                [
+                  "Otobüslü Turlar",
+                  "Kalkış noktası ve tur rotasına göre gerçek tur ürünleri.",
+                ],
+                [
+                  "Uçaklı Turlar",
+                  "Yurt içi ve yurt dışı uçuşlu tur programları.",
+                ],
+                [
+                  "Paketlerden Ayrı",
+                  "Balayı ve tatil paketleri bu sayfada karışmaz.",
+                ],
+                [
+                  "Gerçek Tur Detayı",
+                  "Kartlar doğrudan mevcut tur detay sayfasına bağlanır.",
+                ],
+              ].map(
+                ([
+                  title,
+                  description,
+                ]) => (
+
+                  <div
+                    key={
                       title
-                    )}
+                    }
+                    className="rounded-[22px] border border-white/10 bg-white/[.025] p-5"
+                  >
+
+                    <FaShieldAlt className="text-orange-400" />
+
+                    <div className="mt-4 font-black">
+                      {title}
+                    </div>
+
+                    <p className="mt-2 text-xs leading-6 text-slate-500">
+                      {description}
+                    </p>
+
                   </div>
 
-                  <p className="mt-2 text-xs leading-6 text-slate-500">
-                    {String(
-                      description
-                    )}
-                  </p>
+                )
+              )}
 
-                </div>
-              );
+            </div>
 
-            }
-          )}
+          </div>
+
+
+          <div className="rounded-[30px] border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-orange-500/[.03] to-transparent p-7">
+
+            <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
+              TUROBUS TOUR
+            </div>
+
+
+            <div className="mt-4 text-4xl font-black leading-tight">
+              Rota.
+              <br />
+              Ulaşım.
+              <br />
+              Program.
+              <br />
+              Rezervasyon.
+            </div>
+
+
+            <p className="mt-6 text-sm leading-7 text-slate-400">
+              Otobüslü ve uçaklı seyahat ürünleri, Tour OS ile Marketplace arasında profesyonel bir satış deneyimine dönüşür.
+            </p>
+
+          </div>
 
         </div>
 
       </section>
+
+
+      {/* ====================================================
+          MOBILE FILTER
+      ==================================================== */}
+
+      {mobileFilters && (
+
+        <div className="fixed inset-0 z-[95] bg-black/80 backdrop-blur-md">
+
+          <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-[30px] border-t border-white/10 bg-[#091522] p-5">
+
+            <div className="flex items-center justify-between">
+
+              <h3 className="text-xl font-black">
+                Tur Filtreleri
+              </h3>
+
+
+              <button
+                type="button"
+                onClick={() =>
+                  setMobileFilters(
+                    false
+                  )
+                }
+                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10"
+              >
+                <FaTimes />
+              </button>
+
+            </div>
+
+
+            <div className="mt-5 grid grid-cols-2 gap-2">
+
+              {[
+                [
+                  "all",
+                  "Tümü",
+                ],
+                [
+                  "domestic",
+                  "Yurt İçi",
+                ],
+                [
+                  "international",
+                  "Yurt Dışı",
+                ],
+              ].map(
+                ([
+                  key,
+                  label,
+                ]) => (
+
+                  <button
+                    key={
+                      key
+                    }
+                    type="button"
+                    onClick={() =>
+                      setScope(
+                        key as ScopeMode
+                      )
+                    }
+                    className={`rounded-xl border px-3 py-3 text-xs font-black ${
+                      scope ===
+                      key
+                        ? "border-orange-500 bg-orange-500"
+                        : "border-white/10"
+                    }`}
+                  >
+                    {label}
+                  </button>
+
+                )
+              )}
+
+            </div>
+
+
+            <label className="mt-5 block">
+
+              <span className="mb-2 block text-[9px] font-black uppercase text-slate-600">
+                Maksimum Fiyat
+              </span>
+
+
+              <input
+                type="number"
+                value={
+                  maxPrice
+                }
+                onChange={(event) =>
+                  setMaxPrice(
+                    event.target.value
+                  )
+                }
+                className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3"
+              />
+
+            </label>
+
+
+            <label className="mt-5 block">
+
+              <span className="mb-2 block text-[9px] font-black uppercase text-slate-600">
+                Süre
+              </span>
+
+
+              <select
+                value={
+                  duration
+                }
+                onChange={(event) =>
+                  setDuration(
+                    event.target.value
+                  )
+                }
+                className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3"
+              >
+
+                <option value="all">
+                  Tüm Süreler
+                </option>
+
+                <option value="short">
+                  1-2 Gün
+                </option>
+
+                <option value="medium">
+                  3-5 Gün
+                </option>
+
+                <option value="long">
+                  6+ Gün
+                </option>
+
+              </select>
+
+            </label>
+
+
+            <button
+              type="button"
+              onClick={() => {
+
+                setMobileFilters(
+                  false
+                );
+
+                scrollResults();
+
+              }}
+              className="mt-6 w-full rounded-xl bg-orange-500 py-4 font-black"
+            >
+              Sonuçları Göster
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
 
 
       <Footer />
