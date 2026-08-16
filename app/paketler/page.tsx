@@ -12,18 +12,23 @@ import Link from "next/link";
 
 import {
   FaArrowRight,
+  FaBed,
+  FaBus,
   FaCalendarAlt,
   FaCheck,
   FaCheckCircle,
   FaChevronDown,
   FaFilter,
   FaGift,
+  FaGlobeEurope,
   FaHeart,
   FaHotel,
   FaMapMarkerAlt,
   FaPlane,
   FaSearch,
+  FaShip,
   FaShieldAlt,
+  FaSpa,
   FaStar,
   FaSuitcase,
   FaTimes,
@@ -36,17 +41,39 @@ import Footer from "@/components/home/Footer";
 import { supabase } from "@/lib/supabase";
 
 
+type ComponentPreview = {
+  id: string;
+  component_key: string;
+  component_type: string;
+  title: string;
+  image_url: string | null;
+  is_included: boolean;
+  is_optional: boolean;
+  is_gift_option: boolean;
+};
+
+
 type PackageItem = {
   id: string;
   slug: string;
   name: string;
 
   package_type: string;
+  travel_scope: string;
+
+  country: string | null;
+  destination_region: string | null;
 
   city: string | null;
   district: string | null;
 
+  accommodation_mode: string;
+  transport_mode: string;
+  package_mode: string;
+  experience_theme: string | null;
+
   short_description: string | null;
+  hero_caption: string | null;
 
   nights: number;
   days: number;
@@ -65,11 +92,22 @@ type PackageItem = {
 
   transfer_included: boolean;
 
+  gift_choice_count: number;
+  customizable: boolean;
+
+  badge_labels: string[];
+
   featured: boolean;
   verified: boolean;
 
   next_departure: string | null;
   available_capacity: number | null;
+
+  included_component_count: number;
+  optional_component_count: number;
+  gift_component_count: number;
+
+  component_preview: ComponentPreview[];
 };
 
 
@@ -84,44 +122,68 @@ const packageTypes = [
   {
     value: "",
     label: "Tüm Paketler",
-    description:
-      "Tüm seçkin tatil seçenekleri",
     icon: FaSuitcase,
   },
   {
     value: "holiday",
-    label: "Tatil Paketleri",
-    description:
-      "Konaklama + deneyim",
+    label: "Tatil",
     icon: FaHotel,
   },
   {
     value: "honeymoon",
-    label: "Balayı Paketleri",
-    description:
-      "Çiftlere özel romantik deneyimler",
+    label: "Balayı",
     icon: FaHeart,
   },
   {
     value: "family",
-    label: "Aile Paketleri",
-    description:
-      "Ailelere özel konaklama",
+    label: "Aile",
     icon: FaUsers,
   },
   {
     value: "adventure",
-    label: "Macera Paketleri",
-    description:
-      "Aktivite ve adrenalin",
+    label: "Macera",
     icon: FaPlane,
   },
   {
     value: "premium",
-    label: "Seçkin Paketler",
-    description:
-      "Premium tatil deneyimi",
+    label: "Seçkin",
     icon: FaStar,
+  },
+];
+
+
+const scopeOptions = [
+  {
+    value: "",
+    label: "Yurt İçi & Yurt Dışı",
+  },
+  {
+    value: "domestic",
+    label: "Yurt İçi",
+  },
+  {
+    value: "international",
+    label: "Yurt Dışı",
+  },
+];
+
+
+const accommodationOptions = [
+  {
+    value: "",
+    label: "Otel & Villa",
+  },
+  {
+    value: "hotel",
+    label: "Otel Paketleri",
+  },
+  {
+    value: "villa",
+    label: "Villa Paketleri",
+  },
+  {
+    value: "mixed",
+    label: "Karma Konaklama",
   },
 ];
 
@@ -129,88 +191,123 @@ const packageTypes = [
 const previewPackages = [
   {
     name:
-      "Fethiye Seçkin Tatil",
-    type:
+      "Fethiye Seçkin Deneyim",
+    subtitle:
       "Tatil Paketi",
     location:
-      "Fethiye · Muğla",
+      "Fethiye · Türkiye",
     nights:
       4,
     days:
       5,
-    guests:
-      2,
     price:
       52990,
     image:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=90",
-    included: [
-      "Otel",
-      "Transfer",
-      "Tekne",
-      "Aktivite",
+    experiences: [
+      "Seçkin Otel",
+      "VIP Transfer",
+      "Tekne Turu",
+      "SPA & Wellness",
     ],
   },
   {
     name:
       "Ölüdeniz Balayı Collection",
-    type:
+    subtitle:
       "Balayı Paketi",
     location:
-      "Ölüdeniz · Fethiye",
+      "Ölüdeniz · Türkiye",
     nights:
       4,
     days:
       5,
-    guests:
-      2,
     price:
       69990,
     image:
       "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=90",
-    included: [
+    experiences: [
       "Jakuzili Otel",
-      "VIP Transfer",
-      "Tekne",
-      "SPA",
+      "VIP Havalimanı",
+      "Gün Batımı Yatı",
+      "Profesyonel Çekim",
     ],
   },
   {
     name:
-      "Fethiye Adventure Week",
-    type:
-      "Macera Paketi",
+      "Dubai Signature Escape",
+    subtitle:
+      "Yurt Dışı Paket",
     location:
-      "Fethiye · Muğla",
+      "Dubai · BAE",
     nights:
       4,
     days:
       5,
-    guests:
-      2,
     price:
-      32900,
+      89900,
     image:
-      "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1400&q=90",
-    included: [
-      "Dalış",
-      "Rafting",
-      "Safari",
-      "Transfer",
+      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1400&q=90",
+    experiences: [
+      "Uçuş",
+      "5★ Otel",
+      "Havalimanı Transfer",
+      "Çöl Deneyimi",
     ],
   },
 ];
 
 
-const destinations = [
-  "Fethiye",
-  "Ölüdeniz",
-  "Antalya",
-  "Bodrum",
-  "Marmaris",
-  "Kapadokya",
-  "İstanbul",
-];
+const componentIcons:
+  Record<string, typeof FaGift> = {
+    accommodation:
+      FaHotel,
+
+    flight:
+      FaPlane,
+
+    bus:
+      FaBus,
+
+    transfer:
+      FaSuitcase,
+
+    activity:
+      FaStar,
+
+    tour:
+      FaMapMarkerAlt,
+
+    yacht:
+      FaShip,
+
+    boat:
+      FaShip,
+
+    spa:
+      FaSpa,
+
+    wellness:
+      FaSpa,
+
+    dining:
+      FaGift,
+
+    photography:
+      FaGift,
+
+    guide:
+      FaMapMarkerAlt,
+
+    gift:
+      FaGift,
+
+    insurance:
+      FaShieldAlt,
+
+    other:
+      FaGift,
+};
 
 
 const money = (
@@ -220,9 +317,13 @@ const money = (
   new Intl.NumberFormat(
     "tr-TR",
     {
-      style: "currency",
+      style:
+        "currency",
+
       currency,
-      maximumFractionDigits: 0,
+
+      maximumFractionDigits:
+        0,
     }
   ).format(
     Number(
@@ -231,16 +332,78 @@ const money = (
   );
 
 
-function typeLabel(
-  value: string
+function packageLabel(
+  type: string
 ) {
   return (
     packageTypes.find(
-      (item) =>
-        item.value === value
+      (
+        item
+      ) =>
+        item.value ===
+        type
     )?.label ??
-    value
+    type
   );
+}
+
+
+function accommodationLabel(
+  mode: string
+) {
+
+  const labels:
+    Record<string,string> = {
+      hotel:
+        "Otel",
+
+      villa:
+        "Villa",
+
+      mixed:
+        "Otel / Villa",
+
+      none:
+        "Konaklamasız",
+  };
+
+
+  return (
+    labels[mode] ??
+    mode
+  );
+
+}
+
+
+function transportLabel(
+  mode: string
+) {
+
+  const labels:
+    Record<string,string> = {
+      flight:
+        "Uçaklı",
+
+      bus:
+        "Otobüslü",
+
+      mixed:
+        "Karma Ulaşım",
+
+      own:
+        "Kendi Ulaşımı",
+
+      none:
+        "Ulaşım Hariç",
+  };
+
+
+  return (
+    labels[mode] ??
+    mode
+  );
+
 }
 
 
@@ -274,13 +437,6 @@ export default function PackagesPage() {
 
 
   const [
-    mobileFilters,
-    setMobileFilters,
-  ] =
-    useState(false);
-
-
-  const [
     sort,
     setSort,
   ] =
@@ -290,16 +446,40 @@ export default function PackagesPage() {
 
 
   const [
+    mobileFilters,
+    setMobileFilters,
+  ] =
+    useState(false);
+
+
+  const [
     filters,
     setFilters,
   ] =
     useState({
-      destination: "",
-      packageType: "",
-      guests: 2,
-      startDate: "",
-      maxPrice: "",
-      minNights: 0,
+      destination:
+        "",
+
+      packageType:
+        "",
+
+      travelScope:
+        "",
+
+      accommodationMode:
+        "",
+
+      guests:
+        2,
+
+      startDate:
+        "",
+
+      maxPrice:
+        "",
+
+      minNights:
+        0,
     });
 
 
@@ -319,7 +499,7 @@ export default function PackagesPage() {
             rpcError,
         } =
           await supabase.rpc(
-            "get_public_package_marketplace",
+            "get_public_package_marketplace_v2",
             {
               p_destination:
                 next.destination ||
@@ -327,6 +507,14 @@ export default function PackagesPage() {
 
               p_package_type:
                 next.packageType ||
+                null,
+
+              p_travel_scope:
+                next.travelScope ||
+                null,
+
+              p_accommodation_mode:
+                next.accommodationMode ||
                 null,
 
               p_guests:
@@ -340,7 +528,9 @@ export default function PackagesPage() {
           );
 
 
-        if (rpcError) {
+        if (
+          rpcError
+        ) {
 
           setError(
             rpcError.message
@@ -351,8 +541,10 @@ export default function PackagesPage() {
         } else {
 
           setPackages(
-            (data ??
-              []) as PackageItem[]
+            (
+              data ??
+              []
+            ) as PackageItem[]
           );
 
         }
@@ -486,7 +678,11 @@ export default function PackagesPage() {
                   Number(
                     a.verified
                   ) *
-                    5;
+                    5 +
+                  Number(
+                    a.customizable
+                  ) *
+                    2;
 
 
                 const bScore =
@@ -497,7 +693,11 @@ export default function PackagesPage() {
                   Number(
                     b.verified
                   ) *
-                    5;
+                    5 +
+                  Number(
+                    b.customizable
+                  ) *
+                    2;
 
 
                 return (
@@ -533,6 +733,7 @@ export default function PackagesPage() {
         resultsRef.current?.scrollIntoView({
           behavior:
             "smooth",
+
           block:
             "start",
         }),
@@ -545,12 +746,29 @@ export default function PackagesPage() {
   function clearFilters() {
 
     const next = {
-      destination: "",
-      packageType: "",
-      guests: 2,
-      startDate: "",
-      maxPrice: "",
-      minNights: 0,
+      destination:
+        "",
+
+      packageType:
+        "",
+
+      travelScope:
+        "",
+
+      accommodationMode:
+        "",
+
+      guests:
+        2,
+
+      startDate:
+        "",
+
+      maxPrice:
+        "",
+
+      minNights:
+        0,
     };
 
 
@@ -584,9 +802,9 @@ export default function PackagesPage() {
         />
 
 
-        <div className="absolute inset-0 bg-gradient-to-r from-[#06101b]/98 via-[#06101b]/86 to-[#06101b]/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#06101b]/98 via-[#06101b]/87 to-[#06101b]/30" />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#06101b] via-transparent to-[#06101b]/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#06101b] via-transparent to-[#06101b]/25" />
 
 
         <div className="relative mx-auto max-w-7xl px-5 pb-20 pt-20 lg:px-8 lg:pt-28">
@@ -599,17 +817,17 @@ export default function PackagesPage() {
 
                 <FaGift />
 
-                Turobus Package Marketplace
+                Turobus Experience Packages
 
               </div>
 
 
               <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[.93] tracking-tight md:text-7xl">
 
-                Tatilini Tek Tek Alma.
+                Bir Paket Değil.
 
                 <span className="mt-3 block text-orange-500">
-                  Deneyimi Birlikte Seç.
+                  Tatilin Tamamı.
                 </span>
 
               </h1>
@@ -617,10 +835,12 @@ export default function PackagesPage() {
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
 
-                Otel, villa, transfer,
-                aktivite, tur ve özel
-                deneyimleri tek seçkin
-                tatil paketinde birleştir.
+                Yurt içi veya yurt dışı.
+                Otel veya villa.
+                Ulaşım, VIP transfer,
+                aktiviteler, SPA, yat ve
+                özel deneyimler tek
+                rezervasyonda.
 
               </p>
 
@@ -629,24 +849,29 @@ export default function PackagesPage() {
 
             <div className="hidden lg:block">
 
-              <div className="ml-auto max-w-[420px] rounded-[30px] border border-white/15 bg-black/30 p-6 backdrop-blur-2xl">
+              <div className="ml-auto max-w-[430px] rounded-[30px] border border-white/15 bg-black/30 p-6 backdrop-blur-2xl">
 
                 <div className="text-[10px] font-black uppercase tracking-[.18em] text-orange-300">
                   Turobus Paket
                 </div>
 
+
                 <div className="mt-4 text-3xl font-black">
-                  Bir rezervasyon. Birden fazla deneyim.
+                  Tatilin her parçası tek deneyimde.
                 </div>
 
 
-                <div className="mt-6 space-y-3">
+                <div className="mt-6 grid grid-cols-2 gap-2">
 
                   {[
-                    "Tatil & balayı paketleri",
-                    "Konaklama + aktivite",
-                    "Transfer ve özel deneyimler",
-                    "Tek rezervasyon akışı",
+                    "Otel / Villa",
+                    "Uçak / Otobüs",
+                    "VIP Transfer",
+                    "Aktiviteler",
+                    "SPA & Wellness",
+                    "Tekne / Yat",
+                    "Özel Yemek",
+                    "Hediye Seçimi",
                   ].map(
                     (
                       item
@@ -656,10 +881,13 @@ export default function PackagesPage() {
                         key={
                           item
                         }
-                        className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[.04] px-4 py-3 text-xs font-bold"
+                        className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-3 py-3 text-[10px] font-bold"
                       >
-                        <FaCheck className="text-emerald-400" />
+
+                        <FaCheck className="shrink-0 text-emerald-400" />
+
                         {item}
+
                       </div>
 
                     )
@@ -674,61 +902,36 @@ export default function PackagesPage() {
           </div>
 
 
-          {/* SEARCH */}
+          {/* MAIN SEARCH */}
 
-          <div className="mt-10 grid overflow-hidden rounded-[24px] border border-white/15 bg-[#081522]/95 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:grid-cols-[1.1fr_1fr_.8fr_.75fr_auto]">
+          <div className="mt-10 grid overflow-hidden rounded-[24px] border border-white/15 bg-[#081522]/95 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:grid-cols-[1.2fr_.85fr_.8fr_.75fr_auto]">
 
             <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
 
               <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase text-slate-500">
+
                 <FaMapMarkerAlt />
-                Nereye?
+
+                Destinasyon
+
               </span>
 
 
-              <select
+              <input
                 value={
                   filters.destination
                 }
                 onChange={(event) =>
                   setFilters({
                     ...filters,
+
                     destination:
                       event.target.value,
                   })
                 }
-                className="w-full bg-transparent text-sm font-black outline-none"
-              >
-
-                <option
-                  value=""
-                  className="bg-slate-950"
-                >
-                  Tüm destinasyonlar
-                </option>
-
-
-                {destinations.map(
-                  (
-                    destination
-                  ) => (
-
-                    <option
-                      key={
-                        destination
-                      }
-                      value={
-                        destination
-                      }
-                      className="bg-slate-950"
-                    >
-                      {destination}
-                    </option>
-
-                  )
-                )}
-
-              </select>
+                placeholder="Fethiye, Dubai, Paris..."
+                className="w-full bg-transparent text-sm font-black outline-none placeholder:text-slate-600"
+              />
 
             </label>
 
@@ -736,26 +939,30 @@ export default function PackagesPage() {
             <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
 
               <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase text-slate-500">
-                <FaGift />
-                Paket Tipi
+
+                <FaGlobeEurope />
+
+                Bölge
+
               </span>
 
 
               <select
                 value={
-                  filters.packageType
+                  filters.travelScope
                 }
                 onChange={(event) =>
                   setFilters({
                     ...filters,
-                    packageType:
+
+                    travelScope:
                       event.target.value,
                   })
                 }
                 className="w-full bg-transparent text-sm font-black outline-none"
               >
 
-                {packageTypes.map(
+                {scopeOptions.map(
                   (
                     item
                   ) => (
@@ -783,8 +990,11 @@ export default function PackagesPage() {
             <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
 
               <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase text-slate-500">
+
                 <FaCalendarAlt />
+
                 Başlangıç
+
               </span>
 
 
@@ -796,6 +1006,7 @@ export default function PackagesPage() {
                 onChange={(event) =>
                   setFilters({
                     ...filters,
+
                     startDate:
                       event.target.value,
                   })
@@ -809,8 +1020,11 @@ export default function PackagesPage() {
             <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
 
               <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase text-slate-500">
+
                 <FaUsers />
+
                 Misafir
+
               </span>
 
 
@@ -821,6 +1035,7 @@ export default function PackagesPage() {
                 onChange={(event) =>
                   setFilters({
                     ...filters,
+
                     guests:
                       Number(
                         event.target.value
@@ -873,11 +1088,62 @@ export default function PackagesPage() {
                 }
                 className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-7 font-black hover:bg-orange-600"
               >
+
                 <FaSearch />
-                Paket Ara
+
+                Paket Bul
+
               </button>
 
             </div>
+
+          </div>
+
+
+          {/* QUICK FILTERS */}
+
+          <div className="mt-4 flex flex-wrap gap-2">
+
+            {packageTypes.map(
+              (
+                type
+              ) => {
+
+                const Icon =
+                  type.icon;
+
+
+                return (
+                  <button
+                    key={
+                      type.value
+                    }
+                    type="button"
+                    onClick={() =>
+                      setFilters({
+                        ...filters,
+
+                        packageType:
+                          type.value,
+                      })
+                    }
+                    className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-black transition ${
+                      filters.packageType ===
+                      type.value
+                        ? "border-orange-500 bg-orange-500"
+                        : "border-white/10 bg-black/30 text-slate-400"
+                    }`}
+                  >
+
+                    <Icon />
+
+                    {type.label}
+
+                  </button>
+                );
+
+              }
+            )}
 
           </div>
 
@@ -886,9 +1152,9 @@ export default function PackagesPage() {
 
             {[
               "Tek Rezervasyon",
-              "Seçkin Konaklama",
-              "Aktivite & Transfer",
-              "Doğrulanmış Paket",
+              "Yurt İçi & Yurt Dışı",
+              "Otel veya Villa",
+              "Deneyimler Dahil",
             ].map(
               (
                 item
@@ -900,10 +1166,13 @@ export default function PackagesPage() {
                   }
                   className="flex items-center gap-3 px-5 py-4"
                 >
+
                   <FaShieldAlt className="text-emerald-400" />
+
                   <div className="text-xs font-black">
                     {item}
                   </div>
+
                 </div>
 
               )
@@ -916,91 +1185,258 @@ export default function PackagesPage() {
       </section>
 
 
-      {/* PACKAGE TYPES */}
+      {/* DISCOVERY */}
 
       <section className="px-5 py-14 lg:px-8">
 
         <div className="mx-auto max-w-7xl">
 
           <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-            Tatilini Seç
+            Paket Dünyası
           </div>
 
+
           <h2 className="mt-2 text-3xl font-black">
-            Nasıl Bir Paket Arıyorsun?
+            Tatilini Nasıl Yaşamak İstersin?
           </h2>
 
 
-          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-            {packageTypes
-              .filter(
-                (
-                  item
-                ) =>
-                  item.value
-              )
-              .map(
-                (
-                  item
-                ) => {
+            {[
+              {
+                title:
+                  "Yurt İçi Paketler",
 
-                  const Icon =
-                    item.icon;
+                description:
+                  "Türkiye'nin en iyi destinasyonları",
+
+                scope:
+                  "domestic",
+
+                accommodation:
+                  "",
+
+                icon:
+                  FaMapMarkerAlt,
+              },
+              {
+                title:
+                  "Yurt Dışı Paketler",
+
+                description:
+                  "Uçuş, otel ve deneyim bir arada",
+
+                scope:
+                  "international",
+
+                accommodation:
+                  "",
+
+                icon:
+                  FaGlobeEurope,
+              },
+              {
+                title:
+                  "Otel Paketleri",
+
+                description:
+                  "Otel + deneyimler + transfer",
+
+                scope:
+                  "",
+
+                accommodation:
+                  "hotel",
+
+                icon:
+                  FaHotel,
+              },
+              {
+                title:
+                  "Villa Paketleri",
+
+                description:
+                  "Özel villa + seçkin deneyimler",
+
+                scope:
+                  "",
+
+                accommodation:
+                  "villa",
+
+                icon:
+                  FaBed,
+              },
+            ].map(
+              (
+                item
+              ) => {
+
+                const Icon =
+                  item.icon;
+
+
+                return (
+                  <button
+                    key={
+                      item.title
+                    }
+                    type="button"
+                    onClick={() => {
+
+                      setFilters({
+                        ...filters,
+
+                        travelScope:
+                          item.scope,
+
+                        accommodationMode:
+                          item.accommodation,
+                      });
+
+
+                      window.setTimeout(
+                        () =>
+                          resultsRef.current?.scrollIntoView({
+                            behavior:
+                              "smooth",
+                          }),
+                        100
+                      );
+
+                    }}
+                    className="group rounded-[24px] border border-white/10 bg-[#0b1825] p-5 text-left transition hover:-translate-y-1 hover:border-orange-500/30"
+                  >
+
+                    <div className="flex items-center justify-between">
+
+                      <div className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
+                        <Icon />
+                      </div>
+
+
+                      <FaArrowRight className="text-slate-700 group-hover:text-orange-400" />
+
+                    </div>
+
+
+                    <div className="mt-4 font-black">
+                      {item.title}
+                    </div>
+
+
+                    <div className="mt-1 text-xs leading-5 text-slate-500">
+                      {item.description}
+                    </div>
+
+                  </button>
+                );
+
+              }
+            )}
+
+          </div>
+
+
+          {/* EXPERIENCE CATEGORIES */}
+
+          <div className="mt-10 rounded-[30px] border border-white/10 bg-[#0b1825] p-6">
+
+            <div className="flex flex-wrap items-end justify-between gap-4">
+
+              <div>
+
+                <div className="text-[10px] font-black uppercase tracking-[.18em] text-orange-400">
+                  Bir Paketin İçinde
+                </div>
+
+                <h3 className="mt-2 text-2xl font-black">
+                  Tatilin Tüm Deneyimleri
+                </h3>
+
+              </div>
+
+
+              <div className="text-xs text-slate-500">
+                Pakete göre dahil veya opsiyonel
+              </div>
+
+            </div>
+
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+
+              {[
+                [
+                  "Otel / Villa",
+                  FaHotel,
+                ],
+                [
+                  "Uçak / Otobüs",
+                  FaPlane,
+                ],
+                [
+                  "VIP Transfer",
+                  FaSuitcase,
+                ],
+                [
+                  "Aktiviteler",
+                  FaStar,
+                ],
+                [
+                  "SPA & Wellness",
+                  FaSpa,
+                ],
+                [
+                  "Tekne / Yat",
+                  FaShip,
+                ],
+                [
+                  "Özel Akşam Yemeği",
+                  FaGift,
+                ],
+                [
+                  "Profesyonel Çekim",
+                  FaGift,
+                ],
+              ].map(
+                ([
+                  label,
+                  Icon,
+                ]) => {
+
+                  const TypedIcon =
+                    Icon as typeof FaGift;
 
 
                   return (
-                    <button
+                    <div
                       key={
-                        item.value
+                        String(
+                          label
+                        )
                       }
-                      type="button"
-                      onClick={() => {
-
-                        setFilters({
-                          ...filters,
-                          packageType:
-                            item.value,
-                        });
-
-                        window.setTimeout(
-                          () =>
-                            resultsRef.current?.scrollIntoView({
-                              behavior:
-                                "smooth",
-                            }),
-                          100
-                        );
-
-                      }}
-                      className="group rounded-[24px] border border-white/10 bg-[#0b1825] p-5 text-left transition hover:-translate-y-1 hover:border-orange-500/30"
+                      className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.025] p-4"
                     >
 
-                      <div className="flex items-center justify-between">
-
-                        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
-                          <Icon />
-                        </div>
-
-                        <FaArrowRight className="text-slate-700 group-hover:text-orange-400" />
-
+                      <div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/10 text-orange-400">
+                        <TypedIcon />
                       </div>
 
+                      <span className="text-xs font-black">
+                        {String(
+                          label
+                        )}
+                      </span>
 
-                      <div className="mt-4 font-black">
-                        {item.label}
-                      </div>
-
-
-                      <div className="mt-1 text-[10px] leading-5 text-slate-500">
-                        {item.description}
-                      </div>
-
-                    </button>
+                    </div>
                   );
 
                 }
               )}
+
+            </div>
 
           </div>
 
@@ -1025,17 +1461,19 @@ export default function PackagesPage() {
             <div>
 
               <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-                Package Marketplace
+                Experience Marketplace
               </div>
 
               <h2 className="mt-2 text-3xl font-black md:text-4xl">
-                Tatil Paketleri
+                Tatil Deneyimleri
               </h2>
 
               <p className="mt-2 text-sm text-slate-500">
+
                 {loading
-                  ? "Paket ağı kontrol ediliyor..."
-                  : `${results.length} paket bulundu`}
+                  ? "Package Network kontrol ediliyor..."
+                  : `${results.length} uygun paket bulundu`}
+
               </p>
 
             </div>
@@ -1052,8 +1490,11 @@ export default function PackagesPage() {
                 }
                 className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-xs font-black lg:hidden"
               >
+
                 <FaFilter />
+
                 Filtre
+
               </button>
 
 
@@ -1071,6 +1512,7 @@ export default function PackagesPage() {
                   }
                   className="appearance-none rounded-xl border border-white/10 bg-[#07111f] px-4 py-3 pr-9 text-xs font-black"
                 >
+
                   <option value="recommended">
                     Önerilen
                   </option>
@@ -1086,7 +1528,9 @@ export default function PackagesPage() {
                   <option value="duration">
                     Süre Uzun
                   </option>
+
                 </select>
+
 
                 <FaChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-600" />
 
@@ -1099,7 +1543,7 @@ export default function PackagesPage() {
 
           <div className="mt-7 grid gap-7 lg:grid-cols-[270px_1fr]">
 
-            {/* FILTERS */}
+            {/* FILTER SIDEBAR */}
 
             <aside className="hidden lg:block">
 
@@ -1108,6 +1552,52 @@ export default function PackagesPage() {
                 <h3 className="font-black">
                   Paket Filtreleri
                 </h3>
+
+
+                <label className="mt-5 block">
+
+                  <span className="mb-2 block text-[9px] font-black uppercase text-slate-600">
+                    Konaklama
+                  </span>
+
+
+                  <select
+                    value={
+                      filters.accommodationMode
+                    }
+                    onChange={(event) =>
+                      setFilters({
+                        ...filters,
+
+                        accommodationMode:
+                          event.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-[#0c1825] px-4 py-3 text-sm"
+                  >
+
+                    {accommodationOptions.map(
+                      (
+                        item
+                      ) => (
+
+                        <option
+                          key={
+                            item.value
+                          }
+                          value={
+                            item.value
+                          }
+                        >
+                          {item.label}
+                        </option>
+
+                      )
+                    )}
+
+                  </select>
+
+                </label>
 
 
                 <label className="mt-5 block">
@@ -1124,14 +1614,16 @@ export default function PackagesPage() {
                     onChange={(event) =>
                       setFilters({
                         ...filters,
+
                         minNights:
                           Number(
                             event.target.value
                           ),
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-[#0c1825] px-4 py-3"
+                    className="w-full rounded-xl border border-white/10 bg-[#0c1825] px-4 py-3 text-sm"
                   >
+
                     <option value="0">
                       Tümü
                     </option>
@@ -1151,6 +1643,11 @@ export default function PackagesPage() {
                     <option value="5">
                       5+ Gece
                     </option>
+
+                    <option value="7">
+                      7+ Gece
+                    </option>
+
                   </select>
 
                 </label>
@@ -1165,35 +1662,22 @@ export default function PackagesPage() {
 
                   <input
                     type="number"
-                    min="0"
                     value={
                       filters.maxPrice
                     }
                     onChange={(event) =>
                       setFilters({
                         ...filters,
+
                         maxPrice:
                           event.target.value,
                       })
                     }
-                    placeholder="Örn. 75000"
-                    className="w-full rounded-xl border border-white/10 bg-[#0c1825] px-4 py-3"
+                    placeholder="Örn. 100000"
+                    className="w-full rounded-xl border border-white/10 bg-[#0c1825] px-4 py-3 text-sm"
                   />
 
                 </label>
-
-
-                <div className="mt-5 rounded-xl border border-orange-500/15 bg-orange-500/[.04] p-4">
-
-                  <div className="text-xs font-black text-orange-300">
-                    Paket Mantığı
-                  </div>
-
-                  <p className="mt-2 text-[10px] leading-5 text-slate-500">
-                    Konaklama, tur, aktivite, transfer ve özel deneyimler tek ürün altında birleştirilebilir.
-                  </p>
-
-                </div>
 
 
                 <button
@@ -1206,12 +1690,25 @@ export default function PackagesPage() {
                   Filtreleri Temizle
                 </button>
 
+
+                <div className="mt-5 rounded-xl border border-orange-500/15 bg-orange-500/[.04] p-4">
+
+                  <div className="text-xs font-black text-orange-300">
+                    Deneyim Paketi
+                  </div>
+
+                  <p className="mt-2 text-[10px] leading-5 text-slate-500">
+                    Bir paket; konaklama, ulaşım, transfer ve birden fazla deneyimi tek rezervasyonda birleştirebilir.
+                  </p>
+
+                </div>
+
               </div>
 
             </aside>
 
 
-            {/* LIST */}
+            {/* PACKAGE LIST */}
 
             <div>
 
@@ -1243,18 +1740,21 @@ export default function PackagesPage() {
                     (
                       item
                     ) => (
+
                       <div
                         key={
                           item
                         }
-                        className="h-[310px] animate-pulse rounded-[28px] bg-white/[.04]"
+                        className="h-[330px] animate-pulse rounded-[28px] bg-white/[.04]"
                       />
+
                     )
                   )}
 
                 </div>
 
-              ) : results.length ? (
+              ) : results.length >
+                0 ? (
 
                 <div className="space-y-5">
 
@@ -1267,10 +1767,12 @@ export default function PackagesPage() {
                         key={
                           item.id
                         }
-                        className="group grid overflow-hidden rounded-[28px] border border-white/10 bg-[#0b1825] transition hover:border-orange-500/30 hover:shadow-2xl md:grid-cols-[350px_1fr]"
+                        className="group grid overflow-hidden rounded-[30px] border border-white/10 bg-[#0b1825] transition hover:border-orange-500/30 hover:shadow-2xl md:grid-cols-[370px_1fr]"
                       >
 
-                        <div className="relative min-h-[300px] overflow-hidden bg-slate-900">
+                        {/* IMAGE */}
+
+                        <div className="relative min-h-[330px] overflow-hidden bg-slate-900">
 
                           {item.cover_url ? (
 
@@ -1286,57 +1788,107 @@ export default function PackagesPage() {
 
                           ) : (
 
-                            <div className="flex h-full min-h-[300px] items-center justify-center text-slate-700">
+                            <div className="flex h-full min-h-[330px] items-center justify-center text-slate-700">
+
                               <FaGift className="text-6xl" />
+
                             </div>
 
                           )}
 
 
-                          {item.verified && (
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
 
-                            <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-emerald-400 px-3 py-1.5 text-[8px] font-black text-slate-950">
-                              <FaCheckCircle />
-                              DOĞRULANMIŞ
+
+                          <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+
+                            <span className="rounded-full bg-orange-500 px-3 py-1.5 text-[8px] font-black">
+
+                              {item.travel_scope ===
+                              "international"
+                                ? "YURT DIŞI"
+                                : "YURT İÇİ"}
+
+                            </span>
+
+
+                            {item.verified && (
+
+                              <span className="flex items-center gap-1 rounded-full bg-emerald-400 px-3 py-1.5 text-[8px] font-black text-slate-950">
+
+                                <FaCheckCircle />
+
+                                DOĞRULANMIŞ
+
+                              </span>
+
+                            )}
+
+
+                            {item.customizable && (
+
+                              <span className="rounded-full bg-white/90 px-3 py-1.5 text-[8px] font-black text-slate-950">
+                                ÖZELLEŞTİRİLEBİLİR
+                              </span>
+
+                            )}
+
+                          </div>
+
+
+                          <div className="absolute bottom-4 left-4 right-4">
+
+                            <div className="text-[9px] font-black uppercase tracking-[.14em] text-orange-300">
+                              {packageLabel(
+                                item.package_type
+                              )} Paketi
                             </div>
 
-                          )}
+                            <div className="mt-1 text-xl font-black">
+                              {item.hero_caption ||
+                                "Tatilin tamamı tek deneyimde"}
+                            </div>
+
+                          </div>
 
                         </div>
 
 
+                        {/* CONTENT */}
+
                         <div className="flex flex-col p-5 md:p-6">
 
-                          <div className="flex flex-wrap items-start justify-between gap-4">
+                          <div className="flex flex-wrap items-start justify-between gap-5">
 
                             <div>
 
-                              <div className="text-[10px] font-black uppercase text-orange-400">
-                                {typeLabel(
-                                  item.package_type
-                                )}
+                              <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500">
+
+                                <span className="flex items-center gap-1.5">
+
+                                  <FaMapMarkerAlt className="text-orange-400" />
+
+                                  {[
+                                    item.district,
+                                    item.city,
+                                    item.country,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" · ")}
+
+                                </span>
+
                               </div>
 
 
-                              <h3 className="mt-2 text-2xl font-black">
+                              <h3 className="mt-3 text-2xl font-black">
                                 {item.name}
                               </h3>
 
 
-                              <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-
-                                <FaMapMarkerAlt className="text-orange-400" />
-
-                                {[item.city, item.district]
-                                  .filter(Boolean)
-                                  .join(" · ")}
-
-                              </div>
-
-
                               {item.short_description && (
 
-                                <p className="mt-3 line-clamp-2 text-xs leading-6 text-slate-500">
+                                <p className="mt-3 line-clamp-2 max-w-xl text-xs leading-6 text-slate-500">
                                   {item.short_description}
                                 </p>
 
@@ -1351,7 +1903,7 @@ export default function PackagesPage() {
                                 item.old_price >
                                   item.base_price && (
 
-                                <div className="text-[10px] text-slate-600 line-through">
+                                <div className="text-xs text-slate-600 line-through">
                                   {money(
                                     item.old_price,
                                     item.currency
@@ -1361,7 +1913,7 @@ export default function PackagesPage() {
                               )}
 
 
-                              <div className="mt-1 text-2xl font-black text-orange-400">
+                              <div className="text-2xl font-black text-orange-400">
                                 {money(
                                   item.base_price,
                                   item.currency
@@ -1378,6 +1930,8 @@ export default function PackagesPage() {
                           </div>
 
 
+                          {/* PRODUCT INFO */}
+
                           <div className="mt-5 grid gap-2 sm:grid-cols-4">
 
                             <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
@@ -1386,7 +1940,7 @@ export default function PackagesPage() {
                                 Süre
                               </div>
 
-                              <div className="mt-1 font-black">
+                              <div className="mt-1 text-xs font-black">
                                 {item.nights} Gece · {item.days} Gün
                               </div>
 
@@ -1399,9 +1953,10 @@ export default function PackagesPage() {
                                 Konaklama
                               </div>
 
-                              <div className="mt-1 font-black">
-                                {item.accommodation_type ||
-                                  "Paket Konaklama"}
+                              <div className="mt-1 text-xs font-black">
+                                {accommodationLabel(
+                                  item.accommodation_mode
+                                )}
                               </div>
 
                             </div>
@@ -1410,12 +1965,13 @@ export default function PackagesPage() {
                             <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
 
                               <div className="text-[9px] uppercase text-slate-600">
-                                Pansiyon
+                                Ulaşım
                               </div>
 
-                              <div className="mt-1 font-black">
-                                {item.meal_plan ||
-                                  "Programa Göre"}
+                              <div className="mt-1 text-xs font-black">
+                                {transportLabel(
+                                  item.transport_mode
+                                )}
                               </div>
 
                             </div>
@@ -1424,17 +1980,11 @@ export default function PackagesPage() {
                             <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
 
                               <div className="text-[9px] uppercase text-slate-600">
-                                Transfer
+                                Deneyim
                               </div>
 
-                              <div className={`mt-1 font-black ${
-                                item.transfer_included
-                                  ? "text-emerald-300"
-                                  : ""
-                              }`}>
-                                {item.transfer_included
-                                  ? "Dahil"
-                                  : "Programa Göre"}
+                              <div className="mt-1 text-xs font-black">
+                                {item.included_component_count} dahil
                               </div>
 
                             </div>
@@ -1442,40 +1992,110 @@ export default function PackagesPage() {
                           </div>
 
 
+                          {/* EXPERIENCES */}
+
+                          {item.component_preview?.length >
+                            0 && (
+
+                            <div className="mt-5">
+
+                              <div className="mb-2 text-[9px] font-black uppercase text-slate-600">
+                                Paket Deneyimleri
+                              </div>
+
+
+                              <div className="flex flex-wrap gap-2">
+
+                                {item.component_preview
+                                  .slice(
+                                    0,
+                                    6
+                                  )
+                                  .map(
+                                    (
+                                      component
+                                    ) => {
+
+                                      const Icon =
+                                        componentIcons[
+                                          component.component_type
+                                        ] ??
+                                        FaGift;
+
+
+                                      return (
+                                        <span
+                                          key={
+                                            component.id
+                                          }
+                                          className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[.03] px-3 py-2 text-[9px] font-bold text-slate-300"
+                                        >
+
+                                          <Icon className="text-orange-400" />
+
+                                          {component.title}
+
+                                          {component.is_gift_option && (
+                                            <FaGift className="text-emerald-400" />
+                                          )}
+
+                                        </span>
+                                      );
+
+                                    }
+                                  )}
+
+                              </div>
+
+                            </div>
+
+                          )}
+
+
                           <div className="mt-auto flex flex-wrap items-end justify-between gap-5 border-t border-white/10 pt-5">
 
                             <div>
 
                               <div className="text-[9px] uppercase text-slate-600">
-                                Sonraki Tarih
+                                Paket Avantajları
                               </div>
 
-                              <div className="mt-1 text-xs font-black text-slate-300">
-                                {item.next_departure
-                                  ? new Date(
+
+                              <div className="mt-2 flex flex-wrap gap-3 text-[9px] font-black">
+
+                                {item.gift_choice_count >
+                                  0 && (
+
+                                  <span className="text-emerald-300">
+                                    🎁 {item.gift_choice_count} hediye seçimi
+                                  </span>
+
+                                )}
+
+
+                                {item.optional_component_count >
+                                  0 && (
+
+                                  <span className="text-cyan-300">
+                                    + {item.optional_component_count} opsiyonel deneyim
+                                  </span>
+
+                                )}
+
+
+                                {item.next_departure && (
+
+                                  <span className="text-slate-400">
+                                    📅 {new Date(
                                       `${item.next_departure}T12:00:00`
                                     ).toLocaleDateString(
-                                      "tr-TR",
-                                      {
-                                        day:
-                                          "2-digit",
-                                        month:
-                                          "long",
-                                        year:
-                                          "numeric",
-                                      }
-                                    )
-                                  : "Tarih yakında açıklanacak"}
+                                      "tr-TR"
+                                    )}
+                                  </span>
+
+                                )}
+
                               </div>
-
-                              {item.available_capacity !==
-                                null && (
-
-                                <div className="mt-1 text-[9px] font-black text-emerald-300">
-                                  {item.available_capacity} kişilik kontenjan
-                                </div>
-
-                              )}
 
                             </div>
 
@@ -1494,8 +2114,11 @@ export default function PackagesPage() {
                               }}
                               className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-xs font-black hover:bg-orange-600"
                             >
-                              Paketi İncele
+
+                              Deneyimi İncele
+
                               <FaArrowRight />
+
                             </Link>
 
                           </div>
@@ -1516,11 +2139,11 @@ export default function PackagesPage() {
                   <div className="rounded-[24px] border border-orange-500/15 bg-orange-500/[.04] p-5">
 
                     <div className="font-black text-orange-300">
-                      Marketplace Tasarım Önizlemesi
+                      Turobus Experience Marketplace
                     </div>
 
                     <p className="mt-2 text-xs leading-6 text-slate-500">
-                      Gerçek paketler Marketplace&apos;e açılana kadar aşağıdaki örnek paketler yalnızca tasarımı gösterir ve satışa açık değildir.
+                      Gerçek Package OS ürünleri Marketplace&apos;e açıldığında aşağıdaki tasarım örneklerinin yerine otomatik olarak gerçek paketler gelir.
                     </p>
 
                   </div>
@@ -1537,7 +2160,7 @@ export default function PackagesPage() {
                           key={
                             item.name
                           }
-                          className="overflow-hidden rounded-[26px] border border-white/10 bg-[#0b1825]"
+                          className="group overflow-hidden rounded-[28px] border border-white/10 bg-[#0b1825]"
                         >
 
                           <div className="relative aspect-[4/3] overflow-hidden">
@@ -1549,28 +2172,26 @@ export default function PackagesPage() {
                               alt={
                                 item.name
                               }
-                              className="h-full w-full object-cover"
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                             />
 
 
-                            <div className="absolute left-3 top-3 rounded-full bg-black/70 px-3 py-1.5 text-[8px] font-black text-orange-300">
+                            <div className="absolute left-3 top-3 rounded-full bg-black/75 px-3 py-1.5 text-[8px] font-black text-orange-300">
                               TASARIM ÖNİZLEME
                             </div>
 
                           </div>
 
 
-                          <div className="p-4">
+                          <div className="p-5">
 
-                            <div className="text-[9px] text-orange-400">
-                              {item.type}
+                            <div className="text-[9px] font-black uppercase text-orange-400">
+                              {item.subtitle}
                             </div>
 
-
-                            <h3 className="mt-2 text-lg font-black">
+                            <h3 className="mt-2 text-xl font-black">
                               {item.name}
                             </h3>
-
 
                             <div className="mt-2 text-[10px] text-slate-500">
                               {item.location}
@@ -1579,18 +2200,18 @@ export default function PackagesPage() {
 
                             <div className="mt-4 flex flex-wrap gap-2">
 
-                              {item.included.map(
+                              {item.experiences.map(
                                 (
-                                  included
+                                  experience
                                 ) => (
 
                                   <span
                                     key={
-                                      included
+                                      experience
                                     }
                                     className="rounded-full bg-white/[.05] px-3 py-1.5 text-[8px] text-slate-400"
                                   >
-                                    {included}
+                                    {experience}
                                   </span>
 
                                 )
@@ -1635,7 +2256,7 @@ export default function PackagesPage() {
       </section>
 
 
-      {/* NETWORK */}
+      {/* EXPERIENCE NETWORK */}
 
       <section className="border-t border-white/10 px-5 py-16 lg:px-8">
 
@@ -1644,12 +2265,11 @@ export default function PackagesPage() {
           <div>
 
             <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-              Turobus Package Network
+              Turobus Experience Engine
             </div>
 
-
-            <h2 className="mt-2 max-w-2xl text-3xl font-black">
-              Tek ürün değil. Tatilin tamamını tek rezervasyonda birleştiren sistem.
+            <h2 className="mt-2 max-w-3xl text-3xl font-black">
+              Otel satmıyoruz. Villa satmıyoruz. Aktivite satmıyoruz. Tatilin tamamını bir araya getiriyoruz.
             </h2>
 
 
@@ -1658,19 +2278,19 @@ export default function PackagesPage() {
               {[
                 [
                   "Konaklama",
-                  "Otel veya villa paket bileşeni olabilir.",
+                  "Hotel OS veya Villa OS kaynağından paket konaklaması.",
                 ],
                 [
-                  "Aktivite & Tur",
-                  "Deneyimler tek paket altında birleştirilebilir.",
+                  "Ulaşım",
+                  "Uçaklı, otobüslü veya ulaşım hariç paket.",
                 ],
                 [
-                  "Transfer & Yat",
-                  "VIP transfer ve özel deniz deneyimi eklenebilir.",
+                  "Deneyimler",
+                  "Aktivite, SPA, wellness, tekne, yat, yemek ve özel hizmetler.",
                 ],
                 [
                   "Tek Rezervasyon",
-                  "Müşteri bütün tatil deneyimini tek rezervasyon üzerinden satın alır.",
+                  "Tüm tatil bileşenleri tek paket ve tek müşteri akışında.",
                 ],
               ].map(
                 ([
@@ -1684,6 +2304,7 @@ export default function PackagesPage() {
                     }
                     className="rounded-[22px] border border-white/10 bg-white/[.025] p-5"
                   >
+
                     <FaShieldAlt className="text-orange-400" />
 
                     <div className="mt-4 font-black">
@@ -1704,20 +2325,25 @@ export default function PackagesPage() {
           </div>
 
 
-          <div className="rounded-[30px] border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent p-7">
+          <div className="rounded-[30px] border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-orange-500/[.03] to-transparent p-7">
 
             <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
               TUROBUS PACKAGE
             </div>
 
             <div className="mt-4 text-4xl font-black leading-tight">
-              Konaklama.
+
+              Konakla.
               <br />
-              Deneyim.
+
+              Keşfet.
               <br />
-              Transfer.
+
+              Deneyimle.
               <br />
-              Tek Paket.
+
+              Tek Pakette.
+
             </div>
 
           </div>
@@ -1726,8 +2352,6 @@ export default function PackagesPage() {
 
       </section>
 
-
-      {/* MOBILE FILTER */}
 
       {mobileFilters && (
 
@@ -1740,7 +2364,6 @@ export default function PackagesPage() {
               <h3 className="text-xl font-black">
                 Paket Filtreleri
               </h3>
-
 
               <button
                 type="button"
@@ -1760,39 +2383,88 @@ export default function PackagesPage() {
             <label className="mt-5 block">
 
               <span className="mb-2 block text-[9px] font-black uppercase text-slate-600">
-                Minimum Gece
+                Bölge
               </span>
 
               <select
                 value={
-                  filters.minNights
+                  filters.travelScope
                 }
                 onChange={(event) =>
                   setFilters({
                     ...filters,
-                    minNights:
-                      Number(
-                        event.target.value
-                      ),
+
+                    travelScope:
+                      event.target.value,
                   })
                 }
                 className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3"
               >
-                <option value="0">
-                  Tümü
-                </option>
-                <option value="2">
-                  2+ Gece
-                </option>
-                <option value="3">
-                  3+ Gece
-                </option>
-                <option value="4">
-                  4+ Gece
-                </option>
-                <option value="5">
-                  5+ Gece
-                </option>
+
+                {scopeOptions.map(
+                  (
+                    item
+                  ) => (
+
+                    <option
+                      key={
+                        item.value
+                      }
+                      value={
+                        item.value
+                      }
+                    >
+                      {item.label}
+                    </option>
+
+                  )
+                )}
+
+              </select>
+
+            </label>
+
+
+            <label className="mt-5 block">
+
+              <span className="mb-2 block text-[9px] font-black uppercase text-slate-600">
+                Konaklama
+              </span>
+
+              <select
+                value={
+                  filters.accommodationMode
+                }
+                onChange={(event) =>
+                  setFilters({
+                    ...filters,
+
+                    accommodationMode:
+                      event.target.value,
+                  })
+                }
+                className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3"
+              >
+
+                {accommodationOptions.map(
+                  (
+                    item
+                  ) => (
+
+                    <option
+                      key={
+                        item.value
+                      }
+                      value={
+                        item.value
+                      }
+                    >
+                      {item.label}
+                    </option>
+
+                  )
+                )}
+
               </select>
 
             </label>
@@ -1812,6 +2484,7 @@ export default function PackagesPage() {
                 onChange={(event) =>
                   setFilters({
                     ...filters,
+
                     maxPrice:
                       event.target.value,
                   })
