@@ -16,6 +16,7 @@ import {
   FaCheck,
   FaCheckCircle,
   FaChevronDown,
+  FaClock,
   FaGift,
   FaGlobeEurope,
   FaHeart,
@@ -30,6 +31,7 @@ import {
   FaStar,
   FaSuitcase,
   FaUsers,
+  FaWater,
 } from "react-icons/fa";
 
 import Navbar from "@/components/home/Navbar";
@@ -38,7 +40,7 @@ import BackToTop from "@/components/home/BackToTop";
 import MobileBottomNav from "@/components/home/MobileBottomNav";
 
 
-type MarketplaceKey =
+type ProductKey =
   | "package"
   | "hotel"
   | "villa"
@@ -48,201 +50,212 @@ type MarketplaceKey =
   | "transfer";
 
 
-type MarketplaceProduct = {
-  key: MarketplaceKey;
-  label: string;
-  shortLabel: string;
-  description: string;
+type Product = {
+  key: ProductKey;
+  title: string;
+  short: string;
+  subtitle: string;
   href: string;
   image: string;
   icon: typeof FaGift;
-  detail: string;
+  badge: string;
 };
 
 
-const products: MarketplaceProduct[] = [
+const products: Product[] = [
   {
     key: "package",
-    label: "Tatil Paketleri",
-    shortLabel: "Paket",
-    description:
+    title: "Tatil Paketleri",
+    short: "Paket",
+    subtitle:
       "Konaklama, ulaşım ve deneyimlerin tamamı tek rezervasyonda.",
     href: "/paketler",
     image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=90",
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=92",
     icon: FaGift,
-    detail:
-      "Yurt içi · Yurt dışı · Balayı · Aile · Seçkin",
+    badge: "TATİLİN TAMAMI",
   },
   {
     key: "hotel",
-    label: "Oteller",
-    shortLabel: "Otel",
-    description:
-      "Gerçek müsaitlik ve profesyonel konaklama seçenekleri.",
+    title: "Oteller",
+    short: "Otel",
+    subtitle:
+      "Şehir, resort, butik ve seçkin oteller.",
     href: "/oteller",
     image:
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=90",
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1600&q=92",
     icon: FaHotel,
-    detail:
-      "Şehir · Resort · Butik · Premium",
+    badge: "KONAKLAMA",
   },
   {
     key: "villa",
-    label: "Villalar",
-    shortLabel: "Villa",
-    description:
-      "Özel havuzlu ve seçkin villaları merkezi takvimle keşfet.",
+    title: "Villalar",
+    short: "Villa",
+    subtitle:
+      "Özel havuzlu, aile ve balayı villaları.",
     href: "/villalar",
     image:
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1400&q=90",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=92",
     icon: FaBed,
-    detail:
-      "Özel havuz · Aile · Balayı · Premium",
+    badge: "ÖZEL YAŞAM",
   },
   {
     key: "tour",
-    label: "Turlar",
-    shortLabel: "Tur",
-    description:
-      "Otobüslü ve uçaklı yurt içi / yurt dışı seyahat rotaları.",
+    title: "Turlar",
+    short: "Tur",
+    subtitle:
+      "Otobüslü ve uçaklı yurt içi / yurt dışı rotalar.",
     href: "/turlar",
     image:
-      "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1400&q=90",
+      "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=92",
     icon: FaGlobeEurope,
-    detail:
-      "Otobüslü · Uçaklı · Yurt içi · Yurt dışı",
+    badge: "ROTA",
   },
   {
     key: "activity",
-    label: "Aktiviteler",
-    shortLabel: "Aktivite",
-    description:
-      "Macera, deniz, doğa ve özel deneyimleri tek yerde seç.",
+    title: "Aktiviteler",
+    short: "Aktivite",
+    subtitle:
+      "Deniz, doğa, macera ve adrenalin deneyimleri.",
     href: "/aktiviteler",
     image:
-      "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=1400&q=90",
+      "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=1600&q=92",
     icon: FaStar,
-    detail:
-      "Dalış · Safari · Rafting · Yamaç paraşütü",
+    badge: "DENEYİM",
   },
   {
     key: "yacht",
-    label: "Yat & Tekne",
-    shortLabel: "Yat",
-    description:
-      "Motor yat, gulet, katamaran ve özel deniz deneyimleri.",
+    title: "Yat & Tekne",
+    short: "Yat",
+    subtitle:
+      "Motor yat, gulet, katamaran ve özel tekneler.",
     href: "/yatlar",
     image:
-      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1400&q=90",
+      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1600&q=92",
     icon: FaShip,
-    detail:
-      "Motor yat · Gulet · Katamaran · Günlük tekne",
+    badge: "DENİZ",
   },
   {
     key: "transfer",
-    label: "Transfer",
-    shortLabel: "Transfer",
-    description:
-      "Havalimanı, marina ve şehirler arası VIP ulaşım.",
+    title: "VIP Transfer",
+    short: "Transfer",
+    subtitle:
+      "Havalimanı, marina ve şehirler arası özel transfer.",
     href: "/transfer",
     image:
-      "https://images.unsplash.com/photo-1515569067071-ec3b51335dd0?auto=format&fit=crop&w=1400&q=90",
+      "https://images.unsplash.com/photo-1515569067071-ec3b51335dd0?auto=format&fit=crop&w=1600&q=92",
     icon: FaCar,
-    detail:
-      "Havalimanı · VIP · Marina · Şehirler arası",
+    badge: "ULAŞIM",
   },
 ];
 
 
-const experienceIdeas = [
+const collections = [
   {
-    title: "Balayı",
-    subtitle:
-      "Konaklama + transfer + SPA + özel deneyimler",
+    kicker: "JUST FOR TWO",
+    title: "Balayı Collection",
+    text:
+      "Jakuzili konaklama, VIP transfer, SPA, gün batımı yatı ve çiftlere özel deneyimler.",
     href:
-      "/paketler",
-    icon:
-      FaHeart,
+      "/paketler?packageType=honeymoon",
+    image:
+      "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1600&q=92",
+    icon: FaHeart,
   },
   {
-    title: "Deniz Tatili",
-    subtitle:
-      "Villa veya otel + yat + aktiviteler",
+    kicker: "BLUE EXPERIENCE",
+    title: "Sea Collection",
+    text:
+      "Villa, koylar, yat, tekne ve Akdeniz deneyimlerini tek tatilde birleştir.",
     href:
       "/paketler",
-    icon:
-      FaShip,
+    image:
+      "https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=1600&q=92",
+    icon: FaShip,
   },
   {
-    title: "Macera",
-    subtitle:
-      "Safari + rafting + dalış + konaklama",
+    kicker: "RESET YOURSELF",
+    title: "Wellness Collection",
+    text:
+      "SPA, wellness, seçkin otel ve kişisel yenilenme deneyimleri.",
     href:
       "/paketler",
-    icon:
-      FaStar,
+    image:
+      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=92",
+    icon: FaSpa,
   },
   {
-    title: "Yurt Dışı",
-    subtitle:
-      "Uçuş + konaklama + transfer + deneyim",
+    kicker: "WORLD JOURNEYS",
+    title: "International Collection",
+    text:
+      "Uçuş, otel, transfer ve destinasyon deneyimleriyle yurt dışı tatilleri.",
     href:
-      "/paketler",
-    icon:
-      FaPlane,
+      "/paketler?travelScope=international",
+    image:
+      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=92",
+    icon: FaPlane,
   },
 ];
 
 
 const destinations = [
   {
-    title: "Fethiye",
-    subtitle:
-      "Villa · Otel · Aktivite · Yat",
+    name: "Fethiye",
+    country: "Türkiye",
+    text: "Villa · Aktivite · Yat · Transfer",
+    href: "/paketler?destination=Fethiye",
     image:
-      "https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&w=1200&q=90",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=92",
   },
   {
-    title: "Bodrum",
-    subtitle:
-      "Otel · Villa · Yat · Transfer",
+    name: "Bodrum",
+    country: "Türkiye",
+    text: "Otel · Villa · Yat",
+    href: "/paketler?destination=Bodrum",
     image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=90",
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=92",
   },
   {
-    title: "Antalya",
-    subtitle:
-      "Otel · Tur · Aktivite",
+    name: "Antalya",
+    country: "Türkiye",
+    text: "Otel · Tur · Aktivite",
+    href: "/paketler?destination=Antalya",
     image:
-      "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1200&q=90",
+      "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1200&q=92",
   },
   {
-    title: "Dubai",
-    subtitle:
-      "Uçuş · Otel · Transfer · Deneyim",
+    name: "Dubai",
+    country: "BAE",
+    text: "Uçuş · Otel · VIP Transfer",
+    href: "/paketler?destination=Dubai",
     image:
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=90",
+      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=92",
   },
 ];
 
 
 function today() {
-  const date =
+  const value =
     new Date();
 
   const year =
-    date.getFullYear();
+    value.getFullYear();
 
   const month =
     String(
-      date.getMonth() + 1
-    ).padStart(2, "0");
+      value.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
 
   const day =
     String(
-      date.getDate()
-    ).padStart(2, "0");
+      value.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
 
   return `${year}-${month}-${day}`;
 }
@@ -255,10 +268,10 @@ export default function Home() {
 
 
   const [
-    activeProduct,
-    setActiveProduct,
+    activeKey,
+    setActiveKey,
   ] =
-    useState<MarketplaceKey>(
+    useState<ProductKey>(
       "package"
     );
 
@@ -271,8 +284,15 @@ export default function Home() {
 
 
   const [
-    date,
-    setDate,
+    startDate,
+    setStartDate,
+  ] =
+    useState("");
+
+
+  const [
+    endDate,
+    setEndDate,
   ] =
     useState("");
 
@@ -284,6 +304,13 @@ export default function Home() {
     useState(2);
 
 
+  const [
+    tripStyle,
+    setTripStyle,
+  ] =
+    useState("all");
+
+
   const active =
     useMemo(
       () =>
@@ -292,11 +319,11 @@ export default function Home() {
             item
           ) =>
             item.key ===
-            activeProduct
+            activeKey
         ) ??
         products[0],
       [
-        activeProduct,
+        activeKey,
       ]
     );
 
@@ -319,18 +346,37 @@ export default function Home() {
     }
 
 
-    if (date) {
+    if (
+      startDate
+    ) {
 
       params.set(
         "date",
-        date
+        startDate
+      );
+
+      params.set(
+        "checkIn",
+        startDate
       );
 
     }
 
 
     if (
-      guests > 0
+      endDate
+    ) {
+
+      params.set(
+        "checkOut",
+        endDate
+      );
+
+    }
+
+
+    if (
+      guests
     ) {
 
       params.set(
@@ -338,6 +384,19 @@ export default function Home() {
         String(
           guests
         )
+      );
+
+    }
+
+
+    if (
+      tripStyle !==
+      "all"
+    ) {
+
+      params.set(
+        "type",
+        tripStyle
       );
 
     }
@@ -357,475 +416,584 @@ export default function Home() {
 
 
   return (
-    <main className="min-h-screen bg-[#06101b] text-white">
+    <main className="min-h-screen overflow-x-hidden bg-[#050d16] text-white">
 
       <Navbar />
 
 
-      {/* ====================================================
-          HERO / MARKETPLACE COMMAND CENTER
-      ==================================================== */}
+      {/* ==================================================
+          CINEMATIC MARKETPLACE HERO
+      ================================================== */}
 
-      <section className="relative min-h-[760px] overflow-hidden border-b border-white/10 pt-20">
+      <section className="relative min-h-[900px] overflow-hidden pt-20">
 
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              'url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2400&q=92")',
-          }}
+        <img
+          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2400&q=94"
+          alt="Turobus Travel Marketplace"
+          className="absolute inset-0 h-full w-full object-cover"
         />
 
 
-        <div className="absolute inset-0 bg-gradient-to-r from-[#06101b]/98 via-[#06101b]/86 to-[#06101b]/28" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_22%,rgba(249,115,22,.15),transparent_35%)]" />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#06101b] via-[#06101b]/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#050d16] via-[#050d16]/94 to-[#050d16]/30" />
 
-
-        <div className="relative mx-auto max-w-7xl px-5 pb-20 pt-16 lg:px-8 lg:pt-24">
-
-          <div className="max-w-5xl">
-
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-black/30 px-4 py-2 text-[10px] font-black uppercase tracking-[.2em] text-emerald-300 backdrop-blur-xl">
-
-              <FaCheckCircle />
-
-              Turobus Travel Marketplace
-
-            </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050d16] via-transparent to-[#050d16]/30" />
 
 
-            <h1 className="mt-7 max-w-5xl text-5xl font-black leading-[.92] tracking-[-.045em] md:text-7xl lg:text-[88px]">
+        <div className="relative mx-auto max-w-[1450px] px-5 pb-20 pt-14 lg:px-8 lg:pt-24">
 
-              Tatili Arama.
+          <div className="grid items-end gap-10 xl:grid-cols-[1.15fr_.65fr]">
 
-              <span className="mt-2 block text-orange-500">
-                Tatilini Oluştur.
-              </span>
+            <div>
 
-            </h1>
+              <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2.5 backdrop-blur-xl">
 
+                <span className="relative flex h-2.5 w-2.5">
 
-            <p className="mt-7 max-w-3xl text-base leading-8 text-slate-300 md:text-lg">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
 
-              Tur, otel, villa, aktivite,
-              yat, transfer ve komple tatil
-              paketlerini tek Marketplace
-              üzerinden keşfet.
-
-              <strong className="text-white">
-                {" "}
-                İstersen tek ürün al,
-                istersen tatilin tamamını
-                tek deneyime dönüştür.
-              </strong>
-
-            </p>
-
-          </div>
-
-
-          {/* PRODUCT SWITCHER */}
-
-          <div className="mt-10">
-
-            <div className="flex max-w-full gap-2 overflow-x-auto pb-2">
-
-              {products.map(
-                (
-                  product
-                ) => {
-
-                  const Icon =
-                    product.icon;
-
-                  const activeTab =
-                    activeProduct ===
-                    product.key;
-
-
-                  return (
-                    <button
-                      key={
-                        product.key
-                      }
-                      type="button"
-                      onClick={() =>
-                        setActiveProduct(
-                          product.key
-                        )
-                      }
-                      className={`flex shrink-0 items-center gap-2 rounded-xl border px-4 py-3 text-xs font-black transition ${
-                        activeTab
-                          ? "border-orange-500 bg-orange-500 text-white shadow-lg shadow-orange-500/20"
-                          : "border-white/10 bg-black/35 text-slate-300 backdrop-blur-xl hover:border-orange-500/30"
-                      }`}
-                    >
-
-                      <Icon />
-
-                      {product.shortLabel}
-
-                    </button>
-                  );
-
-                }
-              )}
-
-            </div>
-
-          </div>
-
-
-          {/* UNIVERSAL SEARCH */}
-
-          <div className="mt-3 overflow-hidden rounded-[26px] border border-white/15 bg-[#07131f]/95 shadow-2xl shadow-black/50 backdrop-blur-2xl">
-
-            <div className="grid lg:grid-cols-[1.3fr_.8fr_.65fr_auto]">
-
-              <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
-
-                <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
-
-                  <FaMapMarkerAlt />
-
-                  Nereye?
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
 
                 </span>
 
-
-                <input
-                  value={
-                    destination
-                  }
-                  onChange={(event) =>
-                    setDestination(
-                      event.target.value
-                    )
-                  }
-                  placeholder="Fethiye, Bodrum, Dubai..."
-                  className="w-full bg-transparent text-sm font-black outline-none placeholder:text-slate-600"
-                />
-
-              </label>
-
-
-              <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
-
-                <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
-
-                  <FaCalendarAlt />
-
-                  Tarih
-
+                <span className="text-[10px] font-black uppercase tracking-[.22em] text-slate-200">
+                  One Travel Marketplace
                 </span>
 
-
-                <input
-                  type="date"
-                  min={
-                    today()
-                  }
-                  value={
-                    date
-                  }
-                  onChange={(event) =>
-                    setDate(
-                      event.target.value
-                    )
-                  }
-                  className="w-full bg-transparent text-sm font-black outline-none"
-                />
-
-              </label>
+              </div>
 
 
-              <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
+              <h1 className="mt-8 max-w-5xl text-[56px] font-black leading-[.88] tracking-[-.055em] sm:text-7xl lg:text-[96px]">
 
-                <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
+                Bir Yere
 
-                  <FaUsers />
-
-                  Misafir
-
+                <span className="block">
+                  Gitmek Değil.
                 </span>
 
+                <span className="mt-3 block bg-gradient-to-r from-orange-400 via-orange-500 to-amber-300 bg-clip-text text-transparent">
+                  Bir Deneyim Yaşamak.
+                </span>
 
-                <select
-                  value={
-                    guests
-                  }
-                  onChange={(event) =>
-                    setGuests(
-                      Number(
-                        event.target.value
-                      )
-                    )
-                  }
-                  className="w-full bg-transparent text-sm font-black outline-none"
+              </h1>
+
+
+              <p className="mt-8 max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
+
+                Otel, villa, tur,
+                aktivite, yat, transfer
+                ve komple tatil
+                paketlerini ayrı
+                sitelerde arama.
+
+                <strong className="font-black text-white">
+                  {" "}
+                  Turobus seyahatin bütün parçalarını
+                  tek Marketplace&apos;te birleştirir.
+                </strong>
+
+              </p>
+
+
+              <div className="mt-8 flex flex-wrap gap-3">
+
+                <Link
+                  href="/paketler"
+                  className="group flex items-center gap-3 rounded-2xl bg-orange-500 px-6 py-4 text-sm font-black shadow-2xl shadow-orange-500/20 transition hover:bg-orange-600"
                 >
+                  Tatilini Oluştur
 
-                  {Array.from(
-                    {
-                      length: 12,
-                    },
-                    (
-                      _,
-                      index
-                    ) =>
-                      index + 1
-                  ).map(
-                    (
-                      count
-                    ) => (
-
-                      <option
-                        key={
-                          count
-                        }
-                        value={
-                          count
-                        }
-                        className="bg-slate-950"
-                      >
-                        {count} Misafir
-                      </option>
-
-                    )
-                  )}
-
-                </select>
-
-              </label>
+                  <FaArrowRight className="transition group-hover:translate-x-1" />
+                </Link>
 
 
-              <div className="flex items-center p-3">
-
-                <button
-                  type="button"
-                  onClick={
-                    search
-                  }
-                  className="flex min-h-[60px] w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-7 font-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
+                <a
+                  href="#marketplace"
+                  className="flex items-center gap-3 rounded-2xl border border-white/15 bg-black/25 px-6 py-4 text-sm font-black backdrop-blur-xl transition hover:bg-white/10"
                 >
-
-                  <FaSearch />
-
-                  {active.shortLabel} Ara
-
-                </button>
+                  Marketplace&apos;i Keşfet
+                </a>
 
               </div>
 
             </div>
 
 
-            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-5 py-4">
+            {/* RIGHT FLOATING SYSTEM CARD */}
 
-              <div>
+            <div className="hidden xl:block">
 
-                <div className="text-[9px] font-black uppercase tracking-[.12em] text-slate-600">
-                  Şu an
-                </div>
+              <div className="relative ml-auto w-full max-w-[430px]">
 
-                <div className="mt-1 text-xs font-black text-white">
-                  {active.label}
-                </div>
-
-              </div>
+                <div className="absolute -inset-10 rounded-full bg-orange-500/10 blur-3xl" />
 
 
-              <div className="hidden max-w-2xl text-right text-[10px] leading-5 text-slate-500 md:block">
-                {active.description}
-              </div>
+                <div className="relative rounded-[34px] border border-white/15 bg-black/35 p-6 shadow-2xl backdrop-blur-2xl">
 
-            </div>
+                  <div className="flex items-center justify-between">
 
-          </div>
+                    <div>
 
+                      <div className="text-[9px] font-black uppercase tracking-[.2em] text-orange-300">
+                        TUROBUS EXPERIENCE OS
+                      </div>
 
-          {/* TRUST BAR */}
+                      <div className="mt-2 text-xl font-black">
+                        Tatilinin parçaları
+                      </div>
 
-          <div className="mt-4 grid overflow-hidden rounded-[20px] border border-white/10 bg-black/30 backdrop-blur-xl sm:grid-cols-2 lg:grid-cols-4">
-
-            {[
-              [
-                "Tek Marketplace",
-                "Tüm tatil ürünleri",
-              ],
-              [
-                "Gerçek Stok",
-                "Bağlı operasyon sistemleri",
-              ],
-              [
-                "Tek Rezervasyon",
-                "Paket deneyimlerinde",
-              ],
-              [
-                "Doğrulanmış Ürün",
-                "Profesyonel sağlayıcılar",
-              ],
-            ].map(
-              ([
-                title,
-                subtitle,
-              ]) => (
-
-                <div
-                  key={
-                    title
-                  }
-                  className="flex items-center gap-3 px-5 py-4"
-                >
-
-                  <FaShieldAlt className="text-emerald-400" />
-
-                  <div>
-
-                    <div className="text-xs font-black">
-                      {title}
                     </div>
 
-                    <div className="mt-0.5 text-[9px] text-slate-500">
-                      {subtitle}
+
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-orange-500">
+                      <FaRoute />
+                    </div>
+
+                  </div>
+
+
+                  <div className="mt-6 space-y-2">
+
+                    {[
+                      [
+                        FaHotel,
+                        "Konaklama",
+                        "Otel veya villa",
+                      ],
+                      [
+                        FaPlane,
+                        "Ulaşım",
+                        "Uçak / otobüs / transfer",
+                      ],
+                      [
+                        FaStar,
+                        "Deneyimler",
+                        "Tur ve aktiviteler",
+                      ],
+                      [
+                        FaSpa,
+                        "Özel Hizmetler",
+                        "SPA & wellness",
+                      ],
+                      [
+                        FaShip,
+                        "Deniz",
+                        "Yat & özel tekne",
+                      ],
+                    ].map(
+                      ([
+                        Icon,
+                        title,
+                        description,
+                      ]) => {
+
+                        const TypedIcon =
+                          Icon as typeof FaHotel;
+
+
+                        return (
+                          <div
+                            key={
+                              String(
+                                title
+                              )
+                            }
+                            className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[.045] p-3.5"
+                          >
+
+                            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-orange-500/10 text-orange-400">
+                              <TypedIcon />
+                            </div>
+
+
+                            <div>
+
+                              <div className="text-xs font-black">
+                                {String(
+                                  title
+                                )}
+                              </div>
+
+                              <div className="mt-0.5 text-[9px] text-slate-500">
+                                {String(
+                                  description
+                                )}
+                              </div>
+
+                            </div>
+
+
+                            <FaCheckCircle className="ml-auto text-emerald-400" />
+
+                          </div>
+                        );
+
+                      }
+                    )}
+
+                  </div>
+
+
+                  <div className="mt-5 rounded-2xl border border-orange-500/20 bg-orange-500/10 p-4">
+
+                    <div className="text-[9px] font-black uppercase text-orange-300">
+                      SONUÇ
+                    </div>
+
+                    <div className="mt-1 text-sm font-black">
+                      Tek tatil · Tek rezervasyon · Tek sistem
                     </div>
 
                   </div>
 
                 </div>
 
-              )
-            )}
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* ====================================================
-          MARKETPLACE UNIVERSE
-      ==================================================== */}
-
-      <section className="px-5 py-16 lg:px-8">
-
-        <div className="mx-auto max-w-7xl">
-
-          <div className="flex flex-wrap items-end justify-between gap-6">
-
-            <div>
-
-              <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-                Turobus Marketplace
               </div>
-
-              <h2 className="mt-2 max-w-3xl text-3xl font-black md:text-4xl">
-                Tatil İçin İhtiyacın Olan Her Şey
-              </h2>
-
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-                Her kategori ayrı bir profesyonel satış sistemi.
-                Paketler ise hepsini tek deneyimde birleştirir.
-              </p>
 
             </div>
 
-
-            <Link
-              href="/paketler"
-              className="flex items-center gap-2 text-xs font-black text-orange-400"
-            >
-              Tatil Paketlerini Gör
-              <FaArrowRight />
-            </Link>
-
           </div>
 
 
-          <div className="mt-9 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {/* ==================================================
+              SMART MARKETPLACE SEARCH
+          ================================================== */}
 
-            {products.map(
-              (
-                product,
-                index
-              ) => {
+          <div className="relative z-30 mt-14">
 
-                const Icon =
-                  product.icon;
+            <div className="rounded-[32px] border border-white/15 bg-[#07131f]/95 p-3 shadow-[0_30px_80px_rgba(0,0,0,.5)] backdrop-blur-2xl">
+
+              {/* PRODUCT SELECTOR */}
+
+              <div className="flex gap-2 overflow-x-auto px-1 pb-3">
+
+                {products.map(
+                  (
+                    product
+                  ) => {
+
+                    const Icon =
+                      product.icon;
+
+                    const selected =
+                      product.key ===
+                      activeKey;
 
 
-                return (
-                  <Link
-                    key={
-                      product.key
+                    return (
+                      <button
+                        key={
+                          product.key
+                        }
+                        type="button"
+                        onClick={() =>
+                          setActiveKey(
+                            product.key
+                          )
+                        }
+                        className={`flex min-w-fit items-center gap-2 rounded-xl px-4 py-3 text-[11px] font-black transition ${
+                          selected
+                            ? "bg-white text-slate-950"
+                            : "text-slate-400 hover:bg-white/[.05] hover:text-white"
+                        }`}
+                      >
+
+                        <Icon className={
+                          selected
+                            ? "text-orange-500"
+                            : ""
+                        } />
+
+                        {product.short}
+
+                      </button>
+                    );
+
+                  }
+                )}
+
+              </div>
+
+
+              {/* SEARCH FORM */}
+
+              <div className="grid overflow-visible rounded-[23px] border border-white/10 bg-[#050e18] lg:grid-cols-[1.25fr_.8fr_.8fr_.7fr_auto]">
+
+                <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
+
+                  <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-600">
+
+                    <FaMapMarkerAlt />
+
+                    {activeKey ===
+                    "transfer"
+                      ? "Nereden?"
+                      : activeKey ===
+                          "yacht"
+                        ? "Marina / Bölge"
+                        : "Nereye?"}
+
+                  </span>
+
+
+                  <input
+                    value={
+                      destination
                     }
-                    href={
-                      product.href
+                    onChange={(event) =>
+                      setDestination(
+                        event.target.value
+                      )
                     }
-                    className={`group relative min-h-[390px] overflow-hidden rounded-[30px] border border-white/10 bg-[#0b1825] ${
-                      index ===
-                      0
-                        ? "md:col-span-2 xl:col-span-1"
-                        : ""
-                    }`}
-                  >
+                    placeholder={
+                      activeKey ===
+                      "transfer"
+                        ? "Dalaman Havalimanı..."
+                        : activeKey ===
+                            "yacht"
+                          ? "Göcek, Fethiye..."
+                          : "Fethiye, Bodrum, Dubai..."
+                    }
+                    className="w-full bg-transparent text-sm font-black outline-none placeholder:text-slate-700"
+                  />
 
-                    <img
-                      src={
-                        product.image
+                </label>
+
+
+                <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
+
+                  <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-600">
+
+                    <FaCalendarAlt />
+
+                    {activeKey ===
+                    "tour"
+                      ? "Tur Tarihi"
+                      : activeKey ===
+                          "activity"
+                        ? "Aktivite Tarihi"
+                        : activeKey ===
+                            "transfer"
+                          ? "Transfer Tarihi"
+                          : "Başlangıç"}
+
+                  </span>
+
+
+                  <input
+                    type="date"
+                    min={
+                      today()
+                    }
+                    value={
+                      startDate
+                    }
+                    onChange={(event) =>
+                      setStartDate(
+                        event.target.value
+                      )
+                    }
+                    className="w-full bg-transparent text-sm font-black outline-none"
+                  />
+
+                </label>
+
+
+                <label className={`border-b border-white/10 p-5 lg:border-b-0 lg:border-r ${
+                  activeKey ===
+                    "tour" ||
+                  activeKey ===
+                    "activity"
+                    ? "opacity-40"
+                    : ""
+                }`}>
+
+                  <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-600">
+
+                    {activeKey ===
+                    "transfer"
+                      ? (
+                        <FaClock />
+                      )
+                      : (
+                        <FaCalendarAlt />
+                      )}
+
+                    {activeKey ===
+                    "transfer"
+                      ? "Saat"
+                      : activeKey ===
+                            "tour" ||
+                          activeKey ===
+                            "activity"
+                        ? "Tek Tarih"
+                        : "Bitiş"}
+
+                  </span>
+
+
+                  {activeKey ===
+                  "transfer" ? (
+
+                    <input
+                      type="time"
+                      value={
+                        endDate
                       }
-                      alt={
-                        product.label
+                      onChange={(event) =>
+                        setEndDate(
+                          event.target.value
+                        )
                       }
-                      className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      className="w-full bg-transparent text-sm font-black outline-none"
                     />
 
+                  ) : (
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#06101b] via-[#06101b]/65 to-transparent" />
+                    <input
+                      type="date"
+                      min={
+                        startDate ||
+                        today()
+                      }
+                      disabled={
+                        activeKey ===
+                          "tour" ||
+                        activeKey ===
+                          "activity"
+                      }
+                      value={
+                        endDate
+                      }
+                      onChange={(event) =>
+                        setEndDate(
+                          event.target.value
+                        )
+                      }
+                      className="w-full bg-transparent text-sm font-black outline-none disabled:cursor-not-allowed"
+                    />
 
+                  )}
 
-                    <div className="absolute inset-x-0 bottom-0 p-6">
-
-                      <div className="flex items-center justify-between">
-
-                        <div className="grid h-12 w-12 place-items-center rounded-2xl border border-white/15 bg-black/40 text-orange-400 backdrop-blur-xl">
-
-                          <Icon />
-
-                        </div>
-
-
-                        <div className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-black/40 text-white backdrop-blur-xl transition group-hover:bg-orange-500">
-
-                          <FaArrowRight />
-
-                        </div>
-
-                      </div>
-
-
-                      <h3 className="mt-5 text-2xl font-black">
-                        {product.label}
-                      </h3>
-
-
-                      <p className="mt-2 max-w-sm text-xs leading-6 text-slate-300">
-                        {product.description}
-                      </p>
+                </label>
 
 
-                      <div className="mt-4 text-[9px] font-black uppercase tracking-[.1em] text-orange-300">
-                        {product.detail}
-                      </div>
+                <label className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
 
-                    </div>
+                  <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-600">
 
-                  </Link>
-                );
+                    <FaUsers />
 
-              }
-            )}
+                    {activeKey ===
+                    "transfer"
+                      ? "Yolcu"
+                      : "Misafir"}
+
+                  </span>
+
+
+                  <select
+                    value={
+                      guests
+                    }
+                    onChange={(event) =>
+                      setGuests(
+                        Number(
+                          event.target.value
+                        )
+                      )
+                    }
+                    className="w-full bg-transparent text-sm font-black outline-none"
+                  >
+
+                    {Array.from(
+                      {
+                        length: 16,
+                      },
+                      (
+                        _,
+                        index
+                      ) =>
+                        index + 1
+                    ).map(
+                      (
+                        count
+                      ) => (
+
+                        <option
+                          key={
+                            count
+                          }
+                          value={
+                            count
+                          }
+                          className="bg-slate-950"
+                        >
+                          {count} Kişi
+                        </option>
+
+                      )
+                    )}
+
+                  </select>
+
+                </label>
+
+
+                <div className="flex items-center p-3">
+
+                  <button
+                    type="button"
+                    onClick={
+                      search
+                    }
+                    className="group flex min-h-[64px] w-full items-center justify-center gap-3 rounded-2xl bg-orange-500 px-8 font-black transition hover:bg-orange-600"
+                  >
+
+                    <FaSearch />
+
+                    Ara
+
+                    <FaArrowRight className="text-xs transition group-hover:translate-x-1" />
+
+                  </button>
+
+                </div>
+
+              </div>
+
+
+              <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
+
+                <div className="flex items-center gap-2 text-[10px] text-slate-500">
+
+                  <FaShieldAlt className="text-emerald-400" />
+
+                  <strong className="text-slate-300">
+                    {active.title}
+                  </strong>
+
+                  <span className="hidden sm:inline">
+                    · {active.subtitle}
+                  </span>
+
+                </div>
+
+
+                <Link
+                  href={
+                    active.href
+                  }
+                  className="flex items-center gap-2 text-[10px] font-black text-orange-400"
+                >
+                  Tümünü Gör
+                  <FaArrowRight />
+                </Link>
+
+              </div>
+
+            </div>
 
           </div>
 
@@ -834,100 +1002,147 @@ export default function Home() {
       </section>
 
 
-      {/* ====================================================
-          EXPERIENCE FIRST
-      ==================================================== */}
+      {/* ==================================================
+          MARKETPLACE MAP
+      ================================================== */}
 
-      <section className="border-y border-white/10 bg-[#091522] px-5 py-16 lg:px-8">
+      <section
+        id="marketplace"
+        className="relative px-5 py-24 lg:px-8"
+      >
 
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-[1450px]">
 
-          <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
+          <div className="grid gap-12 xl:grid-cols-[.72fr_1.28fr]">
 
-            <div>
+            <div className="xl:sticky xl:top-28 xl:self-start">
 
-              <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-                Yeni Tatil Mantığı
+              <div className="text-[10px] font-black uppercase tracking-[.24em] text-orange-400">
+                MARKETPLACE UNIVERSE
               </div>
 
 
-              <h2 className="mt-3 text-4xl font-black leading-tight md:text-5xl">
-                Ürün Seçmek Yerine
-                <span className="block text-orange-500">
-                  Deneyim Seç.
+              <h2 className="mt-4 max-w-xl text-4xl font-black leading-[1.02] tracking-tight md:text-5xl">
+
+                Seyahatin Her Parçası
+
+                <span className="block text-slate-500">
+                  Birbirine Bağlı.
                 </span>
+
               </h2>
 
 
-              <p className="mt-5 max-w-xl text-sm leading-7 text-slate-400">
+              <p className="mt-6 max-w-lg text-sm leading-7 text-slate-400">
 
-                “Otel nereden bulurum,
-                transferi nereden alırım,
-                aktiviteyi kimden alırım?”
-                sorularını ortadan kaldırıyoruz.
-
-                <strong className="text-white">
-                  {" "}
-                  Turobus bunların tamamını
-                  tek seyahat deneyiminde
-                  birleştirebilir.
-                </strong>
+                Turobus&apos;ta ürünler birbirinden kopuk değildir.
+                Villa müşterisine transfer,
+                otel müşterisine aktivite,
+                yat müşterisine VIP ulaşım,
+                hepsine komple paket sunulabilir.
 
               </p>
 
 
-              <Link
-                href="/paketler"
-                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-4 text-sm font-black hover:bg-orange-600"
-              >
-                Paketleri Keşfet
-                <FaArrowRight />
-              </Link>
+              <div className="mt-8 rounded-[26px] border border-orange-500/20 bg-orange-500/[.06] p-5">
+
+                <div className="text-[10px] font-black uppercase tracking-[.16em] text-orange-300">
+                  TUROBUS FARKI
+                </div>
+
+                <div className="mt-3 text-xl font-black">
+                  Ürün Marketplace&apos;i değil,
+                  deneyim ekosistemi.
+                </div>
+
+              </div>
 
             </div>
 
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* ASYMMETRIC PRODUCT WALL */}
 
-              {experienceIdeas.map(
+            <div className="grid gap-4 md:grid-cols-2">
+
+              {products.map(
                 (
-                  idea
+                  product,
+                  index
                 ) => {
 
                   const Icon =
-                    idea.icon;
+                    product.icon;
+
+                  const big =
+                    index === 0 ||
+                    index === 3 ||
+                    index === 5;
 
 
                   return (
                     <Link
                       key={
-                        idea.title
+                        product.key
                       }
                       href={
-                        idea.href
+                        product.href
                       }
-                      className="group rounded-[26px] border border-white/10 bg-[#07111f] p-6 transition hover:-translate-y-1 hover:border-orange-500/30"
+                      className={`group relative overflow-hidden rounded-[30px] border border-white/10 ${
+                        big
+                          ? "min-h-[470px]"
+                          : "min-h-[330px]"
+                      }`}
                     >
 
-                      <div className="flex items-center justify-between">
+                      <img
+                        src={
+                          product.image
+                        }
+                        alt={
+                          product.title
+                        }
+                        className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      />
 
-                        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
-                          <Icon />
-                        </div>
 
-                        <FaArrowRight className="text-slate-700 transition group-hover:text-orange-400" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#050d16] via-[#050d16]/55 to-transparent" />
 
+
+                      <div className="absolute left-5 top-5 rounded-full border border-white/15 bg-black/35 px-3 py-1.5 text-[8px] font-black tracking-[.16em] backdrop-blur-xl">
+                        {product.badge}
                       </div>
 
 
-                      <h3 className="mt-6 text-xl font-black">
-                        {idea.title}
-                      </h3>
+                      <div className="absolute inset-x-0 bottom-0 p-6">
+
+                        <div className="flex items-end justify-between gap-4">
+
+                          <div>
+
+                            <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/10 text-orange-400 backdrop-blur-xl">
+                              <Icon />
+                            </div>
 
 
-                      <p className="mt-2 text-xs leading-6 text-slate-500">
-                        {idea.subtitle}
-                      </p>
+                            <h3 className="mt-4 text-2xl font-black">
+                              {product.title}
+                            </h3>
+
+
+                            <p className="mt-2 max-w-md text-xs leading-6 text-slate-300">
+                              {product.subtitle}
+                            </p>
+
+                          </div>
+
+
+                          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/15 bg-white/10 transition group-hover:border-orange-500 group-hover:bg-orange-500">
+                            <FaArrowRight />
+                          </div>
+
+                        </div>
+
+                      </div>
 
                     </Link>
                   );
@@ -944,80 +1159,138 @@ export default function Home() {
       </section>
 
 
-      {/* ====================================================
-          BUILD YOUR HOLIDAY
-      ==================================================== */}
+      {/* ==================================================
+          TRAVEL BUILDER
+      ================================================== */}
 
-      <section className="px-5 py-16 lg:px-8">
+      <section className="border-y border-white/10 bg-[#08131f] px-5 py-24 lg:px-8">
 
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-[1450px]">
 
-          <div className="overflow-hidden rounded-[36px] border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-[#0b1825] to-[#07111f]">
+          <div className="overflow-hidden rounded-[38px] border border-white/10 bg-[#050e18]">
 
-            <div className="grid lg:grid-cols-[1fr_.9fr]">
+            <div className="grid xl:grid-cols-[.95fr_1.05fr]">
 
-              <div className="p-7 md:p-10 lg:p-12">
+              <div className="p-7 md:p-12 xl:p-14">
 
-                <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-                  Turobus Experience Builder
+                <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-2 text-[9px] font-black uppercase tracking-[.18em] text-orange-300">
+
+                  <FaGift />
+
+                  EXPERIENCE BUILDER
+
                 </div>
 
 
-                <h2 className="mt-3 max-w-2xl text-4xl font-black leading-tight md:text-5xl">
-                  Tatilini Parça Parça Değil,
-                  <span className="block">
-                    Tek Akışta Oluştur.
+                <h2 className="mt-6 max-w-2xl text-4xl font-black leading-[1.02] tracking-tight md:text-6xl">
+
+                  Tatilini
+
+                  <span className="block text-orange-500">
+                    Kendin Oluştur.
                   </span>
+
                 </h2>
 
 
-                <div className="mt-8 space-y-3">
+                <p className="mt-5 max-w-xl text-sm leading-7 text-slate-400">
+
+                  Hazır paket seçebilir veya tatilin parçalarını
+                  kendin birleştirebilirsin.
+
+                </p>
+
+
+                <div className="mt-9 space-y-2">
 
                   {[
                     [
-                      "1",
+                      FaMapMarkerAlt,
+                      "01",
                       "Destinasyonu seç",
+                      "Yurt içi veya yurt dışı",
                     ],
                     [
-                      "2",
-                      "Otel veya villanı seç",
+                      FaHotel,
+                      "02",
+                      "Konaklamanı seç",
+                      "Otel veya özel villa",
                     ],
                     [
-                      "3",
-                      "Uçak / otobüs / transfer ekle",
+                      FaPlane,
+                      "03",
+                      "Ulaşımı ekle",
+                      "Uçak, otobüs veya VIP transfer",
                     ],
                     [
-                      "4",
-                      "Aktivite, SPA veya yat deneyimi ekle",
+                      FaStar,
+                      "04",
+                      "Deneyimini oluştur",
+                      "Aktivite, SPA, tur, tekne veya yat",
                     ],
                     [
-                      "5",
-                      "Tek rezervasyonda tatilini tamamla",
+                      FaGift,
+                      "05",
+                      "Tek rezervasyonda tamamla",
+                      "Bütün tatilin tek akışta",
                     ],
                   ].map(
                     ([
+                      Icon,
                       number,
-                      text,
-                    ]) => (
+                      title,
+                      description,
+                    ]) => {
 
-                      <div
-                        key={
-                          number
-                        }
-                        className="flex items-center gap-4 rounded-2xl border border-white/10 bg-black/15 p-4"
-                      >
+                      const TypedIcon =
+                        Icon as typeof FaGift;
 
-                        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-orange-500 text-xs font-black">
-                          {number}
+
+                      return (
+                        <div
+                          key={
+                            String(
+                              number
+                            )
+                          }
+                          className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[.025] p-4 transition hover:border-orange-500/30 hover:bg-white/[.05]"
+                        >
+
+                          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-orange-500/10 text-orange-400">
+                            <TypedIcon />
+                          </div>
+
+
+                          <div className="w-7 text-[10px] font-black text-slate-700">
+                            {String(
+                              number
+                            )}
+                          </div>
+
+
+                          <div>
+
+                            <div className="text-sm font-black">
+                              {String(
+                                title
+                              )}
+                            </div>
+
+                            <div className="mt-1 text-[9px] text-slate-500">
+                              {String(
+                                description
+                              )}
+                            </div>
+
+                          </div>
+
+
+                          <FaCheck className="ml-auto text-emerald-400/70" />
+
                         </div>
+                      );
 
-                        <div className="text-sm font-black">
-                          {text}
-                        </div>
-
-                      </div>
-
-                    )
+                    }
                   )}
 
                 </div>
@@ -1025,61 +1298,112 @@ export default function Home() {
 
                 <Link
                   href="/paketler"
-                  className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-4 text-sm font-black text-slate-950 transition hover:bg-orange-500 hover:text-white"
+                  className="mt-8 inline-flex items-center gap-3 rounded-2xl bg-orange-500 px-6 py-4 text-sm font-black transition hover:bg-orange-600"
                 >
-                  Tatil Deneyimini Başlat
+                  Tatilimi Oluştur
                   <FaArrowRight />
                 </Link>
 
               </div>
 
 
-              <div className="relative min-h-[500px]">
+              <div className="relative min-h-[650px] overflow-hidden">
 
                 <img
-                  src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=90"
-                  alt="Turobus tatil deneyimi"
+                  src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1600&q=92"
+                  alt="Turobus Experience Builder"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0b1825] via-transparent to-transparent lg:block" />
+
+                <div className="absolute inset-0 bg-gradient-to-r from-[#050e18] via-transparent to-transparent" />
 
 
-                <div className="absolute bottom-6 left-6 right-6 rounded-[24px] border border-white/15 bg-black/55 p-5 backdrop-blur-xl">
+                {/* FLOATING TRIP RECEIPT */}
 
-                  <div className="text-[9px] font-black uppercase tracking-[.16em] text-orange-300">
-                    Örnek Deneyim
+                <div className="absolute bottom-6 left-6 right-6 max-w-[480px] rounded-[28px] border border-white/15 bg-black/55 p-5 backdrop-blur-2xl md:left-auto md:right-8">
+
+                  <div className="flex items-start justify-between">
+
+                    <div>
+
+                      <div className="text-[9px] font-black uppercase tracking-[.16em] text-orange-300">
+                        ÖRNEK TATİL DENEYİMİ
+                      </div>
+
+                      <div className="mt-2 text-xl font-black">
+                        Fethiye Signature Escape
+                      </div>
+
+                    </div>
+
+
+                    <div className="rounded-xl bg-emerald-400 px-3 py-2 text-[8px] font-black text-slate-950">
+                      5 PARÇA
+                    </div>
+
                   </div>
 
 
-                  <div className="mt-2 text-xl font-black">
-                    Fethiye Seçkin Tatil
-                  </div>
-
-
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-5 grid grid-cols-2 gap-2">
 
                     {[
-                      "Otel",
-                      "VIP Transfer",
-                      "SPA",
-                      "Tekne",
-                      "Aktivite",
+                      [
+                        FaHotel,
+                        "Seçkin Otel",
+                      ],
+                      [
+                        FaCar,
+                        "VIP Transfer",
+                      ],
+                      [
+                        FaSpa,
+                        "SPA & Wellness",
+                      ],
+                      [
+                        FaShip,
+                        "Gün Batımı Yatı",
+                      ],
+                      [
+                        FaStar,
+                        "Özel Aktivite",
+                      ],
+                      [
+                        FaGift,
+                        "Hediye Seçimi",
+                      ],
                     ].map(
-                      (
-                        item
-                      ) => (
+                      ([
+                        Icon,
+                        label,
+                      ]) => {
 
-                        <span
-                          key={
-                            item
-                          }
-                          className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[9px] font-bold"
-                        >
-                          {item}
-                        </span>
+                        const TypedIcon =
+                          Icon as typeof FaGift;
 
-                      )
+
+                        return (
+                          <div
+                            key={
+                              String(
+                                label
+                              )
+                            }
+                            className="flex items-center gap-2 rounded-xl bg-white/[.08] p-3"
+                          >
+
+                            <TypedIcon className="text-orange-400" />
+
+                            <span className="text-[9px] font-black">
+                              {String(
+                                label
+                              )}
+                            </span>
+
+                          </div>
+                        );
+
+                      }
                     )}
 
                   </div>
@@ -1097,24 +1421,27 @@ export default function Home() {
       </section>
 
 
-      {/* ====================================================
-          DESTINATIONS
-      ==================================================== */}
+      {/* ==================================================
+          COLLECTIONS
+      ================================================== */}
 
-      <section className="border-y border-white/10 bg-[#091522] px-5 py-16 lg:px-8">
+      <section className="px-5 py-24 lg:px-8">
 
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-[1450px]">
 
-          <div className="flex flex-wrap items-end justify-between gap-5">
+          <div className="flex flex-wrap items-end justify-between gap-6">
 
             <div>
 
-              <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-                Destinasyonlar
+              <div className="text-[10px] font-black uppercase tracking-[.24em] text-orange-400">
+                TUROBUS COLLECTIONS
               </div>
 
-              <h2 className="mt-2 text-3xl font-black">
-                Bir Şehirden Fazlasını Keşfet
+              <h2 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">
+                Paket Değil.
+                <span className="text-slate-500">
+                  {" "}Yaşam Tarzı.
+                </span>
               </h2>
 
             </div>
@@ -1124,66 +1451,88 @@ export default function Home() {
               href="/paketler"
               className="flex items-center gap-2 text-xs font-black text-orange-400"
             >
-              Tüm Tatil Paketleri
+              Tüm Koleksiyonlar
               <FaArrowRight />
             </Link>
 
           </div>
 
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-9 grid gap-5 lg:grid-cols-2">
 
-            {destinations.map(
+            {collections.map(
               (
-                destination
-              ) => (
+                collection,
+                index
+              ) => {
 
-                <Link
-                  key={
-                    destination.title
-                  }
-                  href={`/paketler?destination=${encodeURIComponent(
-                    destination.title
-                  )}`}
-                  className="group relative min-h-[350px] overflow-hidden rounded-[28px] border border-white/10"
-                >
+                const Icon =
+                  collection.icon;
 
-                  <img
-                    src={
-                      destination.image
+
+                return (
+                  <Link
+                    key={
+                      collection.title
                     }
-                    alt={
-                      destination.title
+                    href={
+                      collection.href
                     }
-                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
+                    className={`group relative overflow-hidden rounded-[32px] border border-white/10 ${
+                      index === 0 ||
+                      index === 3
+                        ? "min-h-[500px]"
+                        : "min-h-[390px]"
+                    }`}
+                  >
+
+                    <img
+                      src={
+                        collection.image
+                      }
+                      alt={
+                        collection.title
+                      }
+                      className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    />
 
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
 
 
-                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <div className="absolute bottom-0 left-0 right-0 p-7">
 
-                    <h3 className="text-2xl font-black">
-                      {destination.title}
-                    </h3>
+                      <div className="grid h-12 w-12 place-items-center rounded-2xl border border-white/15 bg-black/35 text-orange-400 backdrop-blur-xl">
+                        <Icon />
+                      </div>
 
 
-                    <div className="mt-1 text-[10px] text-slate-300">
-                      {destination.subtitle}
+                      <div className="mt-5 text-[9px] font-black uppercase tracking-[.2em] text-orange-300">
+                        {collection.kicker}
+                      </div>
+
+
+                      <h3 className="mt-2 text-3xl font-black">
+                        {collection.title}
+                      </h3>
+
+
+                      <p className="mt-3 max-w-xl text-sm leading-7 text-slate-300">
+                        {collection.text}
+                      </p>
+
+
+                      <div className="mt-5 flex items-center gap-2 text-xs font-black">
+                        Koleksiyonu Keşfet
+                        <FaArrowRight className="transition group-hover:translate-x-1" />
+                      </div>
+
                     </div>
 
+                  </Link>
+                );
 
-                    <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-orange-300">
-                      Deneyimleri Gör
-                      <FaArrowRight />
-                    </div>
-
-                  </div>
-
-                </Link>
-
-              )
+              }
             )}
 
           </div>
@@ -1193,118 +1542,99 @@ export default function Home() {
       </section>
 
 
-      {/* ====================================================
-          NETWORK
-      ==================================================== */}
+      {/* ==================================================
+          DESTINATIONS
+      ================================================== */}
 
-      <section className="px-5 py-16 lg:px-8">
+      <section className="border-y border-white/10 bg-[#08131f] px-5 py-24 lg:px-8">
 
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_.85fr]">
+        <div className="mx-auto max-w-[1450px]">
 
-          <div>
+          <div className="grid gap-8 lg:grid-cols-[.55fr_1.45fr]">
 
-            <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-              Turobus Network
+            <div>
+
+              <div className="text-[10px] font-black uppercase tracking-[.22em] text-orange-400">
+                DESTINATIONS
+              </div>
+
+
+              <h2 className="mt-3 text-4xl font-black leading-tight">
+                Bir Şehir
+                <span className="block text-slate-500">
+                  Birçok Deneyim.
+                </span>
+              </h2>
+
+
+              <p className="mt-5 max-w-sm text-sm leading-7 text-slate-500">
+                Destinasyonu seç.
+                Nerede kalacağını,
+                nasıl ulaşacağını ve
+                ne yaşayacağını Turobus
+                üzerinden tamamla.
+              </p>
+
             </div>
 
 
-            <h2 className="mt-3 max-w-3xl text-4xl font-black leading-tight">
-              Ön Yüzde Marketplace.
-              <span className="block text-slate-500">
-                Arkada Gerçek Turizm Operasyonu.
-              </span>
-            </h2>
+            <div className="grid gap-4 sm:grid-cols-2">
 
+              {destinations.map(
+                (
+                  item
+                ) => (
 
-            <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-400">
-              Turobus ürünleri yalnızca vitrine koymak için tasarlanmıyor.
-              Otel, villa, aktivite, paket, yat ve transfer sistemleri
-              kendi operasyon yapılarına bağlanabilecek şekilde çalışıyor.
-            </p>
-
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-
-              {[
-                [
-                  "Marketplace",
-                  "Müşteri ürünleri tek merkezde keşfeder.",
-                ],
-                [
-                  "Operasyon",
-                  "Rezervasyon arka tarafta gerçek iş akışına dönüşür.",
-                ],
-                [
-                  "Network",
-                  "İşletmeler ve sağlayıcılar ortak satış ağına bağlanır.",
-                ],
-                [
-                  "Paket Motoru",
-                  "Farklı ürünler tek tatil deneyiminde birleşir.",
-                ],
-              ].map(
-                ([
-                  title,
-                  description,
-                ]) => (
-
-                  <div
+                  <Link
                     key={
-                      title
+                      item.name
                     }
-                    className="rounded-[22px] border border-white/10 bg-[#0b1825] p-5"
+                    href={
+                      item.href
+                    }
+                    className="group relative min-h-[360px] overflow-hidden rounded-[28px] border border-white/10"
                   >
 
-                    <FaShieldAlt className="text-orange-400" />
+                    <img
+                      src={
+                        item.image
+                      }
+                      alt={
+                        item.name
+                      }
+                      className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    />
 
-                    <div className="mt-4 font-black">
-                      {title}
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+
+
+                    <div className="absolute bottom-0 left-0 right-0 p-5">
+
+                      <div className="text-[9px] font-black uppercase tracking-[.15em] text-orange-300">
+                        {item.country}
+                      </div>
+
+                      <div className="mt-1 text-3xl font-black">
+                        {item.name}
+                      </div>
+
+                      <div className="mt-2 text-[10px] text-slate-300">
+                        {item.text}
+                      </div>
+
+
+                      <div className="mt-5 flex items-center gap-2 text-[10px] font-black">
+                        Tüm Deneyimleri Aç
+                        <FaArrowRight />
+                      </div>
+
                     </div>
 
-                    <p className="mt-2 text-xs leading-6 text-slate-500">
-                      {description}
-                    </p>
-
-                  </div>
+                  </Link>
 
                 )
               )}
-
-            </div>
-
-          </div>
-
-
-          <div className="rounded-[32px] border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-[#0b1825] to-[#07111f] p-7 md:p-9">
-
-            <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-              ONE TRAVEL MARKETPLACE
-            </div>
-
-
-            <div className="mt-5 text-5xl font-black leading-[1.05]">
-
-              Tur.
-              <br />
-
-              Otel.
-              <br />
-
-              Villa.
-              <br />
-
-              Aktivite.
-              <br />
-
-              Yat.
-              <br />
-
-              Transfer.
-              <br />
-
-              <span className="text-orange-500">
-                Tek Deneyim.
-              </span>
 
             </div>
 
@@ -1315,41 +1645,196 @@ export default function Home() {
       </section>
 
 
-      {/* ====================================================
-          B2B CTA
-      ==================================================== */}
+      {/* ==================================================
+          THE NETWORK
+      ================================================== */}
 
-      <section className="border-t border-white/10 bg-[#091522] px-5 py-16 lg:px-8">
+      <section className="relative overflow-hidden px-5 py-24 lg:px-8">
 
-        <div className="mx-auto max-w-7xl">
+        <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500/[.05] blur-3xl" />
 
-          <div className="flex flex-col items-start justify-between gap-8 rounded-[32px] border border-white/10 bg-[#07111f] p-7 md:flex-row md:items-center md:p-10">
 
-            <div>
+        <div className="relative mx-auto max-w-[1450px]">
 
-              <div className="text-[10px] font-black uppercase tracking-[.18em] text-orange-400">
-                Turizm İşletmeleri İçin
-              </div>
+          <div className="text-center">
 
-              <h2 className="mt-2 text-3xl font-black">
-                Ürününü Turobus Network&apos;e Bağla.
-              </h2>
+            <div className="text-[10px] font-black uppercase tracking-[.24em] text-orange-400">
+              THE TUROBUS NETWORK
+            </div>
 
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-                Otel, villa, tur, aktivite, yat veya transfer hizmetini
-                işletme sisteminden yönet ve Marketplace&apos;te satışa aç.
-              </p>
+            <h2 className="mx-auto mt-4 max-w-4xl text-4xl font-black leading-tight tracking-tight md:text-6xl">
+              Ön Yüzde Marketplace.
+              <span className="block text-slate-500">
+                Arkada Gerçek Operasyon.
+              </span>
+            </h2>
+
+          </div>
+
+
+          <div className="relative mx-auto mt-14 max-w-5xl">
+
+            <div className="absolute left-1/2 top-1/2 hidden h-[1px] w-[70%] -translate-x-1/2 bg-gradient-to-r from-transparent via-orange-500/40 to-transparent lg:block" />
+
+
+            <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+              {[
+                [
+                  "Marketplace",
+                  "Müşteri satın alır",
+                  FaGlobeEurope,
+                ],
+                [
+                  "Network",
+                  "İşletmeler bağlanır",
+                  FaRoute,
+                ],
+                [
+                  "Operation OS",
+                  "Rezervasyon yürür",
+                  FaShieldAlt,
+                ],
+                [
+                  "Experience",
+                  "Ürünler birleşir",
+                  FaGift,
+                ],
+              ].map(
+                ([
+                  title,
+                  description,
+                  Icon,
+                ]) => {
+
+                  const TypedIcon =
+                    Icon as typeof FaGift;
+
+
+                  return (
+                    <div
+                      key={
+                        String(
+                          title
+                        )
+                      }
+                      className="relative rounded-[25px] border border-white/10 bg-[#08131f] p-6 text-center shadow-xl"
+                    >
+
+                      <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-orange-500/20 bg-orange-500/10 text-xl text-orange-400">
+                        <TypedIcon />
+                      </div>
+
+
+                      <div className="mt-5 font-black">
+                        {String(
+                          title
+                        )}
+                      </div>
+
+
+                      <div className="mt-2 text-[10px] text-slate-500">
+                        {String(
+                          description
+                        )}
+                      </div>
+
+                    </div>
+                  );
+
+                }
+              )}
 
             </div>
 
+          </div>
 
-            <Link
-              href="/acente-basvuru"
-              className="flex shrink-0 items-center gap-2 rounded-xl bg-orange-500 px-6 py-4 text-sm font-black hover:bg-orange-600"
-            >
-              Ürününü Yayınla
-              <FaArrowRight />
-            </Link>
+
+          <div className="mx-auto mt-12 max-w-4xl rounded-[32px] border border-orange-500/20 bg-gradient-to-r from-orange-500/10 via-orange-500/[.03] to-orange-500/10 p-8 text-center md:p-10">
+
+            <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-300">
+              ONE SYSTEM
+            </div>
+
+
+            <div className="mt-4 text-3xl font-black md:text-4xl">
+              Otel + Villa + Tur + Aktivite + Yat + Transfer
+            </div>
+
+
+            <div className="mt-3 text-sm text-slate-400">
+              Ayrı ürünler. Aynı seyahat ekosistemi.
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* ==================================================
+          FINAL CTA
+      ================================================== */}
+
+      <section className="px-5 pb-24 lg:px-8">
+
+        <div className="mx-auto max-w-[1450px]">
+
+          <div className="relative overflow-hidden rounded-[40px] border border-white/10">
+
+            <img
+              src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2200&q=92"
+              alt="Turobus"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+
+
+            <div className="absolute inset-0 bg-gradient-to-r from-[#050d16]/98 via-[#050d16]/80 to-[#050d16]/20" />
+
+
+            <div className="relative max-w-4xl p-8 md:p-14 lg:p-16">
+
+              <div className="text-[10px] font-black uppercase tracking-[.22em] text-orange-300">
+                READY TO TRAVEL?
+              </div>
+
+
+              <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
+                Nerede Kalacağını Değil,
+                <span className="block text-orange-500">
+                  Nasıl Bir Tatil Yaşayacağını Seç.
+                </span>
+              </h2>
+
+
+              <p className="mt-6 max-w-2xl text-sm leading-7 text-slate-300">
+                Tek bir ürünle başlayabilir veya tatilinin bütün parçalarını
+                Turobus üzerinden bir deneyime dönüştürebilirsin.
+              </p>
+
+
+              <div className="mt-8 flex flex-wrap gap-3">
+
+                <Link
+                  href="/paketler"
+                  className="flex items-center gap-3 rounded-2xl bg-orange-500 px-6 py-4 text-sm font-black hover:bg-orange-600"
+                >
+                  Tatilimi Oluştur
+                  <FaArrowRight />
+                </Link>
+
+
+                <Link
+                  href="/oteller"
+                  className="flex items-center gap-3 rounded-2xl border border-white/15 bg-black/25 px-6 py-4 text-sm font-black backdrop-blur-xl hover:bg-white/10"
+                >
+                  Marketplace&apos;i Keşfet
+                </Link>
+
+              </div>
+
+            </div>
 
           </div>
 
