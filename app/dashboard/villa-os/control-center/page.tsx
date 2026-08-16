@@ -287,8 +287,54 @@ export default function VillaControlCenterPage() {
     }
   }, [membership, villaId, month]);
 
-  useEffect(() => { void loadBase(); }, [loadBase]);
-  useEffect(() => { void loadVillaData(); }, [loadVillaData]);
+  useEffect(() => {
+    void loadBase();
+  }, [loadBase]);
+
+  useEffect(() => {
+    void loadVillaData();
+  }, [loadVillaData]);
+
+  useEffect(() => {
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const tab =
+      params.get("tab");
+
+    const requestedVilla =
+      params.get("villa");
+
+    const allowedTabs: Tab[] = [
+      "calendar",
+      "media",
+      "payments",
+      "cleaning",
+      "invoices",
+      "channels",
+    ];
+
+    if (
+      tab &&
+      allowedTabs.includes(
+        tab as Tab
+      )
+    ) {
+      setActiveTab(
+        tab as Tab
+      );
+    }
+
+    if (requestedVilla) {
+      setVillaId(
+        requestedVilla
+      );
+    }
+
+  }, []);
 
   const calendarMap = useMemo(() => new Map(calendar.map((row) => [row.calendar_date, row])), [calendar]);
 

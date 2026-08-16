@@ -758,6 +758,147 @@ export default function VillaOsPage() {
     ["operations", "Operasyon", FaBolt],
   ] as const;
 
+  function scrollVillaSection(
+    sectionId: string
+  ) {
+    window.setTimeout(() => {
+      document
+        .getElementById(sectionId)
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 50);
+  }
+
+  function openVillaModule(
+    url: string,
+    requireVilla = false
+  ) {
+    if (
+      requireVilla &&
+      !selectedVillaId
+    ) {
+      setError(
+        "Bu işlem için önce bir villa seçmelisin."
+      );
+
+      scrollVillaSection(
+        "villa-portfolio"
+      );
+
+      return;
+    }
+
+    const separator =
+      url.includes("?")
+        ? "&"
+        : "?";
+
+    window.location.href =
+      selectedVillaId
+        ? `${url}${separator}villa=${selectedVillaId}`
+        : url;
+  }
+
+  function handleMainNavigation(
+    key: SectionKey
+  ) {
+    setActiveSection(key);
+    setError("");
+
+    if (key === "overview") {
+      scrollVillaSection(
+        "villa-overview"
+      );
+      return;
+    }
+
+    if (key === "portfolio") {
+      scrollVillaSection(
+        "villa-portfolio"
+      );
+      return;
+    }
+
+    if (key === "reservation") {
+      if (!selectedVillaId) {
+        setError(
+          "Rezervasyon oluşturmak için önce bir villa seç."
+        );
+
+        scrollVillaSection(
+          "villa-portfolio"
+        );
+
+        return;
+      }
+
+      setShowReservationForm(true);
+      return;
+    }
+
+    if (key === "operations") {
+      openVillaModule(
+        "/dashboard/villa-os/control-center",
+        true
+      );
+    }
+  }
+
+  const professionalModules = [
+    {
+      title: "Fotoğraf & İlan",
+      subtitle:
+        "Galeri, kapak görseli ve satış görsellerini yönet.",
+      badge:
+        "Fotoğraf Yönetimi",
+      icon: FaImages,
+      action: () =>
+        openVillaModule(
+          "/dashboard/villa-os/control-center?tab=media",
+          true
+        ),
+    },
+    {
+      title: "B2B Dağıtım",
+      subtitle:
+        "Acenta erişimi, partner ağı ve B2B net fiyat yönetimi.",
+      badge:
+        "Partner Ağı",
+      icon: FaUserFriends,
+      action: () =>
+        openVillaModule(
+          "/dashboard/villa-os/b2b-network"
+        ),
+    },
+    {
+      title: "Ödeme & Kasa",
+      subtitle:
+        "Tahsilat, kapora, bakiye, depozito, iade ve kasa.",
+      badge:
+        "Finans Akışı",
+      icon: FaMoneyBillWave,
+      action: () =>
+        openVillaModule(
+          "/dashboard/villa-os/finance-center"
+        ),
+    },
+    {
+      title: "Kanal Yönetimi",
+      subtitle:
+        "Airbnb, Booking, VRBO ve iCal kanal bağlantıları.",
+      badge:
+        "Channel Manager",
+      icon: FaSyncAlt,
+      action: () =>
+        openVillaModule(
+          "/dashboard/villa-os/control-center?tab=channels",
+          true
+        ),
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-[#060b14] text-white">
       <div className="mx-auto max-w-[1680px] px-4 py-5 sm:px-6 lg:px-8">
@@ -808,7 +949,9 @@ export default function VillaOsPage() {
               <button
                 key={key}
                 type="button"
-                onClick={() => setActiveSection(key)}
+                onClick={() =>
+                  handleMainNavigation(key)
+                }
                 className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-black transition ${
                   activeSection === key
                     ? "bg-white text-slate-950 shadow-lg"
@@ -832,7 +975,10 @@ export default function VillaOsPage() {
           </div>
         )}
 
-        <section className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <section
+          id="villa-overview"
+          className="scroll-mt-24 mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4"
+        >
           <MetricCard
             title="Doluluk"
             value={`%${metrics.occupancy_rate ?? 0}`}
@@ -863,7 +1009,10 @@ export default function VillaOsPage() {
           />
         </section>
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-[1.45fr_.75fr]">
+        <section
+          id="villa-portfolio"
+          className="scroll-mt-24 mt-5 grid gap-5 xl:grid-cols-[1.45fr_.75fr]"
+        >
           <div className="rounded-[28px] border border-white/10 bg-slate-900/60 p-5 shadow-2xl shadow-black/10 lg:p-6">
             <SectionTitle
               eyebrow="Canlı operasyon"
@@ -1081,12 +1230,19 @@ export default function VillaOsPage() {
                 </div>
                 <FaGlobe className="mt-1 text-2xl text-emerald-300" />
               </div>
-              <Link
-                href="/dashboard/package-os/builder"
-                className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[.05] px-3 py-2 text-xs font-black text-white transition hover:bg-white/[.08]"
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveSection("portfolio");
+                  scrollVillaSection(
+                    "villa-portfolio"
+                  );
+                }}
+                className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[.05] px-3 py-2 text-xs font-black text-white transition hover:border-emerald-400/30 hover:bg-emerald-500/[.06]"
               >
-                Package Builder <FaArrowRight />
-              </Link>
+                Villa Yayınlarını Yönet
+                <FaArrowRight />
+              </button>
             </div>
           </div>
         </section>
@@ -1203,43 +1359,89 @@ export default function VillaOsPage() {
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-2">
-              <button className="rounded-xl border border-white/10 bg-white/[.03] px-3 py-3 text-xs font-black text-slate-300">
-                <FaFileInvoice className="mr-2 inline" /> Fatura Merkezi
+              <button
+                type="button"
+                onClick={() =>
+                  openVillaModule(
+                    "/dashboard/villa-os/erp/invoices"
+                  )
+                }
+                className="rounded-xl border border-white/10 bg-white/[.03] px-3 py-3 text-xs font-black text-slate-300 transition hover:border-emerald-400/30 hover:bg-emerald-500/[.05] hover:text-white"
+              >
+                <FaFileInvoice className="mr-2 inline" />
+                Fatura Merkezi
               </button>
-              <button className="rounded-xl border border-white/10 bg-white/[.03] px-3 py-3 text-xs font-black text-slate-300">
-                <FaCloud className="mr-2 inline" /> Kanal Senkron
+
+              <button
+                type="button"
+                onClick={() =>
+                  openVillaModule(
+                    "/dashboard/villa-os/control-center?tab=channels",
+                    true
+                  )
+                }
+                className="rounded-xl border border-white/10 bg-white/[.03] px-3 py-3 text-xs font-black text-slate-300 transition hover:border-cyan-400/30 hover:bg-cyan-500/[.05] hover:text-white"
+              >
+                <FaCloud className="mr-2 inline" />
+                Kanal Senkron
               </button>
             </div>
           </div>
         </section>
 
         <section className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            ["Fotoğraf & İlan", "Galeri, kapak görseli, özellikler", FaImages, "Fotoğraf yönetimi"],
-            ["B2B Dağıtım", "Acenta erişimi ve özel net fiyat", FaUserFriends, "Partner ağı"],
-            ["Ödeme & Kasa", "Kapora, bakiye, depozito, iade", FaMoneyBillWave, "Finans akışı"],
-            ["Kanal Yönetimi", "Airbnb iCal ve diğer kanallar", FaSyncAlt, "Channel manager"],
-          ].map(([title, subtitle, Icon, badge]) => {
-            const TypedIcon = Icon as typeof FaImages;
-            return (
-              <div
-                key={String(title)}
-                className="group rounded-[24px] border border-white/10 bg-slate-900/50 p-5 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-slate-900/80"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/[.05] text-slate-300 group-hover:text-emerald-300">
-                    <TypedIcon />
+
+          {professionalModules.map(
+            (module) => {
+
+              const ModuleIcon =
+                module.icon;
+
+              return (
+                <button
+                  key={module.title}
+                  type="button"
+                  onClick={module.action}
+                  className="group rounded-[24px] border border-white/10 bg-slate-900/50 p-5 text-left transition hover:-translate-y-1 hover:border-emerald-400/30 hover:bg-slate-900/90 hover:shadow-2xl hover:shadow-black/20"
+                >
+
+                  <div className="flex items-start justify-between">
+
+                    <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/[.05] text-slate-300 transition group-hover:bg-emerald-500/10 group-hover:text-emerald-300">
+                      <ModuleIcon />
+                    </div>
+
+                    <div className="grid h-8 w-8 place-items-center rounded-xl bg-white/[.025] text-slate-600 transition group-hover:bg-emerald-400 group-hover:text-slate-950">
+                      <FaChevronRight className="text-xs" />
+                    </div>
+
                   </div>
-                  <FaChevronRight className="mt-2 text-xs text-slate-600" />
-                </div>
-                <div className="mt-4 text-base font-black">{String(title)}</div>
-                <p className="mt-1 text-xs leading-5 text-slate-500">{String(subtitle)}</p>
-                <div className="mt-4 inline-flex rounded-full bg-white/[.04] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-slate-500">
-                  {String(badge)}
-                </div>
-              </div>
-            );
-          })}
+
+                  <div className="mt-4 text-base font-black">
+                    {module.title}
+                  </div>
+
+                  <p className="mt-1 min-h-[40px] text-xs leading-5 text-slate-500">
+                    {module.subtitle}
+                  </p>
+
+                  <div className="mt-4 flex items-center justify-between gap-3">
+
+                    <span className="inline-flex rounded-full bg-white/[.04] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-slate-500 group-hover:text-emerald-300">
+                      {module.badge}
+                    </span>
+
+                    <span className="text-[9px] font-black uppercase tracking-wider text-emerald-400 opacity-0 transition group-hover:opacity-100">
+                      Aç →
+                    </span>
+
+                  </div>
+
+                </button>
+              );
+            }
+          )}
+
         </section>
 
         <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-500">
