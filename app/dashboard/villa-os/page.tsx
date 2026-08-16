@@ -98,6 +98,11 @@ type Metrics = {
   villa_count?: number;
 };
 
+type LocationOption = {
+  id: number;
+  name: string;
+};
+
 type SectionKey =
   | "overview"
   | "portfolio"
@@ -227,10 +232,18 @@ export default function VillaOsPage() {
   const [showVillaForm, setShowVillaForm] = useState(false);
   const [showReservationForm, setShowReservationForm] = useState(false);
 
+  const [provinces, setProvinces] = useState<LocationOption[]>([]);
+  const [districts, setDistricts] = useState<LocationOption[]>([]);
+  const [selectedProvinceId, setSelectedProvinceId] = useState("");
+  const [locationsLoading, setLocationsLoading] = useState(false);
+
+  const [villaPhotoFiles, setVillaPhotoFiles] = useState<File[]>([]);
+  const [villaPhotoPreviews, setVillaPhotoPreviews] = useState<string[]>([]);
+
   const [form, setForm] = useState({
     name: "",
-    city: "Fethiye",
-    district: "",
+    city: "Muğla",
+    district: "Fethiye",
     bedrooms: "2",
     bathrooms: "2",
     maxGuests: "4",
@@ -346,6 +359,178 @@ export default function VillaOsPage() {
     (villa) => villa.marketplace_enabled
   ).length;
 
+  useEffect(() => {
+    if (!showVillaForm) return;
+
+    void (async () => {
+      try {
+        setLocationsLoading(true);
+
+        const provinceResponse = await fetch(
+          "/api/locations/turkey"
+        );
+
+        const provinceJson = (await provinceResponse.json()) as {
+          data?: LocationOption[];
+          error?: string;
+        };
+
+        if (!provinceResponse.ok) {
+          throw new Error(
+            provinceJson.error || "İller yüklenemedi."
+          );
+        }
+
+        const provinceRows = provinceJson.data ?? [];
+        setProvinces(provinceRows);
+
+        const matchedProvince =
+          provinceRows.find(
+            (item) => item.name === form.city
+          ) ??
+          provinceRows.find(
+            (item) => item.name === "Muğla"
+          );
+
+        if (!matchedProvince) return;
+
+        setSelectedProvinceId(
+          String(matchedProvince.id)
+        );
+
+        setForm((current) => ({
+          ...current,
+          city: matchedProvince.name,
+        }));
+
+        const districtResponse = await fetch(
+          `/api/locations/turkey?provinceId=${matchedProvince.id}`
+        );
+
+        const districtJson = (await districtResponse.json()) as {
+          data?: LocationOption[];
+          error?: string;
+        };
+
+        if (!districtResponse.ok) {
+          throw new Error(
+            districtJson.error || "İlçeler yüklenemedi."
+          );
+        }
+
+        setDistricts(districtJson.data ?? []);
+      } catch (locationError) {
+        setError(
+          locationError instanceof Error
+            ? locationError.message
+            : "Konum bilgileri yüklenemedi."
+        );
+      } finally {
+        setLocationsLoading(false);
+      }
+    })();
+  }, [showVillaForm]);
+
+
+  async function handleProvinceChange(
+    provinceId: string
+  ) {
+    setSelectedProvinceId(provinceId);
+    setDistricts([]);
+
+    const province =
+      provinces.find(
+        (item) =>
+          String(item.id) === provinceId
+      );
+
+    setForm((current) => ({
+      ...current,
+      city: province?.name ?? "",
+      district: "",
+    }));
+
+    if (!provinceId) return;
+
+    try {
+      setLocationsLoading(true);
+
+      const response = await fetch(
+        `/api/locations/turkey?provinceId=${provinceId}`
+      );
+
+      const json = (await response.json()) as {
+        data?: LocationOption[];
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(
+          json.error || "İlçeler yüklenemedi."
+        );
+      }
+
+      setDistricts(json.data ?? []);
+    } catch (locationError) {
+      setError(
+        locationError instanceof Error
+          ? locationError.message
+          : "İlçeler yüklenemedi."
+      );
+    } finally {
+      setLocationsLoading(false);
+    }
+  }
+
+
+  function selectVillaPhotos(
+    files: FileList | null
+  ) {
+    if (!files) return;
+
+    villaPhotoPreviews.forEach((url) =>
+      URL.revokeObjectURL(url)
+    );
+
+    const selected = Array.from(files)
+      .filter((file) =>
+        file.type.startsWith("image/")
+      )
+      .slice(0, 15);
+
+    setVillaPhotoFiles(selected);
+
+    setVillaPhotoPreviews(
+      selected.map((file) =>
+        URL.createObjectURL(file)
+      )
+    );
+  }
+
+
+  function removeVillaPhoto(index: number) {
+    const preview =
+      villaPhotoPreviews[index];
+
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+
+    setVillaPhotoFiles((current) =>
+      current.filter(
+        (_, itemIndex) =>
+          itemIndex !== index
+      )
+    );
+
+    setVillaPhotoPreviews((current) =>
+      current.filter(
+        (_, itemIndex) =>
+          itemIndex !== index
+      )
+    );
+  }
+
   async function addVilla(event: FormEvent) {
     event.preventDefault();
     if (!membership || !form.name.trim()) return;
@@ -357,32 +542,153 @@ export default function VillaOsPage() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-");
 
-    const { error: insertError } = await supabase.from("villas").insert({
-      company_id: membership.company_id,
-      name: form.name.trim(),
-      slug,
-      city: form.city || null,
-      district: form.district || null,
-      bedrooms: Number(form.bedrooms),
-      bathrooms: Number(form.bathrooms),
-      max_guests: Number(form.maxGuests),
-      base_nightly_rate: Number(form.nightly),
-      cleaning_fee: Number(form.cleaning),
-      cleaning_fee_under_nights: form.cleaningUnder
-        ? Number(form.cleaningUnder)
-        : null,
-      security_deposit: Number(form.deposit),
-      minimum_stay: Number(form.minimumStay),
-      marketplace_commission_rate: Number(form.commission),
-    });
+    const {
+      data: createdVilla,
+      error: insertError,
+    } = await supabase
+      .from("villas")
+      .insert({
+        company_id: membership.company_id,
+        name: form.name.trim(),
+        slug,
+        city: form.city || null,
+        district: form.district || null,
+        bedrooms: Number(form.bedrooms),
+        bathrooms: Number(form.bathrooms),
+        max_guests: Number(form.maxGuests),
+        base_nightly_rate: Number(form.nightly),
+        cleaning_fee: Number(form.cleaning),
+        cleaning_fee_under_nights: form.cleaningUnder
+          ? Number(form.cleaningUnder)
+          : null,
+        security_deposit: Number(form.deposit),
+        minimum_stay: Number(form.minimumStay),
+        marketplace_commission_rate: Number(form.commission),
+      })
+      .select("id")
+      .single();
 
-    if (insertError) return setError(insertError.message);
+    if (insertError) {
+      return setError(insertError.message);
+    }
 
-    await supabase.rpc("sync_turobus_villa_network");
-    setMessage("Villa başarıyla oluşturuldu.");
-    setForm({ ...form, name: "" });
+    let uploadedPhotoCount = 0;
+    const photoErrors: string[] = [];
+
+    if (createdVilla?.id && villaPhotoFiles.length) {
+      for (
+        let index = 0;
+        index < villaPhotoFiles.length;
+        index += 1
+      ) {
+        const file = villaPhotoFiles[index];
+
+        try {
+          const extension =
+            file.name.split(".").pop() || "jpg";
+
+          const storagePath =
+            `${membership.company_id}/${createdVilla.id}/` +
+            `${Date.now()}-${index}-${Math.random()
+              .toString(36)
+              .slice(2)}.${extension}`;
+
+          const {
+            error: uploadError,
+          } = await supabase.storage
+            .from("villa-media")
+            .upload(
+              storagePath,
+              file,
+              {
+                upsert: false,
+                contentType: file.type,
+              }
+            );
+
+          if (uploadError) {
+            throw uploadError;
+          }
+
+          const {
+            data: publicUrlData,
+          } = supabase.storage
+            .from("villa-media")
+            .getPublicUrl(storagePath);
+
+          const {
+            error: photoInsertError,
+          } = await supabase
+            .from("villa_photos")
+            .insert({
+              company_id:
+                membership.company_id,
+              villa_id:
+                createdVilla.id,
+              storage_path:
+                storagePath,
+              public_url:
+                publicUrlData.publicUrl,
+              category:
+                "gallery",
+              sort_order:
+                index,
+              is_cover:
+                index === 0,
+            });
+
+          if (photoInsertError) {
+            throw photoInsertError;
+          }
+
+          uploadedPhotoCount += 1;
+        } catch (photoError) {
+          photoErrors.push(
+            photoError instanceof Error
+              ? photoError.message
+              : "Fotoğraf yüklenemedi."
+          );
+        }
+      }
+    }
+
+    await supabase.rpc(
+      "sync_turobus_villa_network"
+    );
+
+    villaPhotoPreviews.forEach((url) =>
+      URL.revokeObjectURL(url)
+    );
+
+    setVillaPhotoFiles([]);
+    setVillaPhotoPreviews([]);
+
+    if (photoErrors.length) {
+      setMessage(
+        `Villa oluşturuldu. ${uploadedPhotoCount} fotoğraf yüklendi, ${photoErrors.length} fotoğraf yüklenemedi.`
+      );
+    } else {
+      setMessage(
+        villaPhotoFiles.length
+          ? `Villa ve ${uploadedPhotoCount} fotoğraf başarıyla kaydedildi.`
+          : "Villa başarıyla oluşturuldu."
+      );
+    }
+
+    setForm((current) => ({
+      ...current,
+      name: "",
+    }));
+
+    setSelectedVillaId(
+      createdVilla?.id ?? ""
+    );
+
     setShowVillaForm(false);
-    await load(membership.company_id);
+
+    await load(
+      membership.company_id
+    );
   }
 
   async function toggleMarketplace(villa: Villa) {
@@ -1009,42 +1315,77 @@ export default function VillaOsPage() {
 
                       <label className="block">
                         <span className="text-xs font-black text-slate-300">
-                          Şehir / İlçe
+                          İl / Şehir
                         </span>
                         <span className="mt-1 block text-[11px] text-slate-500">
-                          Villanın bulunduğu ana destinasyon.
+                          Türkiye'deki 81 ilden seçim yap.
                         </span>
-                        <input
-                          value={form.city}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              city: e.target.value,
-                            })
+
+                        <select
+                          value={selectedProvinceId}
+                          disabled={locationsLoading}
+                          onChange={(event) =>
+                            void handleProvinceChange(
+                              event.target.value
+                            )
                           }
-                          placeholder="Örn. Fethiye"
-                          className="mt-2 w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 text-sm font-bold text-white outline-none focus:border-emerald-400/50"
-                        />
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 text-sm font-bold text-white outline-none transition focus:border-emerald-400/50 disabled:opacity-50"
+                        >
+                          <option value="">
+                            İl seçin
+                          </option>
+
+                          {provinces.map(
+                            (province) => (
+                              <option
+                                key={province.id}
+                                value={province.id}
+                              >
+                                {province.name}
+                              </option>
+                            )
+                          )}
+                        </select>
                       </label>
 
                       <label className="block">
                         <span className="text-xs font-black text-slate-300">
-                          Bölge / Mahalle
+                          İlçe / Bölge
                         </span>
                         <span className="mt-1 block text-[11px] text-slate-500">
-                          Ölüdeniz, Hisarönü, Çalış, Kayaköy gibi.
+                          Seçtiğin ile bağlı ilçeler otomatik gelir.
                         </span>
-                        <input
+
+                        <select
                           value={form.district}
-                          onChange={(e) =>
+                          disabled={
+                            !selectedProvinceId ||
+                            locationsLoading
+                          }
+                          onChange={(event) =>
                             setForm({
                               ...form,
-                              district: e.target.value,
+                              district:
+                                event.target.value,
                             })
                           }
-                          placeholder="Örn. Ölüdeniz"
-                          className="mt-2 w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 text-sm font-bold text-white outline-none focus:border-emerald-400/50"
-                        />
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 text-sm font-bold text-white outline-none transition focus:border-emerald-400/50 disabled:opacity-50"
+                        >
+                          <option value="">
+                            İlçe seçin
+                          </option>
+
+                          {districts.map(
+                            (district) => (
+                              <option
+                                key={district.id}
+                                value={district.name}
+                              >
+                                {district.name}
+                              </option>
+                            )
+                          )}
+                        </select>
                       </label>
 
                     </div>
@@ -1332,6 +1673,139 @@ export default function VillaOsPage() {
                   </section>
 
 
+                  {/* FOTOĞRAF & İLAN */}
+                  <section className="mt-4 rounded-[24px] border border-white/10 bg-white/[.025] p-5">
+
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-rose-500/10 text-rose-300">
+                          <FaImages />
+                        </div>
+
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-[.18em] text-rose-400">
+                            05 · Fotoğraflar
+                          </div>
+
+                          <h4 className="mt-1 font-black text-white">
+                            Villa Galerisi
+                          </h4>
+
+                          <p className="mt-1 text-[11px] text-slate-500">
+                            İlk fotoğraf otomatik kapak görseli olur. En fazla 15 fotoğraf seçebilirsin.
+                          </p>
+                        </div>
+                      </div>
+
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-rose-400 px-4 py-3 text-xs font-black text-slate-950 transition hover:bg-rose-300">
+                        <FaImages />
+                        Fotoğraf Seç
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(event) =>
+                            selectVillaPhotos(
+                              event.target.files
+                            )
+                          }
+                        />
+                      </label>
+
+                    </div>
+
+
+                    {!villaPhotoPreviews.length ? (
+                      <label className="mt-5 flex min-h-[190px] cursor-pointer flex-col items-center justify-center rounded-[22px] border-2 border-dashed border-white/10 bg-[#07111f] p-8 text-center transition hover:border-rose-400/30 hover:bg-rose-500/[.025]">
+
+                        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-rose-500/10 text-xl text-rose-300">
+                          <FaImages />
+                        </div>
+
+                        <div className="mt-4 text-sm font-black text-white">
+                          Villa fotoğraflarını buraya ekle
+                        </div>
+
+                        <div className="mt-1 max-w-md text-xs leading-5 text-slate-500">
+                          Havuz, salon, yatak odaları, manzara, bahçe ve diğer satış görsellerini seç.
+                        </div>
+
+                        <div className="mt-4 rounded-full bg-white/[.05] px-3 py-1.5 text-[10px] font-black text-slate-400">
+                          JPG · PNG · WEBP
+                        </div>
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(event) =>
+                            selectVillaPhotos(
+                              event.target.files
+                            )
+                          }
+                        />
+
+                      </label>
+                    ) : (
+                      <div className="mt-5">
+
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <div className="text-xs font-black text-slate-300">
+                            {villaPhotoPreviews.length} fotoğraf seçildi
+                          </div>
+
+                          <div className="text-[10px] text-slate-500">
+                            İlk görsel kapak fotoğrafıdır
+                          </div>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+
+                          {villaPhotoPreviews.map(
+                            (preview, index) => (
+                              <div
+                                key={preview}
+                                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#07111f]"
+                              >
+                                <div className="aspect-[4/3]">
+                                  <img
+                                    src={preview}
+                                    alt={`Villa fotoğrafı ${index + 1}`}
+                                    className="h-full w-full object-cover"
+                                  />
+                                </div>
+
+                                {index === 0 && (
+                                  <div className="absolute left-2 top-2 rounded-full bg-emerald-400 px-2.5 py-1 text-[9px] font-black text-slate-950">
+                                    KAPAK
+                                  </div>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    removeVillaPhoto(index)
+                                  }
+                                  className="absolute right-2 top-2 rounded-lg bg-black/70 px-2.5 py-1.5 text-[10px] font-black text-white backdrop-blur"
+                                >
+                                  Kaldır
+                                </button>
+                              </div>
+                            )
+                          )}
+
+                        </div>
+
+                      </div>
+                    )}
+
+                  </section>
+
+
                   {/* MARKETPLACE */}
                   <section className="mt-4 rounded-[24px] border border-emerald-400/15 bg-emerald-500/[.035] p-5">
 
@@ -1340,7 +1814,7 @@ export default function VillaOsPage() {
                       <div className="max-w-xl">
                         <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
                           <FaGlobe />
-                          Turobus Marketplace
+                          06 · Turobus Marketplace
                         </div>
 
                         <p className="mt-2 text-xs leading-5 text-slate-500">
@@ -1506,6 +1980,11 @@ export default function VillaOsPage() {
                         <div>✓ Housekeeping operasyonu</div>
                         <div>✓ Airbnb / kanal bağlantıları</div>
                         <div>✓ B2B ve Turobus Marketplace</div>
+                        <div>
+                          ✓ {villaPhotoFiles.length
+                            ? `${villaPhotoFiles.length} villa fotoğrafı`
+                            : "Fotoğraf galerisi"}
+                        </div>
                       </div>
                     </div>
 
