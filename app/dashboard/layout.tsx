@@ -805,50 +805,6 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
-        href: "/dashboard/villa-os/erp/finance",
-        label: "Villa Finans Dashboard",
-        icon: FaChartLine,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "accounting",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/erp/cash",
-        label: "Villa Kasa",
-        icon: FaBuilding,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "accounting",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/erp/invoices",
-        label: "Villa Fatura Merkezi",
-        icon: FaClipboardList,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "accounting",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/erp/expenses",
-        label: "Villa Giderleri",
-        icon: FaChartLine,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "accounting",
-        ],
-      },
-      {
         href: "/dashboard/villa-os/erp/owners",
         label: "Villa Sahipleri",
         icon: FaUsers,
@@ -860,8 +816,8 @@ const menuGroups: MenuGroup[] = [
         ],
       },
       {
-        href: "/dashboard/villa-os/erp/reports",
-        label: "Villa Rapor Merkezi",
+        href: "/dashboard/villa-os/finance-center",
+        label: "Villa Finans Merkezi",
         icon: FaChartLine,
         roles: [
           "super_admin",
