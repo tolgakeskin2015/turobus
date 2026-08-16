@@ -691,12 +691,12 @@ const menuGroups: MenuGroup[] = [
   },
 
   {
-    title: "VİLLA & AKTİVİTE",
+    title: "VİLLA OS",
     items: [
       {
-        href: "/dashboard/villa-os",
-        label: "Villa OS",
-        icon: FaHotel,
+        href: "/dashboard/villa-os/erp",
+        label: "Yönetim Merkezi",
+        icon: FaChartLine,
         roles: [
           "super_admin",
           "company_owner",
@@ -707,8 +707,8 @@ const menuGroups: MenuGroup[] = [
       },
       {
         href: "/dashboard/villa-os/control-center",
-        label: "Villa Operasyon Stüdyosu",
-        icon: FaChartLine,
+        label: "Operasyon Stüdyosu",
+        icon: FaHotel,
         roles: [
           "super_admin",
           "company_owner",
@@ -719,105 +719,18 @@ const menuGroups: MenuGroup[] = [
       },
       {
         href: "/dashboard/villa-os/b2b-network",
-        label: "Villa B2B Ağı",
-        icon: FaBuilding,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "sales",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/b2b-network/partners",
-        label: "Villa Partner Ağı",
+        label: "Satış & Partner Merkezi",
         icon: FaUsers,
         roles: [
           "super_admin",
           "company_owner",
           "operation_manager",
           "sales",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/b2b-network/sales-desk",
-        label: "Villa B2B Satış Masası",
-        icon: FaChartLine,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "sales",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/b2b-network/offers",
-        label: "Villa B2B Teklifler",
-        icon: FaClipboardList,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "sales",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/erp",
-        label: "Villa Yönetim Merkezi",
-        icon: FaChartLine,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "accounting",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/erp/reservations",
-        label: "Villa Rezervasyonları",
-        icon: FaClipboardList,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "sales",
-          "accounting",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/erp/housekeeping",
-        label: "Villa Housekeeping",
-        icon: FaHotel,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/erp/maintenance",
-        label: "Villa Bakım & Arıza",
-        icon: FaBuilding,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-        ],
-      },
-      {
-        href: "/dashboard/villa-os/erp/owners",
-        label: "Villa Sahipleri",
-        icon: FaUsers,
-        roles: [
-          "super_admin",
-          "company_owner",
-          "operation_manager",
-          "accounting",
         ],
       },
       {
         href: "/dashboard/villa-os/finance-center",
-        label: "Villa Finans Merkezi",
+        label: "Finans Merkezi",
         icon: FaChartLine,
         roles: [
           "super_admin",
@@ -826,6 +739,12 @@ const menuGroups: MenuGroup[] = [
           "accounting",
         ],
       },
+    ],
+  },
+
+  {
+    title: "AKTİVİTE OS",
+    items: [
       {
         href: "/dashboard/activity-network",
         label: "Activity Network",
@@ -967,7 +886,7 @@ export default function DashboardLayout({
         "TUR & OPERASYON",
         "PAKET SATIŞ MERKEZİ",
         "OTEL PMS",
-        "VİLLA & AKTİVİTE",
+        "VİLLA OS",
       ])
   );
   const [errorMessage, setErrorMessage] = useState("");
