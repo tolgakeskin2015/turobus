@@ -33,6 +33,7 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import BackToTop from "@/components/home/BackToTop";
 import MobileBottomNav from "@/components/home/MobileBottomNav";
+import LiveMarketplace from "@/components/home/LiveMarketplace";
 
 
 type MarketKey =
@@ -1376,7 +1377,10 @@ export default function Home() {
       </section>
 
 
-      {/* ===================================================
+            <LiveMarketplace />
+
+
+{/* ===================================================
           DISCOVER BY EXPERIENCE
       =================================================== */}
 
