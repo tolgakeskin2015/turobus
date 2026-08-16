@@ -952,7 +952,7 @@ export default function VillaOsPage() {
 
       {showVillaForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[30px] border border-white/10 bg-[#0a1220] p-5 shadow-2xl lg:p-7">
+          <div className="max-h-[94vh] w-full max-w-6xl overflow-y-auto rounded-[30px] border border-white/10 bg-[#0a1220] shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-[10px] font-black uppercase tracking-[.22em] text-emerald-400">Yeni portföy kaydı</div>
@@ -962,20 +962,595 @@ export default function VillaOsPage() {
               <button onClick={() => setShowVillaForm(false)} className="rounded-xl border border-white/10 px-3 py-2 text-sm font-black text-slate-400">Kapat</button>
             </div>
 
-            <form onSubmit={addVilla} className="mt-6 grid gap-3 md:grid-cols-2">
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Villa adı" className="md:col-span-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none focus:border-emerald-400/40" />
-              <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Şehir" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} placeholder="Bölge" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} placeholder="Yatak odası" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} placeholder="Banyo" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={form.maxGuests} onChange={(e) => setForm({ ...form, maxGuests: e.target.value })} placeholder="Maksimum kişi" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={form.nightly} onChange={(e) => setForm({ ...form, nightly: e.target.value })} placeholder="Gece fiyatı" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={form.cleaning} onChange={(e) => setForm({ ...form, cleaning: e.target.value })} placeholder="Temizlik ücreti" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={form.cleaningUnder} onChange={(e) => setForm({ ...form, cleaningUnder: e.target.value })} placeholder="Kaç gece altı temizlik ücretli" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={form.deposit} onChange={(e) => setForm({ ...form, deposit: e.target.value })} placeholder="Depozito" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={form.minimumStay} onChange={(e) => setForm({ ...form, minimumStay: e.target.value })} placeholder="Minimum gece" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={form.commission} onChange={(e) => setForm({ ...form, commission: e.target.value })} placeholder="Turobus komisyon %" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <button className="md:col-span-2 mt-2 rounded-2xl bg-gradient-to-r from-emerald-300 to-cyan-300 px-5 py-4 font-black text-slate-950">Villayı Kaydet</button>
+            <form onSubmit={addVilla}>
+              <div className="grid lg:grid-cols-[minmax(0,1fr)_330px]">
+
+                <div className="p-5 lg:p-7">
+
+                  {/* TEMEL BİLGİLER */}
+                  <section className="rounded-[24px] border border-white/10 bg-white/[.025] p-5">
+
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-300">
+                        <FaHome />
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[.18em] text-emerald-400">
+                          01 · Temel Bilgiler
+                        </div>
+                        <h4 className="mt-1 font-black text-white">
+                          Villa Kimliği
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 md:grid-cols-2">
+
+                      <label className="md:col-span-2 block">
+                        <span className="text-xs font-black text-slate-300">
+                          Villa Adı
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Misafirlerin ve personelin göreceği portföy adı.
+                        </span>
+                        <input
+                          value={form.name}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              name: e.target.value,
+                            })
+                          }
+                          placeholder="Örn. Villa Serenity Ölüdeniz"
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 text-sm font-bold text-white outline-none transition focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/10"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Şehir / İlçe
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Villanın bulunduğu ana destinasyon.
+                        </span>
+                        <input
+                          value={form.city}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              city: e.target.value,
+                            })
+                          }
+                          placeholder="Örn. Fethiye"
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 text-sm font-bold text-white outline-none focus:border-emerald-400/50"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Bölge / Mahalle
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Ölüdeniz, Hisarönü, Çalış, Kayaköy gibi.
+                        </span>
+                        <input
+                          value={form.district}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              district: e.target.value,
+                            })
+                          }
+                          placeholder="Örn. Ölüdeniz"
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 text-sm font-bold text-white outline-none focus:border-emerald-400/50"
+                        />
+                      </label>
+
+                    </div>
+                  </section>
+
+
+                  {/* KAPASİTE */}
+                  <section className="mt-4 rounded-[24px] border border-white/10 bg-white/[.025] p-5">
+
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-500/10 text-cyan-300">
+                        <FaBed />
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[.18em] text-cyan-400">
+                          02 · Kapasite
+                        </div>
+                        <h4 className="mt-1 font-black text-white">
+                          Konaklama Özellikleri
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 sm:grid-cols-3">
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Yatak Odası
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Toplam oda sayısı
+                        </span>
+                        <div className="relative mt-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={form.bedrooms}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                bedrooms: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 pr-14 font-black text-white outline-none focus:border-cyan-400/50"
+                          />
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-600">
+                            ODA
+                          </span>
+                        </div>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Banyo
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Toplam banyo sayısı
+                        </span>
+                        <div className="relative mt-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={form.bathrooms}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                bathrooms: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 pr-14 font-black text-white outline-none focus:border-cyan-400/50"
+                          />
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-600">
+                            ADET
+                          </span>
+                        </div>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Maksimum Misafir
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Aynı anda konaklayabilir
+                        </span>
+                        <div className="relative mt-2">
+                          <input
+                            type="number"
+                            min="1"
+                            value={form.maxGuests}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                maxGuests: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 pr-14 font-black text-white outline-none focus:border-cyan-400/50"
+                          />
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-600">
+                            KİŞİ
+                          </span>
+                        </div>
+                      </label>
+
+                    </div>
+                  </section>
+
+
+                  {/* SATIŞ FİYATI */}
+                  <section className="mt-4 rounded-[24px] border border-white/10 bg-white/[.025] p-5">
+
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-xl bg-violet-500/10 text-violet-300">
+                        <FaMoneyBillWave />
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[.18em] text-violet-400">
+                          03 · Fiyatlandırma
+                        </div>
+                        <h4 className="mt-1 font-black text-white">
+                          Satış Kuralları
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 md:grid-cols-2">
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Standart Gecelik Satış Fiyatı
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Takvimde özel fiyat yoksa bu fiyat kullanılır.
+                        </span>
+                        <div className="relative mt-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={form.nightly}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                nightly: e.target.value,
+                              })
+                            }
+                            placeholder="Örn. 7500"
+                            className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 pr-16 font-black text-white outline-none focus:border-violet-400/50"
+                          />
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-violet-300">
+                            TL
+                          </span>
+                        </div>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Minimum Konaklama
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Rezervasyon için gereken minimum gece.
+                        </span>
+                        <div className="relative mt-2">
+                          <input
+                            type="number"
+                            min="1"
+                            value={form.minimumStay}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                minimumStay: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 pr-16 font-black text-white outline-none focus:border-violet-400/50"
+                          />
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-600">
+                            GECE
+                          </span>
+                        </div>
+                      </label>
+
+                    </div>
+                  </section>
+
+
+                  {/* TEMİZLİK / DEPOZİTO */}
+                  <section className="mt-4 rounded-[24px] border border-white/10 bg-white/[.025] p-5">
+
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-xl bg-amber-500/10 text-amber-300">
+                        <FaBroom />
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[.18em] text-amber-400">
+                          04 · Operasyon Ücretleri
+                        </div>
+                        <h4 className="mt-1 font-black text-white">
+                          Temizlik & Depozito
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 md:grid-cols-3">
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Temizlik Ücreti
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Koşul oluştuğunda eklenir.
+                        </span>
+                        <div className="relative mt-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={form.cleaning}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                cleaning: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 pr-14 font-black text-white outline-none focus:border-amber-400/50"
+                          />
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-amber-300">
+                            TL
+                          </span>
+                        </div>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Temizlik Ücreti Eşiği
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Bu gecenin altında ücret uygulanır.
+                        </span>
+                        <div className="relative mt-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={form.cleaningUnder}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                cleaningUnder: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 pr-16 font-black text-white outline-none focus:border-amber-400/50"
+                          />
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-600">
+                            GECE
+                          </span>
+                        </div>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-xs font-black text-slate-300">
+                          Hasar Depozitosu
+                        </span>
+                        <span className="mt-1 block text-[11px] text-slate-500">
+                          Misafirden alınacak güvence bedeli.
+                        </span>
+                        <div className="relative mt-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={form.deposit}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                deposit: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3.5 pr-14 font-black text-white outline-none focus:border-amber-400/50"
+                          />
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-amber-300">
+                            TL
+                          </span>
+                        </div>
+                      </label>
+
+                    </div>
+                  </section>
+
+
+                  {/* MARKETPLACE */}
+                  <section className="mt-4 rounded-[24px] border border-emerald-400/15 bg-emerald-500/[.035] p-5">
+
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+
+                      <div className="max-w-xl">
+                        <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
+                          <FaGlobe />
+                          Turobus Marketplace
+                        </div>
+
+                        <p className="mt-2 text-xs leading-5 text-slate-500">
+                          Buradaki oran yalnızca Turobus.com üzerinden gelen marketplace satışlarında uygulanır.
+                          Direkt, acenta ve B2B satışlarda Turobus komisyonu oluşmaz.
+                        </p>
+                      </div>
+
+                      <label className="w-full sm:w-[220px]">
+                        <span className="text-xs font-black text-slate-300">
+                          Marketplace Komisyonu
+                        </span>
+                        <div className="relative mt-2">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={form.commission}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                commission: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-xl border border-emerald-400/20 bg-[#07111f] px-4 py-3.5 pr-12 font-black text-white outline-none focus:border-emerald-400/60"
+                          />
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-black text-emerald-300">
+                            %
+                          </span>
+                        </div>
+                      </label>
+
+                    </div>
+                  </section>
+
+                </div>
+
+
+                {/* CANLI ÖZET */}
+                <aside className="border-t border-white/10 bg-[#07111f] p-5 lg:border-l lg:border-t-0 lg:p-6">
+
+                  <div className="lg:sticky lg:top-5">
+
+                    <div className="text-[10px] font-black uppercase tracking-[.22em] text-cyan-400">
+                      Canlı Portföy Özeti
+                    </div>
+
+                    <h4 className="mt-2 text-xl font-black text-white">
+                      {form.name.trim() || "Yeni Villa"}
+                    </h4>
+
+                    <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                      <FaMapMarkerAlt />
+                      {[form.city, form.district]
+                        .filter(Boolean)
+                        .join(" · ") || "Konum belirtilmedi"}
+                    </div>
+
+
+                    <div className="mt-5 rounded-[22px] border border-white/10 bg-white/[.025] p-4">
+
+                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                        Gecelik Başlangıç
+                      </div>
+
+                      <div className="mt-2 text-3xl font-black text-emerald-300">
+                        {money(Number(form.nightly || 0))}
+                      </div>
+
+                      <div className="mt-1 text-[11px] text-slate-600">
+                        Standart satış fiyatı
+                      </div>
+
+                    </div>
+
+
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+
+                      <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+                        <FaBed className="text-cyan-300" />
+                        <div className="mt-2 text-[10px] uppercase text-slate-600">
+                          Yatak Odası
+                        </div>
+                        <div className="mt-1 text-lg font-black">
+                          {form.bedrooms || "0"}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+                        <FaUsers className="text-violet-300" />
+                        <div className="mt-2 text-[10px] uppercase text-slate-600">
+                          Kapasite
+                        </div>
+                        <div className="mt-1 text-lg font-black">
+                          {form.maxGuests || "0"} kişi
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+                        <FaCalendarAlt className="text-amber-300" />
+                        <div className="mt-2 text-[10px] uppercase text-slate-600">
+                          Minimum
+                        </div>
+                        <div className="mt-1 text-lg font-black">
+                          {form.minimumStay || "0"} gece
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+                        <FaReceipt className="text-emerald-300" />
+                        <div className="mt-2 text-[10px] uppercase text-slate-600">
+                          Depozito
+                        </div>
+                        <div className="mt-1 text-sm font-black">
+                          {money(Number(form.deposit || 0))}
+                        </div>
+                      </div>
+
+                    </div>
+
+
+                    <div className="mt-4 rounded-xl border border-white/10 bg-white/[.025] p-4 text-xs">
+
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-slate-500">
+                          Temizlik Ücreti
+                        </span>
+                        <strong>
+                          {money(Number(form.cleaning || 0))}
+                        </strong>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <span className="text-slate-500">
+                          Ücret Eşiği
+                        </span>
+                        <strong>
+                          {form.cleaningUnder || "0"} gece altı
+                        </strong>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <span className="text-slate-500">
+                          Turobus Marketplace
+                        </span>
+                        <strong className="text-emerald-300">
+                          %{form.commission || "0"}
+                        </strong>
+                      </div>
+
+                    </div>
+
+
+                    <div className="mt-5 rounded-xl border border-cyan-400/15 bg-cyan-500/[.04] p-4">
+                      <div className="text-xs font-black text-cyan-300">
+                        Kayıt sonrası hazır olacak
+                      </div>
+                      <div className="mt-2 space-y-1.5 text-[11px] text-slate-500">
+                        <div>✓ Merkezi müsaitlik takvimi</div>
+                        <div>✓ Fiyat ve minimum gece yönetimi</div>
+                        <div>✓ Rezervasyon & ödeme takibi</div>
+                        <div>✓ Housekeeping operasyonu</div>
+                        <div>✓ Airbnb / kanal bağlantıları</div>
+                        <div>✓ B2B ve Turobus Marketplace</div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </aside>
+
+              </div>
+
+
+              <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-[#0a1220]/95 px-5 py-4 backdrop-blur-xl lg:px-7">
+
+                <div className="text-xs text-slate-500">
+                  <strong className="text-white">
+                    {form.name.trim() || "Villa adı girilmedi"}
+                  </strong>
+                  {" · "}
+                  {form.city || "Şehir yok"}
+                  {" · "}
+                  {form.maxGuests || "0"} kişi
+                </div>
+
+                <div className="flex gap-2">
+
+                  <button
+                    type="button"
+                    onClick={() => setShowVillaForm(false)}
+                    className="rounded-xl border border-white/10 px-5 py-3 text-sm font-black text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                  >
+                    Vazgeç
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={!form.name.trim()}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-300 to-cyan-300 px-6 py-3 text-sm font-black text-slate-950 shadow-lg shadow-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <FaCheckCircle />
+                    Villayı Kaydet
+                  </button>
+
+                </div>
+
+              </div>
+
             </form>
           </div>
         </div>
