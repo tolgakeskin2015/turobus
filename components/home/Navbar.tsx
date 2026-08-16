@@ -18,6 +18,7 @@ const navigation = [
   { label: "Villalar", href: "/villalar" },
   { label: "Aktiviteler", href: "/aktiviteler" },
   { label: "Yat & Tekne", href: "/yatlar" },
+  { label: "Transfer", href: "/transfer" },
   { label: "Kurumsal", href: "/hakkimizda" },
 ];
 
@@ -143,7 +144,7 @@ export default function Navbar() {
               href="/acente-basvuru"
               className="flex h-11 items-center rounded-xl bg-orange-500 px-5 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
             >
-              Turunu Yayınla
+              Ürününü Yayınla
             </Link>
           </div>
 
@@ -203,7 +204,7 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="mt-3 flex min-h-14 items-center justify-center rounded-2xl bg-orange-500 px-6 font-black text-white transition hover:bg-orange-600"
             >
-              Turunu Yayınla
+              Ürününü Yayınla
             </Link>
           </nav>
         </div>
