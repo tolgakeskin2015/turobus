@@ -17,7 +17,7 @@ const navigation = [
   { label: "Oteller", href: "/oteller" },
   { label: "Villalar", href: "/villalar" },
   { label: "Aktiviteler", href: "/aktiviteler" },
-  { label: "Acenteler", href: "/acenteler" },
+  { label: "Yat & Tekne", href: "/yatlar" },
   { label: "Kurumsal", href: "/hakkimizda" },
 ];
 
