@@ -17,9 +17,9 @@ const navigation = [
   { label: "Oteller", href: "/oteller" },
   { label: "Villalar", href: "/villalar" },
   { label: "Aktiviteler", href: "/aktiviteler" },
+  { label: "Paketler", href: "/paketler" },
   { label: "Yat & Tekne", href: "/yatlar" },
   { label: "Transfer", href: "/transfer" },
-  { label: "Kurumsal", href: "/hakkimizda" },
 ];
 
 export default function Navbar() {
@@ -75,7 +75,7 @@ export default function Navbar() {
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-2xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
+        <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between gap-5 px-5 lg:px-6 xl:px-8">
           <Link
             href="/"
             className="flex items-center gap-3"
@@ -96,12 +96,12 @@ export default function Navbar() {
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-8 lg:flex">
+          <nav className="hidden items-center gap-5 xl:gap-6 lg:flex">
             {navigation.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="text-sm font-bold text-slate-300 transition hover:text-orange-400"
+                className="whitespace-nowrap text-[13px] font-bold text-slate-300 transition hover:text-orange-400"
               >
                 {item.label}
               </Link>
