@@ -527,6 +527,92 @@ export default function VillaControlCenterPage() {
     { id: "channels", label: "Airbnb & Kanallar", icon: FaAirbnb },
   ];
 
+  function openVillaWorkspace(tab: Tab) {
+    setError("");
+    setMessage("");
+
+    if (!villas.length) {
+      window.location.href = "/dashboard/villa-os";
+      return;
+    }
+
+    if (!villaId && villas[0]?.id) {
+      setVillaId(villas[0].id);
+    }
+
+    setActiveTab(tab);
+
+    window.setTimeout(() => {
+      document
+        .getElementById("villa-workspace")
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 120);
+  }
+
+  function openFinanceCenter() {
+    window.location.href =
+      "/dashboard/villa-os/finance-center";
+  }
+
+  function openMarketplaceCenter() {
+    window.location.href =
+      "/dashboard/villa-os";
+  }
+
+  const featureActions = [
+    {
+      title: "Merkezi Takvim",
+      description:
+        "Airbnb, direkt, acenta ve Turobus satışlarını tek stoktan yönet.",
+      icon: FaCalendarAlt,
+      action: () => openVillaWorkspace("calendar"),
+      actionLabel: "Takvimi Aç",
+    },
+    {
+      title: "Gelir Yönetimi",
+      description:
+        "Günlük fiyat ve minimum gece kurallarını tarih aralığına uygula.",
+      icon: FaChartLine,
+      action: () => openVillaWorkspace("calendar"),
+      actionLabel: "Fiyatları Yönet",
+    },
+    {
+      title: "Finans",
+      description:
+        "Tahsilat, bakiye, depozito, hakediş ve iadeleri profesyonel finans merkezinden yönet.",
+      icon: FaMoneyBillWave,
+      action: openFinanceCenter,
+      actionLabel: "Finansı Aç",
+    },
+    {
+      title: "Housekeeping",
+      description:
+        "Çıkış sonrası temizliği başlat, tamamlat ve kontrol onayı ver.",
+      icon: FaClipboardCheck,
+      action: () => openVillaWorkspace("cleaning"),
+      actionLabel: "Temizliği Aç",
+    },
+    {
+      title: "Channel Manager",
+      description:
+        "Airbnb, Booking, VRBO ve iCal kanal senkronlarını yönet.",
+      icon: FaAirbnb,
+      action: () => openVillaWorkspace("channels"),
+      actionLabel: "Kanalları Aç",
+    },
+    {
+      title: "Marketplace",
+      description:
+        "Villayı Turobus.com satışına aç, kapat ve dağıtım durumunu yönet.",
+      icon: FaBolt,
+      action: openMarketplaceCenter,
+      actionLabel: "Marketplace Yönet",
+    },
+  ];
+
   if (loading) return <main className="min-h-screen bg-[#07111f] p-8 text-white">Villa OS hazırlanıyor…</main>;
 
   return (
@@ -689,10 +775,22 @@ export default function VillaControlCenterPage() {
             </div>
           </aside>
 
-          <section className="min-w-0">
+          <section
+            id="villa-workspace"
+            className="min-w-0 scroll-mt-40"
+          >
         <div className="flex gap-1 overflow-x-auto border-b border-white/[.07] bg-transparent pb-2">
           {tabs.map(({ id, label, icon: Icon }) => (
-            <button key={id} type="button" onClick={() => setActiveTab(id)} className={`flex min-w-max items-center gap-2 rounded-lg px-3 py-2 text-xs font-black transition ${activeTab === id ? "bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/15" : "text-slate-400 hover:bg-white/[.04] hover:text-white"}`}>
+            <button
+              key={id}
+              type="button"
+              onClick={() => openVillaWorkspace(id)}
+              className={`flex min-w-max items-center gap-2 rounded-lg px-3 py-2 text-xs font-black transition ${
+                activeTab === id && villaId
+                  ? "bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/15"
+                  : "text-slate-400 hover:bg-white/[.04] hover:text-white"
+              }`}
+            >
               <Icon /> {label}
             </button>
           ))}
@@ -708,34 +806,51 @@ export default function VillaControlCenterPage() {
                   </div>
 
                   <h2 className="mt-2 text-2xl font-black">
-                    Portföyünden bir villa seç
+                    {villas.length
+                      ? "Çalışmak istediğin villayı seç"
+                      : "Önce ilk villanı oluştur"}
                   </h2>
 
                   <p className="mt-2 text-sm leading-6 text-slate-400">
-                    Takvim, fiyat, rezervasyon, ödeme, temizlik, fatura,
-                    Airbnb ve Turobus dağıtımını tek çalışma alanından yönet.
+                    {villas.length
+                      ? "Takvim, fiyat, rezervasyon, ödeme, temizlik, fatura, Airbnb ve Turobus dağıtımını tek çalışma alanından yönet."
+                      : "Villa OS modüllerinin çalışabilmesi için önce portföye en az bir villa ekle. Villa oluşturulduğu anda tüm operasyon modülleri aktif olur."}
                   </p>
                 </div>
               </div>
 
               <div className="grid gap-px bg-white/[.06] sm:grid-cols-2 lg:grid-cols-3">
-                {([
-                  ["Merkezi Takvim", "Airbnb, direkt, acenta ve Turobus satışlarını tek stoktan yönet.", FaCalendarAlt],
-                  ["Gelir Yönetimi", "Günlük fiyat ve minimum gece kurallarını tarih aralığına uygula.", FaChartLine],
-                  ["Finans", "Tahsilat, bakiye, depozito ve iadeleri rezervasyon bazında takip et.", FaMoneyBillWave],
-                  ["Housekeeping", "Çıkış sonrası temizliği başlat, tamamlat ve kontrol onayı ver.", FaClipboardCheck],
-                  ["Channel Manager", "iCal bağlantıları ve kanal senkron durumunu tek yerde izle.", FaAirbnb],
-                  ["Marketplace", "İstediğin villayı Turobus.com satışına aç veya kapat.", FaBolt],
-                ] as Array<[string, string, React.ComponentType<{ className?: string }>]>
-                ).map(([title, description, Icon]) => (
-                  <div key={String(title)} className="bg-[#091522] p-5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[.04] text-emerald-400">
-                      <Icon />
-                    </div>
-                    <div className="mt-4 text-sm font-black">{title}</div>
-                    <div className="mt-1 text-xs leading-5 text-slate-500">{description}</div>
-                  </div>
-                ))}
+                {featureActions.map((feature) => {
+                  const Icon = feature.icon;
+
+                  return (
+                    <button
+                      key={feature.title}
+                      type="button"
+                      onClick={feature.action}
+                      className="group bg-[#091522] p-5 text-left transition hover:bg-[#0d1c2b] focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[.04] text-emerald-400 transition group-hover:bg-emerald-400 group-hover:text-slate-950">
+                        <Icon />
+                      </div>
+
+                      <div className="mt-4 text-sm font-black">
+                        {feature.title}
+                      </div>
+
+                      <div className="mt-1 min-h-[40px] text-xs leading-5 text-slate-500">
+                        {feature.description}
+                      </div>
+
+                      <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-wide text-emerald-400">
+                        {villas.length
+                          ? feature.actionLabel
+                          : "Önce Villa Oluştur"}
+                        <span>→</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
