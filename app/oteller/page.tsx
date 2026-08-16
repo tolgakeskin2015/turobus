@@ -18,18 +18,16 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaChild,
+  FaFilter,
   FaHotel,
-  FaMapMarkedAlt,
   FaMapMarkerAlt,
   FaMinus,
   FaPlus,
   FaSearch,
   FaShieldAlt,
   FaStar,
-  FaSwimmingPool,
   FaTimes,
   FaUsers,
-  FaWifi,
 } from "react-icons/fa";
 
 import Navbar from "@/components/home/Navbar";
@@ -53,6 +51,33 @@ type Hotel = {
 };
 
 
+type HotelRoom = {
+  id: string;
+  name: string;
+  currency: string;
+  max_adults: string | null;
+  max_children: string | null;
+  max_occupancy: string | null;
+  total_rooms: string | null;
+  bed_type: string | null;
+  stop_sell: string | null;
+};
+
+
+type HotelDetail = {
+  id: string;
+  name: string;
+  city: string | null;
+  district: string | null;
+  star_rating: string | null;
+  hotel_type: string | null;
+  currency: string;
+  verified: boolean;
+  cover_image: string | null;
+  rooms: HotelRoom[];
+};
+
+
 type OpenPanel =
   | "destination"
   | "checkIn"
@@ -61,104 +86,98 @@ type OpenPanel =
   | null;
 
 
+type SortMode =
+  | "recommended"
+  | "stars"
+  | "name";
+
+
 const previewHotels = [
   {
-    name:
-      "Turobus Beach Resort",
-    location:
-      "Ölüdeniz · Fethiye",
+    name: "Azure Bay Resort",
+    location: "Ölüdeniz · Fethiye",
     stars: 5,
-    type:
-      "Resort",
-    feature:
-      "Her Şey Dahil",
+    type: "Resort",
+    feature: "Her Şey Dahil",
     image:
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1300&q=90",
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=90",
   },
   {
-    name:
-      "Turobus Marina Hotel",
-    location:
-      "Bodrum · Muğla",
+    name: "Marina Collection",
+    location: "Yalıkavak · Bodrum",
     stars: 5,
-    type:
-      "Luxury",
-    feature:
-      "Denize Sıfır",
+    type: "Luxury Hotel",
+    feature: "Denize Sıfır",
     image:
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1300&q=90",
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1400&q=90",
   },
   {
-    name:
-      "Turobus Boutique",
-    location:
-      "Kaş · Antalya",
+    name: "Stone Boutique",
+    location: "Kaş · Antalya",
     stars: 4,
-    type:
-      "Boutique",
-    feature:
-      "Kahvaltı Dahil",
+    type: "Boutique",
+    feature: "Kahvaltı Dahil",
     image:
-      "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1300&q=90",
+      "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1400&q=90",
+  },
+];
+
+
+const destinations = [
+  {
+    city: "Fethiye",
+    region: "Muğla",
+    detail: "Ölüdeniz · Çalış · Hisarönü",
   },
   {
-    name:
-      "Turobus City",
-    location:
-      "İstanbul",
-    stars: 5,
-    type:
-      "City Hotel",
-    feature:
-      "Merkezi Konum",
-    image:
-      "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1300&q=90",
+    city: "Antalya",
+    region: "Antalya",
+    detail: "Lara · Belek · Kemer",
+  },
+  {
+    city: "Bodrum",
+    region: "Muğla",
+    detail: "Yalıkavak · Türkbükü · Gümbet",
+  },
+  {
+    city: "Marmaris",
+    region: "Muğla",
+    detail: "İçmeler · Turunç · Siteler",
+  },
+  {
+    city: "İstanbul",
+    region: "İstanbul",
+    detail: "Taksim · Sultanahmet · Beşiktaş",
+  },
+  {
+    city: "Kapadokya",
+    region: "Nevşehir",
+    detail: "Göreme · Uçhisar · Ürgüp",
   },
 ];
 
 
-const popularDestinations = [
-  "Fethiye",
-  "Antalya",
-  "Bodrum",
-  "Marmaris",
-  "İstanbul",
-  "Kapadokya",
-];
-
-
-function iso(
-  date: Date
-) {
-
+function iso(date: Date) {
   const year =
     date.getFullYear();
 
   const month =
     String(
       date.getMonth() + 1
-    ).padStart(
-      2,
-      "0"
-    );
+    ).padStart(2, "0");
 
   const day =
     String(
       date.getDate()
-    ).padStart(
-      2,
-      "0"
-    );
+    ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
-
 }
 
 
 function parseIso(
   value: string
 ) {
-
   const [
     year,
     month,
@@ -174,14 +193,12 @@ function parseIso(
     day,
     12
   );
-
 }
 
 
 function formatDate(
   value: string
 ) {
-
   if (!value) {
     return "Tarih seç";
   }
@@ -196,7 +213,6 @@ function formatDate(
   ).format(
     parseIso(value)
   );
-
 }
 
 
@@ -204,21 +220,18 @@ function addMonths(
   date: Date,
   amount: number
 ) {
-
   return new Date(
     date.getFullYear(),
     date.getMonth() + amount,
     1,
     12
   );
-
 }
 
 
-function getMonthDays(
+function monthDays(
   month: Date
 ) {
-
   const first =
     new Date(
       month.getFullYear(),
@@ -239,16 +252,11 @@ function getMonthDays(
       offset
   );
 
-
   return Array.from(
     {
       length: 42,
     },
-    (
-      _,
-      index
-    ) => {
-
+    (_, index) => {
       const date =
         new Date(start);
 
@@ -258,25 +266,23 @@ function getMonthDays(
       );
 
       return date;
-
     }
   );
-
 }
 
 
-function Calendar({
+function CalendarPicker({
   month,
-  value,
+  selected,
   minimum,
   onMonth,
   onSelect,
 }: {
   month: Date;
-  value: string;
+  selected: string;
   minimum: string;
   onMonth: (
-    value: Date
+    date: Date
   ) => void;
   onSelect: (
     value: string
@@ -294,7 +300,7 @@ function Calendar({
 
 
   return (
-    <div className="w-[340px] max-w-[calc(100vw-32px)] rounded-[24px] border border-white/10 bg-[#0b1724] p-4 shadow-2xl shadow-black/70">
+    <div className="w-[350px] max-w-[calc(100vw-32px)] rounded-[24px] border border-white/10 bg-[#0c1825] p-4 shadow-2xl shadow-black/70">
 
       <div className="flex items-center justify-between">
 
@@ -308,15 +314,15 @@ function Calendar({
               )
             )
           }
-          className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 text-slate-400 hover:text-white"
+          className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-slate-400 transition hover:bg-white/[.05] hover:text-white"
         >
           <FaChevronLeft />
         </button>
 
 
-        <strong className="capitalize">
+        <div className="text-sm font-black capitalize">
           {label}
-        </strong>
+        </div>
 
 
         <button
@@ -329,7 +335,7 @@ function Calendar({
               )
             )
           }
-          className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 text-slate-400 hover:text-white"
+          className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-slate-400 transition hover:bg-white/[.05] hover:text-white"
         >
           <FaChevronRight />
         </button>
@@ -351,7 +357,7 @@ function Calendar({
           (day) => (
             <div
               key={day}
-              className="py-1 text-center text-[9px] font-black text-slate-600"
+              className="py-1 text-center text-[9px] font-black uppercase text-slate-600"
             >
               {day}
             </div>
@@ -359,19 +365,19 @@ function Calendar({
         )}
 
 
-        {getMonthDays(
+        {monthDays(
           month
         ).map(
           (date) => {
 
-            const day =
+            const value =
               iso(date);
 
-            const active =
-              day === value;
-
             const disabled =
-              day < minimum;
+              value < minimum;
+
+            const active =
+              selected === value;
 
             const sameMonth =
               date.getMonth() ===
@@ -380,17 +386,15 @@ function Calendar({
 
             return (
               <button
-                key={day}
+                key={value}
                 type="button"
-                disabled={
-                  disabled
-                }
+                disabled={disabled}
                 onClick={() =>
-                  onSelect(day)
+                  onSelect(value)
                 }
                 className={`aspect-square rounded-xl text-xs font-black transition ${
                   active
-                    ? "bg-orange-500 text-white"
+                    ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
                     : disabled
                       ? "cursor-not-allowed text-slate-800"
                       : sameMonth
@@ -401,7 +405,6 @@ function Calendar({
                 {date.getDate()}
               </button>
             );
-
           }
         )}
 
@@ -409,13 +412,12 @@ function Calendar({
 
     </div>
   );
-
 }
 
 
 export default function HotelsPage() {
 
-  const searchRef =
+  const resultsRef =
     useRef<HTMLDivElement | null>(
       null
     );
@@ -461,6 +463,38 @@ export default function HotelsPage() {
 
 
   const [
+    sort,
+    setSort,
+  ] =
+    useState<SortMode>(
+      "recommended"
+    );
+
+
+  const [
+    mobileFilters,
+    setMobileFilters,
+  ] =
+    useState(false);
+
+
+  const [
+    selectedHotel,
+    setSelectedHotel,
+  ] =
+    useState<HotelDetail | null>(
+      null
+    );
+
+
+  const [
+    detailLoading,
+    setDetailLoading,
+  ] =
+    useState(false);
+
+
+  const [
     filters,
     setFilters,
   ] =
@@ -473,12 +507,22 @@ export default function HotelsPage() {
       rooms: 1,
       stars: 0,
       hotelType: "Tümü",
+      verifiedOnly: false,
     });
 
 
   const load =
     useCallback(
-      async () => {
+      async (
+        destination =
+          filters.destination,
+        star =
+          filters.stars,
+        adults =
+          filters.adults,
+        children =
+          filters.children
+      ) => {
 
         setLoading(true);
         setError("");
@@ -493,23 +537,21 @@ export default function HotelsPage() {
             "get_public_hotel_marketplace",
             {
               p_destination:
-                filters.destination ||
+                destination ||
                 null,
 
               p_guests:
-                filters.adults +
-                filters.children,
+                adults +
+                children,
 
               p_star:
-                filters.stars ||
+                star ||
                 null,
             }
           );
 
 
-        if (
-          rpcError
-        ) {
+        if (rpcError) {
 
           setError(
             rpcError.message
@@ -532,16 +574,15 @@ export default function HotelsPage() {
       },
       [
         filters.destination,
+        filters.stars,
         filters.adults,
         filters.children,
-        filters.stars,
       ]
     );
 
 
   useEffect(
     () => {
-
       void load();
 
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -553,41 +594,40 @@ export default function HotelsPage() {
   useEffect(
     () => {
 
-      const close =
-        (
-          event:
-            MouseEvent
-        ) => {
+      function handleOutside(
+        event:
+          MouseEvent
+      ) {
 
-          const target =
-            event.target as HTMLElement;
+        const target =
+          event.target as HTMLElement;
 
 
-          if (
-            !target.closest(
-              "[data-hotel-search]"
-            )
-          ) {
+        if (
+          !target.closest(
+            "[data-hotel-search]"
+          )
+        ) {
 
-            setOpenPanel(
-              null
-            );
+          setOpenPanel(
+            null
+          );
 
-          }
+        }
 
-        };
+      }
 
 
       document.addEventListener(
         "mousedown",
-        close
+        handleOutside
       );
 
 
       return () =>
         document.removeEventListener(
           "mousedown",
-          close
+          handleOutside
         );
 
     },
@@ -621,19 +661,140 @@ export default function HotelsPage() {
     );
 
 
-  const filteredHotels =
+  const resultHotels =
     useMemo(
-      () =>
-        hotels.filter(
-          (hotel) =>
-            filters.hotelType ===
-              "Tümü" ||
-            hotel.hotel_type ===
-              filters.hotelType
-        ),
+      () => {
+
+        let result =
+          hotels.filter(
+            (hotel) => {
+
+              const typeMatch =
+                filters.hotelType ===
+                  "Tümü" ||
+                hotel.hotel_type ===
+                  filters.hotelType;
+
+
+              const verifiedMatch =
+                !filters.verifiedOnly ||
+                hotel.verified;
+
+
+              return (
+                typeMatch &&
+                verifiedMatch
+              );
+
+            }
+          );
+
+
+        if (
+          sort === "stars"
+        ) {
+
+          result =
+            [...result].sort(
+              (
+                first,
+                second
+              ) =>
+                Number(
+                  second.star_rating ??
+                    0
+                ) -
+                Number(
+                  first.star_rating ??
+                    0
+                )
+            );
+
+        }
+
+
+        if (
+          sort === "name"
+        ) {
+
+          result =
+            [...result].sort(
+              (
+                first,
+                second
+              ) =>
+                first.name.localeCompare(
+                  second.name,
+                  "tr"
+                )
+            );
+
+        }
+
+
+        if (
+          sort ===
+          "recommended"
+        ) {
+
+          result =
+            [...result].sort(
+              (
+                first,
+                second
+              ) => {
+
+                const firstScore =
+                  Number(
+                    first.verified
+                  ) *
+                    10 +
+                  Number(
+                    first.star_rating ??
+                      0
+                  ) *
+                    2 +
+                  Number(
+                    first.room_type_count ??
+                      0
+                  );
+
+
+                const secondScore =
+                  Number(
+                    second.verified
+                  ) *
+                    10 +
+                  Number(
+                    second.star_rating ??
+                      0
+                  ) *
+                    2 +
+                  Number(
+                    second.room_type_count ??
+                      0
+                  );
+
+
+                return (
+                  secondScore -
+                  firstScore
+                );
+
+              }
+            );
+
+        }
+
+
+        return result;
+
+      },
       [
         hotels,
         filters.hotelType,
+        filters.verifiedOnly,
+        sort,
       ]
     );
 
@@ -643,7 +804,9 @@ export default function HotelsPage() {
   ) {
 
     setFilters(
-      (current) => ({
+      (
+        current
+      ) => ({
         ...current,
         checkIn:
           value,
@@ -654,6 +817,12 @@ export default function HotelsPage() {
             : "",
       })
     );
+
+
+    setCalendarMonth(
+      parseIso(value)
+    );
+
 
     setOpenPanel(
       "checkOut"
@@ -667,19 +836,22 @@ export default function HotelsPage() {
   ) {
 
     setFilters(
-      (current) => ({
+      (
+        current
+      ) => ({
         ...current,
         checkOut:
           value,
       })
     );
 
+
     setOpenPanel(null);
 
   }
 
 
-  function searchHotels() {
+  async function searchHotels() {
 
     if (
       filters.checkIn &&
@@ -697,21 +869,163 @@ export default function HotelsPage() {
     }
 
 
-    void load();
+    setOpenPanel(null);
+
+    await load();
 
 
     window.setTimeout(
       () =>
-        searchRef.current?.scrollIntoView({
-          behavior:
-            "smooth",
-          block:
-            "start",
+        resultsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
         }),
-      100
+      120
     );
 
   }
+
+
+  async function selectDestination(
+    city: string
+  ) {
+
+    setFilters(
+      (
+        current
+      ) => ({
+        ...current,
+        destination:
+          city,
+      })
+    );
+
+
+    setOpenPanel(null);
+
+    await load(
+      city
+    );
+
+  }
+
+
+  async function setStarFilter(
+    stars: number
+  ) {
+
+    setFilters(
+      (
+        current
+      ) => ({
+        ...current,
+        stars,
+      })
+    );
+
+
+    await load(
+      filters.destination,
+      stars
+    );
+
+  }
+
+
+  async function openHotelDetail(
+    hotelId: string
+  ) {
+
+    setDetailLoading(
+      true
+    );
+
+    setError("");
+
+
+    const {
+      data,
+      error:
+        detailError,
+    } =
+      await supabase.rpc(
+        "get_public_hotel_marketplace_detail",
+        {
+          p_resource_id:
+            hotelId,
+        }
+      );
+
+
+    if (detailError) {
+
+      setError(
+        detailError.message
+      );
+
+    } else {
+
+      setSelectedHotel(
+        data as HotelDetail
+      );
+
+    }
+
+
+    setDetailLoading(
+      false
+    );
+
+  }
+
+
+  function clearFilters() {
+
+    setFilters({
+      destination: "",
+      checkIn: "",
+      checkOut: "",
+      adults: 2,
+      children: 0,
+      rooms: 1,
+      stars: 0,
+      hotelType: "Tümü",
+      verifiedOnly: false,
+    });
+
+    setSort(
+      "recommended"
+    );
+
+    void load(
+      "",
+      0,
+      2,
+      0
+    );
+
+  }
+
+
+  const searchSummary =
+    [
+      filters.destination ||
+        "Tüm destinasyonlar",
+
+      filters.checkIn &&
+      filters.checkOut
+        ? `${formatDate(
+            filters.checkIn
+          )} → ${formatDate(
+            filters.checkOut
+          )}`
+        : "Tarih seçilmedi",
+
+      `${filters.adults +
+        filters.children} misafir`,
+
+      `${filters.rooms} oda`,
+    ].join(" · ");
 
 
   return (
@@ -720,64 +1034,117 @@ export default function HotelsPage() {
       <Navbar />
 
 
-      {/* HERO */}
+      {/* ====================================================
+          HERO
+      ==================================================== */}
 
-      <section className="relative min-h-[740px] overflow-visible border-b border-white/10 pt-20">
+      <section className="relative overflow-visible border-b border-white/10 pt-20">
 
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage:
-              'url("https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=2200&q=90")',
+              'url("https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=2200&q=92")',
           }}
         />
 
 
-        <div className="absolute inset-0 bg-gradient-to-r from-[#06101b]/96 via-[#06101b]/78 to-[#06101b]/25" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#06101b]/98 via-[#06101b]/88 to-[#06101b]/35" />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#06101b] via-transparent to-[#06101b]/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#06101b] via-transparent to-[#06101b]/30" />
 
 
-        <div className="relative mx-auto flex min-h-[660px] max-w-7xl flex-col justify-center px-5 py-16 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-16 lg:px-8 lg:pb-20 lg:pt-24">
 
-          <div className="max-w-4xl">
+          <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_.75fr]">
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-black/30 px-3 py-2 text-[10px] font-black uppercase tracking-[.2em] text-emerald-300 backdrop-blur">
+            <div>
 
-              <FaCheckCircle />
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-black/30 px-3 py-2 text-[10px] font-black uppercase tracking-[.2em] text-emerald-300 backdrop-blur-xl">
 
-              Turobus Hotel Network
+                <FaCheckCircle />
+
+                Turobus Hotel Network
+
+              </div>
+
+
+              <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[.93] tracking-tight md:text-7xl">
+
+                Sadece Otel Arama.
+
+                <span className="mt-3 block text-orange-500">
+                  Doğru Konaklamayı Bul.
+                </span>
+
+              </h1>
+
+
+              <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
+
+                Hotel OS bağlantılı
+                doğrulanmış tesisler,
+                oda tipleri ve merkezi
+                konaklama altyapısı tek
+                Turobus deneyiminde.
+
+              </p>
 
             </div>
 
 
-            <h1 className="mt-6 text-5xl font-black leading-[.94] tracking-tight md:text-7xl">
+            <div className="hidden lg:block">
 
-              Otelini Bul.
+              <div className="ml-auto max-w-[420px] rounded-[30px] border border-white/15 bg-black/30 p-6 backdrop-blur-2xl">
 
-              <span className="mt-2 block text-orange-500">
-                Konaklamanı Akıllıca Seç.
-              </span>
+                <div className="text-[10px] font-black uppercase tracking-[.18em] text-orange-300">
+                  Turobus Farkı
+                </div>
 
-            </h1>
+                <div className="mt-4 text-3xl font-black">
+                  Otelle doğrudan konuşan Marketplace.
+                </div>
 
+                <div className="mt-6 space-y-3">
 
-            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
+                  {[
+                    "Hotel OS bağlantılı tesis",
+                    "Merkezi oda tipi altyapısı",
+                    "Doğrulanmış portföy",
+                    "Tek operasyon ekosistemi",
+                  ].map(
+                    (item) => (
 
-              Hotel OS bağlantılı otelleri,
-              oda seçeneklerini ve konaklama
-              tercihlerini tek ekrandan keşfet.
+                      <div
+                        key={item}
+                        className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[.04] px-4 py-3 text-xs font-bold"
+                      >
 
-            </p>
+                        <FaCheck className="text-emerald-400" />
+
+                        {item}
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </div>
+
+            </div>
 
           </div>
 
 
-          {/* SEARCH */}
+          {/* ====================================================
+              SEARCH ENGINE
+          ==================================================== */}
 
           <div
             data-hotel-search
-            className="relative z-30 mt-10 grid rounded-[22px] border border-white/15 bg-[#07131f]/95 shadow-2xl shadow-black/50 backdrop-blur-2xl lg:grid-cols-[1.25fr_1fr_1fr_.85fr_auto]"
+            className="relative z-40 mt-10 grid rounded-[24px] border border-white/15 bg-[#081522]/95 shadow-2xl shadow-black/60 backdrop-blur-2xl lg:grid-cols-[1.25fr_1fr_1fr_.95fr_auto]"
           >
 
             {/* DESTINATION */}
@@ -794,14 +1161,14 @@ export default function HotelsPage() {
                       : "destination"
                   )
                 }
-                className="flex min-h-[82px] w-full items-center justify-between px-5 text-left"
+                className="flex min-h-[86px] w-full items-center justify-between gap-3 px-5 text-left"
               >
 
                 <div>
 
-                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-wide text-slate-500">
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
                     <FaMapMarkerAlt />
-                    Nereye?
+                    Destinasyon
                   </div>
 
                   <div className={`mt-2 text-sm font-black ${
@@ -810,7 +1177,7 @@ export default function HotelsPage() {
                       : "text-slate-500"
                   }`}>
                     {filters.destination ||
-                      "Şehir veya bölge seç"}
+                      "Nerede kalmak istersiniz?"}
                   </div>
 
                 </div>
@@ -823,52 +1190,73 @@ export default function HotelsPage() {
               {openPanel ===
                 "destination" && (
 
-                <div className="absolute left-0 top-[calc(100%+10px)] z-50 w-[330px] rounded-[22px] border border-white/10 bg-[#0b1724] p-3 shadow-2xl shadow-black/70">
+                <div className="absolute left-0 top-[calc(100%+10px)] z-50 w-[390px] max-w-[calc(100vw-32px)] overflow-hidden rounded-[24px] border border-white/10 bg-[#0c1825] shadow-2xl shadow-black/70">
 
-                  <div className="px-2 py-2 text-xs font-black">
-                    Popüler Destinasyonlar
+                  <div className="border-b border-white/10 p-4">
+
+                    <div className="text-sm font-black">
+                      Popüler Destinasyonlar
+                    </div>
+
+                    <div className="mt-1 text-[10px] text-slate-500">
+                      Şehir veya tatil bölgesi seçin
+                    </div>
+
                   </div>
 
 
-                  {popularDestinations.map(
-                    (destination) => (
+                  <div className="p-2">
 
-                      <button
-                        key={destination}
-                        type="button"
-                        onClick={() => {
+                    {destinations.map(
+                      (
+                        destination
+                      ) => (
 
-                          setFilters({
-                            ...filters,
-                            destination,
-                          });
+                        <button
+                          key={
+                            destination.city
+                          }
+                          type="button"
+                          onClick={() =>
+                            void selectDestination(
+                              destination.city
+                            )
+                          }
+                          className="flex w-full items-center justify-between gap-4 rounded-xl px-3 py-3 text-left transition hover:bg-white/[.05]"
+                        >
 
-                          setOpenPanel(
-                            null
-                          );
+                          <div className="flex items-start gap-3">
 
-                        }}
-                        className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-black hover:bg-white/[.05]"
-                      >
+                            <div className="mt-0.5 grid h-9 w-9 place-items-center rounded-xl bg-orange-500/10 text-orange-400">
+                              <FaMapMarkerAlt />
+                            </div>
 
-                        <span className="flex items-center gap-3">
+                            <div>
 
-                          <FaMapMarkerAlt className="text-orange-400" />
+                              <div className="text-sm font-black">
+                                {destination.city}
+                              </div>
 
-                          {destination}
+                              <div className="mt-1 text-[10px] text-slate-500">
+                                {destination.region} · {destination.detail}
+                              </div>
 
-                        </span>
+                            </div>
+
+                          </div>
 
 
-                        {filters.destination ===
-                          destination && (
-                          <FaCheck className="text-emerald-400" />
-                        )}
+                          {filters.destination ===
+                            destination.city && (
+                            <FaCheck className="text-emerald-400" />
+                          )}
 
-                      </button>
+                        </button>
 
-                    )
-                  )}
+                      )
+                    )}
+
+                  </div>
 
                 </div>
 
@@ -898,15 +1286,19 @@ export default function HotelsPage() {
                   );
 
                 }}
-                className="min-h-[82px] w-full px-5 text-left"
+                className="min-h-[86px] w-full px-5 text-left"
               >
 
-                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500">
+                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
                   <FaCalendarAlt />
                   Giriş
                 </div>
 
-                <div className="mt-2 text-sm font-black">
+                <div className={`mt-2 text-sm font-black ${
+                  filters.checkIn
+                    ? "text-white"
+                    : "text-slate-500"
+                }`}>
                   {formatDate(
                     filters.checkIn
                   )}
@@ -920,11 +1312,11 @@ export default function HotelsPage() {
 
                 <div className="absolute left-0 top-[calc(100%+10px)] z-50">
 
-                  <Calendar
+                  <CalendarPicker
                     month={
                       calendarMonth
                     }
-                    value={
+                    selected={
                       filters.checkIn
                     }
                     minimum={
@@ -972,15 +1364,19 @@ export default function HotelsPage() {
                   );
 
                 }}
-                className="min-h-[82px] w-full px-5 text-left"
+                className="min-h-[86px] w-full px-5 text-left"
               >
 
-                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500">
+                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
                   <FaCalendarAlt />
                   Çıkış
                 </div>
 
-                <div className="mt-2 text-sm font-black">
+                <div className={`mt-2 text-sm font-black ${
+                  filters.checkOut
+                    ? "text-white"
+                    : "text-slate-500"
+                }`}>
                   {formatDate(
                     filters.checkOut
                   )}
@@ -994,11 +1390,11 @@ export default function HotelsPage() {
 
                 <div className="absolute right-0 top-[calc(100%+10px)] z-50">
 
-                  <Calendar
+                  <CalendarPicker
                     month={
                       calendarMonth
                     }
-                    value={
+                    selected={
                       filters.checkOut
                     }
                     minimum={
@@ -1044,16 +1440,17 @@ export default function HotelsPage() {
                       : "guests"
                   )
                 }
-                className="min-h-[82px] w-full px-5 text-left"
+                className="min-h-[86px] w-full px-5 text-left"
               >
 
-                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500">
+                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[.12em] text-slate-500">
                   <FaUsers />
                   Misafir & Oda
                 </div>
 
                 <div className="mt-2 text-sm font-black">
-                  {filters.adults + filters.children} Misafir · {filters.rooms} Oda
+                  {filters.adults +
+                    filters.children} Misafir · {filters.rooms} Oda
                 </div>
 
               </button>
@@ -1062,86 +1459,119 @@ export default function HotelsPage() {
               {openPanel ===
                 "guests" && (
 
-                <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[320px] rounded-[22px] border border-white/10 bg-[#0b1724] p-4 shadow-2xl">
+                <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[330px] rounded-[24px] border border-white/10 bg-[#0c1825] p-4 shadow-2xl shadow-black/70">
 
                   {[
-                    [
-                      "Yetişkin",
-                      filters.adults,
-                      (delta: number) =>
-                        setFilters({
-                          ...filters,
-                          adults:
-                            Math.max(
-                              1,
-                              filters.adults +
-                                delta
-                            ),
-                        }),
-                      FaUsers,
-                    ],
-                    [
-                      "Çocuk",
-                      filters.children,
-                      (delta: number) =>
-                        setFilters({
-                          ...filters,
-                          children:
-                            Math.max(
-                              0,
-                              filters.children +
-                                delta
-                            ),
-                        }),
-                      FaChild,
-                    ],
-                    [
-                      "Oda",
-                      filters.rooms,
-                      (delta: number) =>
-                        setFilters({
-                          ...filters,
-                          rooms:
-                            Math.max(
-                              1,
-                              filters.rooms +
-                                delta
-                            ),
-                        }),
-                      FaBed,
-                    ],
+                    {
+                      label:
+                        "Yetişkin",
+                      subtitle:
+                        "18 yaş ve üzeri",
+                      value:
+                        filters.adults,
+                      icon:
+                        FaUsers,
+                      min:
+                        1,
+                      update:
+                        (
+                          delta:
+                            number
+                        ) =>
+                          setFilters({
+                            ...filters,
+                            adults:
+                              Math.max(
+                                1,
+                                filters.adults +
+                                  delta
+                              ),
+                          }),
+                    },
+                    {
+                      label:
+                        "Çocuk",
+                      subtitle:
+                        "0-17 yaş",
+                      value:
+                        filters.children,
+                      icon:
+                        FaChild,
+                      min:
+                        0,
+                      update:
+                        (
+                          delta:
+                            number
+                        ) =>
+                          setFilters({
+                            ...filters,
+                            children:
+                              Math.max(
+                                0,
+                                filters.children +
+                                  delta
+                              ),
+                          }),
+                    },
+                    {
+                      label:
+                        "Oda",
+                      subtitle:
+                        "Rezervasyon oda sayısı",
+                      value:
+                        filters.rooms,
+                      icon:
+                        FaBed,
+                      min:
+                        1,
+                      update:
+                        (
+                          delta:
+                            number
+                        ) =>
+                          setFilters({
+                            ...filters,
+                            rooms:
+                              Math.max(
+                                1,
+                                filters.rooms +
+                                  delta
+                              ),
+                          }),
+                    },
                   ].map(
-                    ([
-                      label,
-                      value,
-                      update,
-                      Icon,
-                    ]) => {
+                    (item) => {
 
-                      const TypedIcon =
-                        Icon as typeof FaUsers;
-
-                      const updater =
-                        update as (
-                          delta: number
-                        ) => void;
+                      const Icon =
+                        item.icon;
 
 
                       return (
                         <div
                           key={
-                            String(label)
+                            item.label
                           }
-                          className="flex items-center justify-between border-b border-white/10 py-4 last:border-0"
+                          className="flex items-center justify-between gap-4 border-b border-white/10 py-4 last:border-0"
                         >
 
                           <div className="flex items-center gap-3">
 
-                            <TypedIcon className="text-orange-400" />
+                            <div className="grid h-9 w-9 place-items-center rounded-xl bg-orange-500/10 text-orange-400">
+                              <Icon />
+                            </div>
 
-                            <strong className="text-sm">
-                              {String(label)}
-                            </strong>
+                            <div>
+
+                              <div className="text-sm font-black">
+                                {item.label}
+                              </div>
+
+                              <div className="mt-0.5 text-[9px] text-slate-600">
+                                {item.subtitle}
+                              </div>
+
+                            </div>
 
                           </div>
 
@@ -1150,22 +1580,30 @@ export default function HotelsPage() {
 
                             <button
                               type="button"
-                              onClick={() =>
-                                updater(-1)
+                              disabled={
+                                item.value <=
+                                item.min
                               }
-                              className="grid h-9 w-9 place-items-center rounded-xl border border-white/10"
+                              onClick={() =>
+                                item.update(
+                                  -1
+                                )
+                              }
+                              className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 text-slate-400 disabled:opacity-30"
                             >
                               <FaMinus />
                             </button>
 
                             <strong className="w-5 text-center">
-                              {Number(value)}
+                              {item.value}
                             </strong>
 
                             <button
                               type="button"
                               onClick={() =>
-                                updater(1)
+                                item.update(
+                                  1
+                                )
                               }
                               className="grid h-9 w-9 place-items-center rounded-xl bg-orange-500"
                             >
@@ -1188,9 +1626,9 @@ export default function HotelsPage() {
                         null
                       )
                     }
-                    className="mt-3 w-full rounded-xl bg-white/[.05] py-3 text-xs font-black"
+                    className="mt-3 w-full rounded-xl bg-white/[.06] py-3 text-xs font-black transition hover:bg-white/[.1]"
                   >
-                    Tamam
+                    Uygula
                   </button>
 
                 </div>
@@ -1204,10 +1642,10 @@ export default function HotelsPage() {
 
               <button
                 type="button"
-                onClick={
-                  searchHotels
+                onClick={() =>
+                  void searchHotels()
                 }
-                className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-7 font-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
+                className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-7 font-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
               >
                 <FaSearch />
                 Otel Ara
@@ -1218,55 +1656,32 @@ export default function HotelsPage() {
           </div>
 
 
-          {/* TRUST */}
+          {/* SEARCH TRUST */}
 
-          <div className="relative z-10 mt-4 grid overflow-hidden rounded-[18px] border border-white/10 bg-black/30 backdrop-blur sm:grid-cols-2 xl:grid-cols-4">
+          <div className="relative z-10 mt-4 grid overflow-hidden rounded-[18px] border border-white/10 bg-black/30 backdrop-blur-xl sm:grid-cols-2 xl:grid-cols-4">
 
             {[
-              [
-                "Hotel OS Bağlantısı",
-                FaHotel,
-              ],
-              [
-                "Doğrulanmış Oteller",
-                FaShieldAlt,
-              ],
-              [
-                "Merkezi Oda Stoğu",
-                FaBed,
-              ],
-              [
-                "Güvenli Rezervasyon",
-                FaCheckCircle,
-              ],
+              "Doğrulanmış Otel",
+              "Hotel OS Bağlantısı",
+              "Merkezi Oda Tipleri",
+              "Turobus Güvencesi",
             ].map(
-              ([
-                title,
-                Icon,
-              ]) => {
+              (text) => (
 
-                const TypedIcon =
-                  Icon as typeof FaHotel;
+                <div
+                  key={text}
+                  className="flex items-center gap-3 px-5 py-4"
+                >
 
+                  <FaShieldAlt className="text-emerald-400" />
 
-                return (
-                  <div
-                    key={
-                      String(title)
-                    }
-                    className="flex items-center gap-3 px-5 py-4"
-                  >
-
-                    <TypedIcon className="text-orange-400" />
-
-                    <strong className="text-xs">
-                      {String(title)}
-                    </strong>
-
+                  <div className="text-xs font-black">
+                    {text}
                   </div>
-                );
 
-              }
+                </div>
+
+              )
             )}
 
           </div>
@@ -1276,85 +1691,11 @@ export default function HotelsPage() {
       </section>
 
 
-      {/* PREMIUM FEATURES */}
+      {/* ====================================================
+          DISCOVERY
+      ==================================================== */}
 
       <section className="px-5 py-14 lg:px-8">
-
-        <div className="mx-auto max-w-7xl">
-
-          <div className="grid gap-4 md:grid-cols-4">
-
-            {[
-              [
-                "Her Şey Dahil",
-                "Resort & aile otelleri",
-                FaSwimmingPool,
-              ],
-              [
-                "Denize Sıfır",
-                "Plaj erişimli oteller",
-                FaHotel,
-              ],
-              [
-                "Şehir Otelleri",
-                "Merkezi konaklama",
-                FaMapMarkedAlt,
-              ],
-              [
-                "Wi-Fi & Konfor",
-                "Doğrulanmış imkanlar",
-                FaWifi,
-              ],
-            ].map(
-              ([
-                title,
-                text,
-                Icon,
-              ]) => {
-
-                const TypedIcon =
-                  Icon as typeof FaHotel;
-
-
-                return (
-                  <div
-                    key={
-                      String(title)
-                    }
-                    className="rounded-[22px] border border-white/10 bg-[#0b1825] p-5"
-                  >
-
-                    <TypedIcon className="text-xl text-orange-400" />
-
-                    <div className="mt-4 font-black">
-                      {String(title)}
-                    </div>
-
-                    <div className="mt-1 text-xs text-slate-500">
-                      {String(text)}
-                    </div>
-
-                  </div>
-                );
-
-              }
-            )}
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* RESULTS */}
-
-      <section
-        ref={
-          searchRef
-        }
-        className="scroll-mt-24 border-t border-white/10 bg-[#091522] px-5 py-16 lg:px-8"
-      >
 
         <div className="mx-auto max-w-7xl">
 
@@ -1363,87 +1704,206 @@ export default function HotelsPage() {
             <div>
 
               <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-                Turobus Hotel Marketplace
+                Konaklamanı Şekillendir
               </div>
 
               <h2 className="mt-2 text-3xl font-black">
+                Nasıl Bir Otel Arıyorsun?
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+            {[
+              {
+                title:
+                  "5 Yıldızlı",
+                text:
+                  "Üst segment konaklama",
+                stars:
+                  5,
+              },
+              {
+                title:
+                  "4+ Yıldız",
+                text:
+                  "Konforlu seçkin tesisler",
+                stars:
+                  4,
+              },
+              {
+                title:
+                  "3+ Yıldız",
+                text:
+                  "Fiyat / performans",
+                stars:
+                  3,
+              },
+              {
+                title:
+                  "Doğrulanmış",
+                text:
+                  "Turobus doğrulamalı tesisler",
+                stars:
+                  null,
+              },
+            ].map(
+              (
+                item
+              ) => (
+
+                <button
+                  key={
+                    item.title
+                  }
+                  type="button"
+                  onClick={() => {
+
+                    if (
+                      item.stars ===
+                      null
+                    ) {
+
+                      setFilters({
+                        ...filters,
+                        verifiedOnly:
+                          !filters.verifiedOnly,
+                      });
+
+                    } else {
+
+                      void setStarFilter(
+                        item.stars
+                      );
+
+                    }
+
+                    window.setTimeout(
+                      () =>
+                        resultsRef.current?.scrollIntoView({
+                          behavior:
+                            "smooth",
+                        }),
+                      100
+                    );
+
+                  }}
+                  className="group rounded-[24px] border border-white/10 bg-[#0b1825] p-5 text-left transition hover:-translate-y-1 hover:border-orange-500/30"
+                >
+
+                  <div className="flex items-center justify-between">
+
+                    <div className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
+                      <FaHotel />
+                    </div>
+
+                    <FaArrowRight className="text-slate-700 transition group-hover:text-orange-400" />
+
+                  </div>
+
+
+                  <div className="mt-4 font-black">
+                    {item.title}
+                  </div>
+
+                  <div className="mt-1 text-xs text-slate-500">
+                    {item.text}
+                  </div>
+
+                </button>
+
+              )
+            )}
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* ====================================================
+          RESULTS
+      ==================================================== */}
+
+      <section
+        ref={
+          resultsRef
+        }
+        className="scroll-mt-24 border-t border-white/10 bg-[#091522] px-5 py-14 lg:px-8"
+      >
+
+        <div className="mx-auto max-w-7xl">
+
+          {/* RESULT HEADER */}
+
+          <div className="flex flex-wrap items-end justify-between gap-5">
+
+            <div>
+
+              <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
+                Canlı Hotel Marketplace
+              </div>
+
+              <h2 className="mt-2 text-3xl font-black md:text-4xl">
                 Konaklama Seçenekleri
               </h2>
 
               <p className="mt-2 text-sm text-slate-500">
                 {loading
-                  ? "Hotel OS ağı kontrol ediliyor..."
-                  : `${filteredHotels.length} otel bulundu`}
+                  ? "Hotel Network kontrol ediliyor..."
+                  : `${resultHotels.length} uygun otel bulundu`}
               </p>
 
             </div>
 
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
 
-              {[0,3,4,5].map(
-                (star) => (
-
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => {
-
-                      setFilters({
-                        ...filters,
-                        stars:
-                          star,
-                      });
-
-                      window.setTimeout(
-                        () =>
-                          void load(),
-                        0
-                      );
-
-                    }}
-                    className={`rounded-xl px-4 py-2.5 text-xs font-black ${
-                      filters.stars ===
-                      star
-                        ? "bg-orange-500"
-                        : "border border-white/10 bg-white/[.03] text-slate-400"
-                    }`}
-                  >
-                    {star === 0
-                      ? "Tümü"
-                      : `${star}+ ★`}
-                  </button>
-
-                )
-              )}
+              <button
+                type="button"
+                onClick={() =>
+                  setMobileFilters(
+                    true
+                  )
+                }
+                className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-xs font-black lg:hidden"
+              >
+                <FaFilter />
+                Filtreler
+              </button>
 
 
               <div className="relative">
 
                 <select
                   value={
-                    filters.hotelType
+                    sort
                   }
                   onChange={(event) =>
-                    setFilters({
-                      ...filters,
-                      hotelType:
-                        event.target.value,
-                    })
+                    setSort(
+                      event.target
+                        .value as SortMode
+                    )
                   }
-                  className="appearance-none rounded-xl border border-white/10 bg-[#07111f] px-4 py-2.5 pr-9 text-xs font-black outline-none"
+                  className="appearance-none rounded-xl border border-white/10 bg-[#07111f] px-4 py-3 pr-9 text-xs font-black outline-none"
                 >
 
-                  {hotelTypes.map(
-                    (type) => (
-                      <option
-                        key={type}
-                        value={type}
-                      >
-                        {type}
-                      </option>
-                    )
-                  )}
+                  <option value="recommended">
+                    Önerilen
+                  </option>
+
+                  <option value="stars">
+                    Yıldız: Yüksek
+                  </option>
+
+                  <option value="name">
+                    İsme Göre
+                  </option>
 
                 </select>
 
@@ -1456,323 +1916,597 @@ export default function HotelsPage() {
           </div>
 
 
-          {error && (
+          {/* SEARCH SUMMARY */}
 
-            <div className="mt-5 flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-white/10 bg-[#07111f] px-5 py-4">
 
-              {error}
+            <div>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setError("")
-                }
-              >
-                <FaTimes />
-              </button>
+              <div className="text-[9px] font-black uppercase tracking-[.14em] text-slate-600">
+                Arama Özeti
+              </div>
 
-            </div>
-
-          )}
-
-
-          {loading ? (
-
-            <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-
-              {[1,2,3,4,5,6].map(
-                (item) => (
-                  <div
-                    key={item}
-                    className="h-[450px] animate-pulse rounded-[28px] bg-white/[.04]"
-                  />
-                )
-              )}
+              <div className="mt-1 text-xs font-black text-slate-300">
+                {searchSummary}
+              </div>
 
             </div>
 
-          ) : filteredHotels.length ? (
 
-            <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <button
+              type="button"
+              onClick={
+                clearFilters
+              }
+              className="text-[10px] font-black text-orange-400"
+            >
+              Filtreleri Temizle
+            </button>
 
-              {filteredHotels.map(
-                (hotel) => (
-
-                  <article
-                    key={
-                      hotel.id
-                    }
-                    className="group overflow-hidden rounded-[28px] border border-white/10 bg-[#0b1825] transition hover:-translate-y-1 hover:border-orange-500/30 hover:shadow-2xl"
-                  >
-
-                    <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900">
-
-                      {hotel.cover_image ? (
-
-                        <img
-                          src={
-                            hotel.cover_image
-                          }
-                          alt={
-                            hotel.name
-                          }
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        />
-
-                      ) : (
-
-                        <div className="flex h-full flex-col items-center justify-center text-slate-600">
-
-                          <FaHotel className="text-4xl" />
-
-                          <span className="mt-3 text-xs">
-                            Otel görseli hazırlanıyor
-                          </span>
-
-                        </div>
-
-                      )}
+          </div>
 
 
-                      {hotel.verified && (
+          <div className="mt-7 grid gap-7 lg:grid-cols-[270px_1fr]">
 
-                        <div className="absolute left-4 top-4 rounded-full bg-emerald-400 px-3 py-1.5 text-[8px] font-black text-slate-950">
-                          DOĞRULANMIŞ
-                        </div>
+            {/* FILTER SIDEBAR */}
 
-                      )}
+            <aside className="hidden lg:block">
 
-                    </div>
+              <div className="sticky top-24 rounded-[24px] border border-white/10 bg-[#07111f] p-5">
 
+                <div className="flex items-center justify-between">
 
-                    <div className="p-5">
+                  <h3 className="font-black">
+                    Otel Filtreleri
+                  </h3>
 
-                      <div className="flex items-start justify-between gap-3">
+                  <FaFilter className="text-slate-600" />
 
-                        <div>
-
-                          <h3 className="text-xl font-black">
-                            {hotel.name}
-                          </h3>
-
-                          <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
-
-                            <FaMapMarkerAlt className="text-orange-400" />
-
-                            {[hotel.city, hotel.district]
-                              .filter(Boolean)
-                              .join(" · ")}
-
-                          </div>
-
-                        </div>
-
-
-                        {hotel.star_rating ? (
-
-                          <div className="flex gap-0.5 text-[10px] text-yellow-400">
-
-                            {Array.from({
-                              length:
-                                Math.min(
-                                  hotel.star_rating,
-                                  5
-                                ),
-                            }).map(
-                              (
-                                _,
-                                index
-                              ) => (
-                                <FaStar
-                                  key={
-                                    index
-                                  }
-                                />
-                              )
-                            )}
-
-                          </div>
-
-                        ) : null}
-
-                      </div>
-
-
-                      <div className="mt-5 flex flex-wrap gap-2">
-
-                        {hotel.hotel_type && (
-
-                          <span className="rounded-full bg-white/[.05] px-3 py-2 text-[9px] font-black text-slate-400">
-                            {hotel.hotel_type}
-                          </span>
-
-                        )}
-
-                        <span className="rounded-full bg-white/[.05] px-3 py-2 text-[9px] font-black text-slate-400">
-                          {hotel.room_type_count} Oda Tipi
-                        </span>
-
-                        {hotel.max_occupancy >
-                          0 && (
-
-                          <span className="rounded-full bg-white/[.05] px-3 py-2 text-[9px] font-black text-slate-400">
-                            {hotel.max_occupancy} Kişiye Kadar
-                          </span>
-
-                        )}
-
-                      </div>
-
-
-                      <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
-
-                        <div>
-
-                          <div className="text-[9px] uppercase text-slate-600">
-                            Seçilen Konaklama
-                          </div>
-
-                          <div className="mt-1 text-xs font-black text-emerald-300">
-                            Hotel OS Canlı Kaynak
-                          </div>
-
-                        </div>
-
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            alert(
-                              `${hotel.name} detay ve oda seçim ekranı sonraki gerçek rezervasyon testinde açılacak.`
-                            )
-                          }
-                          className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-xs font-black transition hover:bg-orange-600"
-                        >
-                          Oteli İncele
-                          <FaArrowRight />
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                  </article>
-
-                )
-              )}
-
-            </div>
-
-          ) : (
-
-            <>
-
-              <div className="mt-8 rounded-[24px] border border-orange-500/15 bg-orange-500/[.04] p-5">
-
-                <div className="font-black text-orange-300">
-                  Tasarım Önizleme Portföyü
                 </div>
 
-                <p className="mt-2 text-xs leading-6 text-slate-500">
-                  Hotel OS üzerinden Marketplace&apos;e açılan gerçek oteller geldiğinde aşağıdaki önizleme kartları otomatik olarak yerini gerçek otel kayıtlarına bırakacak.
-                </p>
+
+                <div className="mt-5">
+
+                  <div className="text-[9px] font-black uppercase text-slate-600">
+                    Yıldız
+                  </div>
+
+
+                  <div className="mt-3 space-y-1">
+
+                    {[0,5,4,3].map(
+                      (
+                        star
+                      ) => (
+
+                        <button
+                          key={
+                            star
+                          }
+                          type="button"
+                          onClick={() =>
+                            void setStarFilter(
+                              star
+                            )
+                          }
+                          className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-black ${
+                            filters.stars ===
+                            star
+                              ? "bg-orange-500 text-white"
+                              : "text-slate-400 hover:bg-white/[.04]"
+                          }`}
+                        >
+
+                          <span>
+                            {star ===
+                            0
+                              ? "Tüm Yıldızlar"
+                              : `${star}+ Yıldız`}
+                          </span>
+
+
+                          {star >
+                            0 && (
+                            <FaStar className="text-yellow-400" />
+                          )}
+
+                        </button>
+
+                      )
+                    )}
+
+                  </div>
+
+                </div>
+
+
+                <label className="mt-5 block">
+
+                  <span className="mb-2 block text-[9px] font-black uppercase text-slate-600">
+                    Tesis Tipi
+                  </span>
+
+
+                  <select
+                    value={
+                      filters.hotelType
+                    }
+                    onChange={(event) =>
+                      setFilters({
+                        ...filters,
+                        hotelType:
+                          event.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-[#0c1825] px-3 py-3 text-xs font-bold outline-none"
+                  >
+
+                    {hotelTypes.map(
+                      (
+                        type
+                      ) => (
+                        <option
+                          key={
+                            type
+                          }
+                          value={
+                            type
+                          }
+                        >
+                          {type}
+                        </option>
+                      )
+                    )}
+
+                  </select>
+
+                </label>
+
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilters({
+                      ...filters,
+                      verifiedOnly:
+                        !filters.verifiedOnly,
+                    })
+                  }
+                  className={`mt-5 flex w-full items-center justify-between rounded-xl border px-3 py-3 text-xs font-black ${
+                    filters.verifiedOnly
+                      ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+                      : "border-white/10 text-slate-400"
+                  }`}
+                >
+
+                  <span>
+                    Sadece Doğrulanmış
+                  </span>
+
+                  {filters.verifiedOnly && (
+                    <FaCheck />
+                  )}
+
+                </button>
 
               </div>
 
-
-              <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-                {previewHotels.map(
-                  (hotel) => (
-
-                    <article
-                      key={
-                        hotel.name
-                      }
-                      className="overflow-hidden rounded-[26px] border border-white/10 bg-[#0b1825]"
-                    >
-
-                      <div className="relative aspect-[4/3] overflow-hidden">
-
-                        <img
-                          src={
-                            hotel.image
-                          }
-                          alt={
-                            hotel.name
-                          }
-                          className="h-full w-full object-cover"
-                        />
-
-                        <div className="absolute left-3 top-3 rounded-full bg-black/70 px-3 py-1.5 text-[8px] font-black text-orange-300 backdrop-blur">
-                          TASARIM ÖNİZLEME
-                        </div>
-
-                      </div>
+            </aside>
 
 
-                      <div className="p-4">
+            {/* HOTEL RESULTS */}
 
-                        <div className="flex gap-0.5 text-[9px] text-yellow-400">
+            <div>
 
-                          {Array.from({
-                            length:
-                              hotel.stars,
-                          }).map(
-                            (
-                              _,
-                              index
-                            ) => (
-                              <FaStar
-                                key={
-                                  index
-                                }
-                              />
-                            )
+              {error && (
+
+                <div className="mb-5 flex items-center justify-between gap-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
+
+                  <span>
+                    {error}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setError("")
+                    }
+                  >
+                    <FaTimes />
+                  </button>
+
+                </div>
+
+              )}
+
+
+              {loading ? (
+
+                <div className="space-y-5">
+
+                  {[1,2,3].map(
+                    (
+                      item
+                    ) => (
+
+                      <div
+                        key={
+                          item
+                        }
+                        className="h-[290px] animate-pulse rounded-[28px] bg-white/[.04]"
+                      />
+
+                    )
+                  )}
+
+                </div>
+
+              ) : resultHotels.length >
+                0 ? (
+
+                <div className="space-y-5">
+
+                  {resultHotels.map(
+                    (
+                      hotel
+                    ) => (
+
+                      <article
+                        key={
+                          hotel.id
+                        }
+                        className="group grid overflow-hidden rounded-[28px] border border-white/10 bg-[#0b1825] transition hover:border-orange-500/30 hover:shadow-2xl hover:shadow-black/30 md:grid-cols-[300px_1fr]"
+                      >
+
+                        {/* PHOTO */}
+
+                        <div className="relative min-h-[260px] overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900">
+
+                          {hotel.cover_image ? (
+
+                            <img
+                              src={
+                                hotel.cover_image
+                              }
+                              alt={
+                                hotel.name
+                              }
+                              className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                            />
+
+                          ) : (
+
+                            <div className="flex h-full min-h-[260px] flex-col items-center justify-center text-slate-600">
+
+                              <FaHotel className="text-5xl" />
+
+                              <div className="mt-3 text-xs">
+                                Otel görseli hazırlanıyor
+                              </div>
+
+                            </div>
+
+                          )}
+
+
+                          {hotel.verified && (
+
+                            <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-emerald-400 px-3 py-1.5 text-[8px] font-black text-slate-950">
+                              <FaCheckCircle />
+                              DOĞRULANMIŞ
+                            </div>
+
                           )}
 
                         </div>
 
-                        <h3 className="mt-3 font-black">
-                          {hotel.name}
-                        </h3>
 
-                        <div className="mt-1 text-[10px] text-slate-500">
-                          {hotel.location}
+                        {/* HOTEL INFO */}
+
+                        <div className="flex min-w-0 flex-col p-5 md:p-6">
+
+                          <div className="flex flex-wrap items-start justify-between gap-4">
+
+                            <div className="min-w-0">
+
+                              <div className="flex items-center gap-2">
+
+                                {hotel.star_rating ? (
+
+                                  <div className="flex gap-0.5 text-[10px] text-yellow-400">
+
+                                    {Array.from({
+                                      length:
+                                        Math.min(
+                                          hotel.star_rating,
+                                          5
+                                        ),
+                                    }).map(
+                                      (
+                                        _,
+                                        index
+                                      ) => (
+                                        <FaStar
+                                          key={
+                                            index
+                                          }
+                                        />
+                                      )
+                                    )}
+
+                                  </div>
+
+                                ) : null}
+
+
+                                {hotel.hotel_type && (
+
+                                  <span className="rounded-full bg-white/[.05] px-2.5 py-1 text-[8px] font-black uppercase text-slate-400">
+                                    {hotel.hotel_type}
+                                  </span>
+
+                                )}
+
+                              </div>
+
+
+                              <h3 className="mt-3 text-2xl font-black">
+                                {hotel.name}
+                              </h3>
+
+
+                              <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+
+                                <FaMapMarkerAlt className="text-orange-400" />
+
+                                {[hotel.city, hotel.district]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+
+                              </div>
+
+                            </div>
+
+
+                            <div className="rounded-xl border border-white/10 bg-white/[.03] px-4 py-3 text-right">
+
+                              <div className="text-[9px] font-black uppercase text-slate-600">
+                                Kaynak
+                              </div>
+
+                              <div className="mt-1 text-xs font-black text-emerald-300">
+                                Hotel OS
+                              </div>
+
+                            </div>
+
+                          </div>
+
+
+                          <div className="mt-5 grid gap-2 sm:grid-cols-3">
+
+                            <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+
+                              <div className="text-[9px] font-black uppercase text-slate-600">
+                                Oda Tipi
+                              </div>
+
+                              <div className="mt-1 font-black">
+                                {hotel.room_type_count}
+                              </div>
+
+                            </div>
+
+
+                            <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+
+                              <div className="text-[9px] font-black uppercase text-slate-600">
+                                Kapasite
+                              </div>
+
+                              <div className="mt-1 font-black">
+                                {hotel.max_occupancy >
+                                0
+                                  ? `${hotel.max_occupancy} kişiye kadar`
+                                  : "Oda bazlı"}
+                              </div>
+
+                            </div>
+
+
+                            <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+
+                              <div className="text-[9px] font-black uppercase text-slate-600">
+                                Durum
+                              </div>
+
+                              <div className="mt-1 font-black text-emerald-300">
+                                Marketplace
+                              </div>
+
+                            </div>
+
+                          </div>
+
+
+                          <div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-5">
+
+                            <div>
+
+                              <div className="text-[9px] font-black uppercase text-slate-600">
+                                Konaklama
+                              </div>
+
+                              <div className="mt-1 text-xs font-black text-slate-300">
+                                {filters.checkIn &&
+                                filters.checkOut
+                                  ? `${formatDate(
+                                      filters.checkIn
+                                    )} → ${formatDate(
+                                      filters.checkOut
+                                    )}`
+                                  : "Tarih seçerek oda seçeneklerini incele"}
+                              </div>
+
+                            </div>
+
+
+                            <button
+                              type="button"
+                              disabled={
+                                detailLoading
+                              }
+                              onClick={() =>
+                                void openHotelDetail(
+                                  hotel.id
+                                )
+                              }
+                              className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-xs font-black transition hover:bg-orange-600 disabled:opacity-50"
+                            >
+                              {detailLoading
+                                ? "Açılıyor..."
+                                : "Oda ve Otel Detayı"}
+                              <FaArrowRight />
+                            </button>
+
+                          </div>
+
                         </div>
 
+                      </article>
 
-                        <div className="mt-4 flex gap-2">
+                    )
+                  )}
 
-                          <span className="rounded-full bg-white/[.05] px-2.5 py-1.5 text-[8px] text-slate-400">
-                            {hotel.type}
-                          </span>
+                </div>
 
-                          <span className="rounded-full bg-white/[.05] px-2.5 py-1.5 text-[8px] text-slate-400">
-                            {hotel.feature}
-                          </span>
+              ) : (
 
-                        </div>
+                <div>
 
-                      </div>
+                  <div className="rounded-[24px] border border-orange-500/15 bg-orange-500/[.04] p-5">
 
-                    </article>
+                    <div className="font-black text-orange-300">
+                      Marketplace Tasarım Önizlemesi
+                    </div>
 
-                  )
-                )}
+                    <p className="mt-2 text-xs leading-6 text-slate-500">
+                      Hotel OS üzerinden Marketplace&apos;e açılan gerçek oteller geldikçe aşağıdaki önizleme tesisleri otomatik olarak kaldırılır.
+                    </p>
 
-              </div>
+                  </div>
 
-            </>
 
-          )}
+                  <div className="mt-5 grid gap-5 md:grid-cols-3">
+
+                    {previewHotels.map(
+                      (
+                        hotel
+                      ) => (
+
+                        <article
+                          key={
+                            hotel.name
+                          }
+                          className="group overflow-hidden rounded-[26px] border border-white/10 bg-[#0b1825]"
+                        >
+
+                          <div className="relative aspect-[4/3] overflow-hidden">
+
+                            <img
+                              src={
+                                hotel.image
+                              }
+                              alt={
+                                hotel.name
+                              }
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            />
+
+
+                            <div className="absolute left-3 top-3 rounded-full bg-black/70 px-3 py-1.5 text-[8px] font-black text-orange-300 backdrop-blur">
+                              TASARIM ÖNİZLEME
+                            </div>
+
+                          </div>
+
+
+                          <div className="p-4">
+
+                            <div className="flex gap-0.5 text-[9px] text-yellow-400">
+
+                              {Array.from({
+                                length:
+                                  hotel.stars,
+                              }).map(
+                                (
+                                  _,
+                                  index
+                                ) => (
+                                  <FaStar
+                                    key={
+                                      index
+                                    }
+                                  />
+                                )
+                              )}
+
+                            </div>
+
+
+                            <h3 className="mt-3 text-lg font-black">
+                              {hotel.name}
+                            </h3>
+
+
+                            <div className="mt-2 flex items-center gap-2 text-[10px] text-slate-500">
+                              <FaMapMarkerAlt />
+                              {hotel.location}
+                            </div>
+
+
+                            <div className="mt-4 flex gap-2">
+
+                              <span className="rounded-full bg-white/[.05] px-3 py-1.5 text-[8px] text-slate-400">
+                                {hotel.type}
+                              </span>
+
+                              <span className="rounded-full bg-white/[.05] px-3 py-1.5 text-[8px] text-slate-400">
+                                {hotel.feature}
+                              </span>
+
+                            </div>
+
+
+                            <div className="mt-4 border-t border-white/10 pt-4 text-[10px] font-black text-slate-600">
+                              Gerçek satışa açık değildir
+                            </div>
+
+                          </div>
+
+                        </article>
+
+                      )
+                    )}
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </div>
+
+          </div>
 
         </div>
 
       </section>
 
 
-      {/* WHY */}
+      {/* ====================================================
+          NETWORK
+      ==================================================== */}
 
       <section className="border-t border-white/10 px-5 py-16 lg:px-8">
 
@@ -1781,11 +2515,11 @@ export default function HotelsPage() {
           <div>
 
             <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-              Turobus Hotel
+              Turobus Hotel Network
             </div>
 
             <h2 className="mt-2 max-w-2xl text-3xl font-black">
-              Sadece otel listeleyen değil, otelle gerçekten konuşan bir Marketplace.
+              Listeleme sitesi değil. Gerçek otel işletim sistemine bağlı pazar yeri.
             </h2>
 
 
@@ -1793,20 +2527,20 @@ export default function HotelsPage() {
 
               {[
                 [
-                  "Hotel OS Bağlantısı",
-                  "Otel bilgisi doğrudan operasyon sisteminden gelir.",
+                  "Hotel OS Entegrasyonu",
+                  "Tesis ve oda tipleri merkezi operasyon kaynağından gelir.",
                 ],
                 [
-                  "Oda Tipi Ağı",
-                  "Oda kapasiteleri merkezi Network yapısında tutulur.",
+                  "Marketplace Kontrolü",
+                  "Sadece satışa açılan oteller halka açık katalogda görünür.",
                 ],
                 [
-                  "Doğrulanmış Portföy",
-                  "Marketplace'e yalnızca yayınlanan kaynaklar çıkar.",
+                  "Oda Tipi Yapısı",
+                  "Oda kapasitesi ve oda türleri gerçek Hotel OS verisine bağlıdır.",
                 ],
                 [
-                  "Tek Ekosistem",
-                  "Otel, villa ve turlar aynı Turobus altyapısında birleşir.",
+                  "Tek Turobus Ekosistemi",
+                  "Otel, villa ve turlar aynı altyapıda birbirine bağlanır.",
                 ],
               ].map(
                 ([
@@ -1815,9 +2549,7 @@ export default function HotelsPage() {
                 ]) => (
 
                   <div
-                    key={
-                      title
-                    }
+                    key={title}
                     className="rounded-[22px] border border-white/10 bg-white/[.025] p-5"
                   >
 
@@ -1841,24 +2573,24 @@ export default function HotelsPage() {
           </div>
 
 
-          <div className="rounded-[30px] border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent p-7">
+          <div className="rounded-[30px] border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-orange-500/[.03] to-transparent p-7">
 
             <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-              TUROBUS HOTEL NETWORK
+              TUROBUS HOTEL
             </div>
 
-            <div className="mt-4 text-4xl font-black">
-              Otel.
+            <div className="mt-4 text-4xl font-black leading-tight">
+              Tesis.
               <br />
               Oda.
               <br />
-              Operasyon.
+              Stok.
               <br />
-              Marketplace.
+              Operasyon.
             </div>
 
             <p className="mt-6 text-sm leading-7 text-slate-400">
-              Hotel OS'ta yönetilen kaynaklar merkezi Turobus Network üzerinden satış kanalına bağlanır.
+              Turobus&apos;un otel tarafı yalnızca vitrin değil; Hotel OS ve ortak Network altyapısının satış yüzüdür.
             </p>
 
           </div>
@@ -1866,6 +2598,469 @@ export default function HotelsPage() {
         </div>
 
       </section>
+
+
+      {/* ====================================================
+          HOTEL DETAIL MODAL
+      ==================================================== */}
+
+      {selectedHotel && (
+
+        <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/80 p-3 backdrop-blur-md md:p-6">
+
+          <div className="mx-auto max-w-6xl overflow-hidden rounded-[30px] border border-white/10 bg-[#091522] shadow-2xl">
+
+            <header className="flex flex-wrap items-start justify-between gap-4 border-b border-white/10 p-5 md:p-7">
+
+              <div>
+
+                <div className="flex flex-wrap items-center gap-2">
+
+                  {selectedHotel.verified && (
+                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-400 px-3 py-1.5 text-[8px] font-black text-slate-950">
+                      <FaCheckCircle />
+                      DOĞRULANMIŞ
+                    </span>
+                  )}
+
+
+                  {selectedHotel.star_rating &&
+                    Number(
+                      selectedHotel.star_rating
+                    ) >
+                      0 && (
+
+                    <div className="flex gap-0.5 text-[10px] text-yellow-400">
+
+                      {Array.from({
+                        length:
+                          Math.min(
+                            Number(
+                              selectedHotel.star_rating
+                            ),
+                            5
+                          ),
+                      }).map(
+                        (
+                          _,
+                          index
+                        ) => (
+                          <FaStar
+                            key={
+                              index
+                            }
+                          />
+                        )
+                      )}
+
+                    </div>
+
+                  )}
+
+                </div>
+
+
+                <h2 className="mt-3 text-3xl font-black">
+                  {selectedHotel.name}
+                </h2>
+
+
+                <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+                  <FaMapMarkerAlt className="text-orange-400" />
+
+                  {[selectedHotel.city, selectedHotel.district]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedHotel(
+                    null
+                  )
+                }
+                className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 text-slate-400 transition hover:bg-white/[.05] hover:text-white"
+              >
+                <FaTimes />
+              </button>
+
+            </header>
+
+
+            <div className="grid lg:grid-cols-[.75fr_1.25fr]">
+
+              <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r lg:p-6">
+
+                <div className="overflow-hidden rounded-[24px] bg-slate-900">
+
+                  {selectedHotel.cover_image ? (
+
+                    <img
+                      src={
+                        selectedHotel.cover_image
+                      }
+                      alt={
+                        selectedHotel.name
+                      }
+                      className="aspect-[4/3] h-full w-full object-cover"
+                    />
+
+                  ) : (
+
+                    <div className="flex aspect-[4/3] flex-col items-center justify-center text-slate-600">
+
+                      <FaHotel className="text-5xl" />
+
+                      <div className="mt-3 text-xs">
+                        Otel görseli hazırlanıyor
+                      </div>
+
+                    </div>
+
+                  )}
+
+                </div>
+
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+
+                  <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+
+                    <div className="text-[9px] font-black uppercase text-slate-600">
+                      Tesis Tipi
+                    </div>
+
+                    <div className="mt-1 text-sm font-black">
+                      {selectedHotel.hotel_type ||
+                        "Otel"}
+                    </div>
+
+                  </div>
+
+
+                  <div className="rounded-xl border border-white/10 bg-white/[.025] p-3">
+
+                    <div className="text-[9px] font-black uppercase text-slate-600">
+                      Oda Tipi
+                    </div>
+
+                    <div className="mt-1 text-sm font-black">
+                      {selectedHotel.rooms?.length ??
+                        0}
+                    </div>
+
+                  </div>
+
+                </div>
+
+
+                <div className="mt-4 rounded-xl border border-emerald-400/15 bg-emerald-500/[.04] p-4">
+
+                  <div className="flex items-start gap-3">
+
+                    <FaShieldAlt className="mt-0.5 text-emerald-300" />
+
+                    <div>
+
+                      <div className="text-xs font-black text-emerald-300">
+                        Hotel OS Kaynağı
+                      </div>
+
+                      <p className="mt-1 text-[10px] leading-5 text-slate-500">
+                        Buradaki oda türleri Turobus Hotel Network üzerinden gerçek otel kaynağına bağlıdır.
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <div className="p-5 md:p-6">
+
+                <div>
+
+                  <div className="text-[10px] font-black uppercase tracking-[.15em] text-orange-400">
+                    Oda Seçenekleri
+                  </div>
+
+                  <h3 className="mt-2 text-2xl font-black">
+                    Konaklama Tipini Seç
+                  </h3>
+
+                  <p className="mt-2 text-xs leading-6 text-slate-500">
+                    Oda stokları Hotel OS&apos;ta yönetilir. Fiyat ve tarih bazlı canlı rezervasyon zinciri bir sonraki gerçek Hotel Marketplace rezervasyon adımına bağlanacaktır.
+                  </p>
+
+                </div>
+
+
+                {selectedHotel.rooms &&
+                selectedHotel.rooms.length >
+                  0 ? (
+
+                  <div className="mt-6 space-y-3">
+
+                    {selectedHotel.rooms.map(
+                      (
+                        room
+                      ) => {
+
+                        const stopSell =
+                          room.stop_sell ===
+                          "true";
+
+
+                        return (
+                          <div
+                            key={
+                              room.id
+                            }
+                            className="rounded-[20px] border border-white/10 bg-[#07111f] p-4"
+                          >
+
+                            <div className="flex flex-wrap items-start justify-between gap-4">
+
+                              <div>
+
+                                <div className="flex items-center gap-2">
+
+                                  <FaBed className="text-orange-400" />
+
+                                  <h4 className="font-black">
+                                    {room.name}
+                                  </h4>
+
+                                </div>
+
+
+                                <div className="mt-3 flex flex-wrap gap-2">
+
+                                  {room.bed_type && (
+                                    <span className="rounded-full bg-white/[.05] px-3 py-1.5 text-[9px] text-slate-400">
+                                      {room.bed_type}
+                                    </span>
+                                  )}
+
+                                  {room.max_occupancy && (
+                                    <span className="rounded-full bg-white/[.05] px-3 py-1.5 text-[9px] text-slate-400">
+                                      Maks. {room.max_occupancy} kişi
+                                    </span>
+                                  )}
+
+                                  {room.max_adults && (
+                                    <span className="rounded-full bg-white/[.05] px-3 py-1.5 text-[9px] text-slate-400">
+                                      {room.max_adults} yetişkin
+                                    </span>
+                                  )}
+
+                                  {room.max_children && (
+                                    <span className="rounded-full bg-white/[.05] px-3 py-1.5 text-[9px] text-slate-400">
+                                      {room.max_children} çocuk
+                                    </span>
+                                  )}
+
+                                </div>
+
+                              </div>
+
+
+                              <div className={`rounded-full px-3 py-1.5 text-[8px] font-black ${
+                                stopSell
+                                  ? "bg-red-500/10 text-red-300"
+                                  : "bg-emerald-500/10 text-emerald-300"
+                              }`}>
+                                {stopSell
+                                  ? "SATIŞ KAPALI"
+                                  : "AKTİF ODA TİPİ"}
+                              </div>
+
+                            </div>
+
+                          </div>
+                        );
+
+                      }
+                    )}
+
+                  </div>
+
+                ) : (
+
+                  <div className="mt-6 rounded-[22px] border border-dashed border-white/10 p-10 text-center">
+
+                    <FaBed className="mx-auto text-3xl text-slate-700" />
+
+                    <div className="mt-4 font-black">
+                      Henüz oda tipi yayınlanmamış
+                    </div>
+
+                    <p className="mt-2 text-xs text-slate-500">
+                      Hotel OS üzerinden aktif oda tipi geldiğinde burada otomatik gösterilecek.
+                    </p>
+
+                  </div>
+
+                )}
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* MOBILE FILTER */}
+
+      {mobileFilters && (
+
+        <div className="fixed inset-0 z-[95] bg-black/80 backdrop-blur-md">
+
+          <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-[30px] border-t border-white/10 bg-[#091522] p-5">
+
+            <div className="flex items-center justify-between">
+
+              <h3 className="text-xl font-black">
+                Otel Filtreleri
+              </h3>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setMobileFilters(
+                    false
+                  )
+                }
+                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10"
+              >
+                <FaTimes />
+              </button>
+
+            </div>
+
+
+            <div className="mt-5">
+
+              <div className="text-[9px] font-black uppercase text-slate-600">
+                Yıldız
+              </div>
+
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+
+                {[0,3,4,5].map(
+                  (
+                    star
+                  ) => (
+
+                    <button
+                      key={
+                        star
+                      }
+                      type="button"
+                      onClick={() =>
+                        void setStarFilter(
+                          star
+                        )
+                      }
+                      className={`rounded-xl border px-3 py-3 text-xs font-black ${
+                        filters.stars ===
+                        star
+                          ? "border-orange-500 bg-orange-500"
+                          : "border-white/10"
+                      }`}
+                    >
+                      {star ===
+                      0
+                        ? "Tümü"
+                        : `${star}+ Yıldız`}
+                    </button>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+
+            <label className="mt-5 block">
+
+              <span className="mb-2 block text-[9px] font-black uppercase text-slate-600">
+                Tesis Tipi
+              </span>
+
+              <select
+                value={
+                  filters.hotelType
+                }
+                onChange={(event) =>
+                  setFilters({
+                    ...filters,
+                    hotelType:
+                      event.target.value,
+                  })
+                }
+                className="w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3"
+              >
+
+                {hotelTypes.map(
+                  (
+                    type
+                  ) => (
+                    <option
+                      key={
+                        type
+                      }
+                      value={
+                        type
+                      }
+                    >
+                      {type}
+                    </option>
+                  )
+                )}
+
+              </select>
+
+            </label>
+
+
+            <button
+              type="button"
+              onClick={() => {
+
+                setMobileFilters(
+                  false
+                );
+
+                resultsRef.current?.scrollIntoView({
+                  behavior:
+                    "smooth",
+                });
+
+              }}
+              className="mt-6 w-full rounded-xl bg-orange-500 py-4 font-black"
+            >
+              Sonuçları Göster
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
 
 
       <Footer />
