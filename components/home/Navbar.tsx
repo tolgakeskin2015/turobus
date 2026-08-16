@@ -15,6 +15,7 @@ const navigation = [
   { label: "Ana Sayfa", href: "/" },
   { label: "Turlar", href: "/turlar" },
   { label: "Oteller", href: "/oteller" },
+  { label: "Villalar", href: "/villalar" },
   { label: "Aktiviteler", href: "/aktiviteler" },
   { label: "Acenteler", href: "/acenteler" },
   { label: "Kurumsal", href: "/hakkimizda" },

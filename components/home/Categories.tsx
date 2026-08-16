@@ -3,6 +3,7 @@ import {
   FaHeart,
   FaHiking,
   FaHotel,
+  FaHome,
   FaPlaneDeparture,
   FaShip,
   FaUmbrellaBeach,
@@ -27,6 +28,13 @@ const categories = [
     description: "Adrenalin dolu unutulmaz deneyimler.",
     count: "920 aktivite",
     icon: FaHiking,
+  },
+  {
+    title: "Villa Tatili",
+    description: "Özel havuzlu, aile ve balayı villalarını keşfet.",
+    count: "Canlı müsaitlik",
+    icon: FaHome,
+    href: "/villalar",
   },
   {
     title: "Balayı Paketleri",
@@ -95,7 +103,11 @@ export default function Categories() {
             return (
               <a
                 key={category.title}
-                href="/turlar"
+                href={
+                  "href" in category && category.href
+                    ? category.href
+                    : "/turlar"
+                }
                 className="group relative overflow-hidden rounded-[28px] border border-white/10 bg-slate-900 p-7 transition duration-300 hover:-translate-y-2 hover:border-orange-500/40 hover:shadow-2xl hover:shadow-orange-500/10"
               >
                 <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-orange-500/10 blur-2xl transition group-hover:bg-orange-500/20" />
