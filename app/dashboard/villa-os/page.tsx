@@ -39,6 +39,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
+import VillaBookingDesk from "./components/VillaBookingDesk";
 import {
   CurrentMembership,
   getCurrentMembership,
@@ -255,15 +256,6 @@ export default function VillaOsPage() {
     commission: "15",
   });
 
-  const [reservationForm, setReservationForm] = useState({
-    guestName: "",
-    phone: "",
-    email: "",
-    guestCount: "2",
-    checkIn: "",
-    checkOut: "",
-    channel: "direct",
-  });
 
   const load = useCallback(
     async (companyId: string) => {
@@ -706,48 +698,6 @@ export default function VillaOsPage() {
     if (updateError) return setError(updateError.message);
 
     await supabase.rpc("sync_turobus_villa_network");
-    await load(membership.company_id);
-  }
-
-  async function createReservation(event: FormEvent) {
-    event.preventDefault();
-    if (!membership || !selectedVillaId) return;
-
-    setError("");
-    setMessage("");
-
-    const { data, error: rpcError } = await supabase.rpc(
-      "create_villa_reservation",
-      {
-        p_company_id: membership.company_id,
-        p_villa_id: selectedVillaId,
-        p_guest_name: reservationForm.guestName,
-        p_guest_phone: reservationForm.phone || null,
-        p_guest_email: reservationForm.email || null,
-        p_guest_count: Number(reservationForm.guestCount),
-        p_check_in: reservationForm.checkIn,
-        p_check_out: reservationForm.checkOut,
-        p_sales_channel: reservationForm.channel,
-      }
-    );
-
-    if (rpcError) return setError(rpcError.message);
-
-    const result = data as {
-      reservation_code?: string;
-      guest_token?: string;
-    };
-
-    setMessage(`Rezervasyon oluşturuldu: ${result.reservation_code ?? ""}`);
-    setReservationForm({
-      ...reservationForm,
-      guestName: "",
-      phone: "",
-      email: "",
-      checkIn: "",
-      checkOut: "",
-    });
-    setShowReservationForm(false);
     await load(membership.company_id);
   }
 
@@ -2237,41 +2187,24 @@ export default function VillaOsPage() {
         </div>
       )}
 
-      {showReservationForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-[30px] border border-white/10 bg-[#0a1220] p-5 shadow-2xl lg:p-7">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-[.22em] text-cyan-400">Yeni konaklama</div>
-                <h3 className="mt-1 text-2xl font-black">Rezervasyon Oluştur</h3>
-              </div>
-              <button onClick={() => setShowReservationForm(false)} className="rounded-xl border border-white/10 px-3 py-2 text-sm font-black text-slate-400">Kapat</button>
-            </div>
-
-            <form onSubmit={createReservation} className="mt-6 grid gap-3 md:grid-cols-2">
-              <select value={selectedVillaId} onChange={(e) => setSelectedVillaId(e.target.value)} className="md:col-span-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none">
-                <option value="">Villa seç</option>
-                {villas.map((villa) => <option key={villa.id} value={villa.id}>{villa.name}</option>)}
-              </select>
-              <input value={reservationForm.guestName} onChange={(e) => setReservationForm({ ...reservationForm, guestName: e.target.value })} placeholder="Misafir adı" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input value={reservationForm.phone} onChange={(e) => setReservationForm({ ...reservationForm, phone: e.target.value })} placeholder="Telefon" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input value={reservationForm.email} onChange={(e) => setReservationForm({ ...reservationForm, email: e.target.value })} placeholder="E-posta" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="number" value={reservationForm.guestCount} onChange={(e) => setReservationForm({ ...reservationForm, guestCount: e.target.value })} placeholder="Kişi" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="date" value={reservationForm.checkIn} onChange={(e) => setReservationForm({ ...reservationForm, checkIn: e.target.value })} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <input type="date" value={reservationForm.checkOut} onChange={(e) => setReservationForm({ ...reservationForm, checkOut: e.target.value })} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none" />
-              <select value={reservationForm.channel} onChange={(e) => setReservationForm({ ...reservationForm, channel: e.target.value })} className="md:col-span-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 outline-none">
-                <option value="direct">Direkt</option>
-                <option value="agency">Acenta</option>
-                <option value="b2b">B2B</option>
-                <option value="airbnb">Airbnb</option>
-                <option value="booking">Booking</option>
-                <option value="vrbo">Vrbo</option>
-                <option value="turobus_marketplace">Turobus Marketplace</option>
-              </select>
-              <button className="md:col-span-2 mt-2 rounded-2xl bg-gradient-to-r from-cyan-300 to-sky-300 px-5 py-4 font-black text-slate-950">Rezervasyonu Kaydet</button>
-            </form>
-          </div>
-        </div>
+      {showReservationForm && membership && (
+        <VillaBookingDesk
+          companyId={membership.company_id}
+          villas={villas}
+          selectedVillaId={selectedVillaId}
+          onVillaChange={setSelectedVillaId}
+          onClose={() =>
+            setShowReservationForm(false)
+          }
+          onCreated={async () => {
+            setMessage(
+              "Rezervasyon başarıyla oluşturuldu."
+            );
+            await load(
+              membership.company_id
+            );
+          }}
+        />
       )}
     </main>
   );
