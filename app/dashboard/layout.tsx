@@ -38,6 +38,12 @@ type MenuItem = {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   roles: AppRole[];
+  children?: Array<{
+    href: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    roles: AppRole[];
+  }>;
 };
 
 type MenuGroup = {
@@ -704,7 +710,28 @@ const menuGroups: MenuGroup[] = [
           "sales",
           "accounting",
         ],
+        children: [
+          {
+            href: "/dashboard/villa-os/erp",
+            label: "Genel Yönetim",
+            icon: FaChartLine,
+            roles: ["super_admin","company_owner","operation_manager","sales","accounting"],
+          },
+          {
+            href: "/dashboard/villa-os/erp/reservations",
+            label: "Rezervasyonlar",
+            icon: FaClipboardList,
+            roles: ["super_admin","company_owner","operation_manager","sales","accounting"],
+          },
+          {
+            href: "/dashboard/villa-os/erp/owners",
+            label: "Villa Sahipleri",
+            icon: FaUsers,
+            roles: ["super_admin","company_owner","operation_manager","accounting"],
+          },
+        ],
       },
+
       {
         href: "/dashboard/villa-os/control-center",
         label: "Operasyon Stüdyosu",
@@ -716,7 +743,28 @@ const menuGroups: MenuGroup[] = [
           "sales",
           "accounting",
         ],
+        children: [
+          {
+            href: "/dashboard/villa-os/control-center",
+            label: "Canlı Takvim & PMS",
+            icon: FaHotel,
+            roles: ["super_admin","company_owner","operation_manager","sales","accounting"],
+          },
+          {
+            href: "/dashboard/villa-os/erp/housekeeping",
+            label: "Housekeeping",
+            icon: FaHotel,
+            roles: ["super_admin","company_owner","operation_manager"],
+          },
+          {
+            href: "/dashboard/villa-os/erp/maintenance",
+            label: "Bakım & Arıza",
+            icon: FaBuilding,
+            roles: ["super_admin","company_owner","operation_manager"],
+          },
+        ],
       },
+
       {
         href: "/dashboard/villa-os/b2b-network",
         label: "Satış & Partner Merkezi",
@@ -727,7 +775,34 @@ const menuGroups: MenuGroup[] = [
           "operation_manager",
           "sales",
         ],
+        children: [
+          {
+            href: "/dashboard/villa-os/b2b-network",
+            label: "B2B Dağıtım",
+            icon: FaBuilding,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+          {
+            href: "/dashboard/villa-os/b2b-network/partners",
+            label: "Partner Ağı",
+            icon: FaUsers,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+          {
+            href: "/dashboard/villa-os/b2b-network/sales-desk",
+            label: "Satış Masası",
+            icon: FaChartLine,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+          {
+            href: "/dashboard/villa-os/b2b-network/offers",
+            label: "Teklifler",
+            icon: FaClipboardList,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+        ],
       },
+
       {
         href: "/dashboard/villa-os/finance-center",
         label: "Finans Merkezi",
@@ -737,6 +812,38 @@ const menuGroups: MenuGroup[] = [
           "company_owner",
           "operation_manager",
           "accounting",
+        ],
+        children: [
+          {
+            href: "/dashboard/villa-os/finance-center",
+            label: "Finans Dashboard",
+            icon: FaChartLine,
+            roles: ["super_admin","company_owner","operation_manager","accounting"],
+          },
+          {
+            href: "/dashboard/villa-os/erp/cash",
+            label: "Kasa",
+            icon: FaBuilding,
+            roles: ["super_admin","company_owner","operation_manager","accounting"],
+          },
+          {
+            href: "/dashboard/villa-os/erp/invoices",
+            label: "Fatura Merkezi",
+            icon: FaClipboardList,
+            roles: ["super_admin","company_owner","operation_manager","accounting"],
+          },
+          {
+            href: "/dashboard/villa-os/erp/expenses",
+            label: "Giderler",
+            icon: FaChartLine,
+            roles: ["super_admin","company_owner","operation_manager","accounting"],
+          },
+          {
+            href: "/dashboard/villa-os/erp/reports",
+            label: "Raporlar",
+            icon: FaChartLine,
+            roles: ["super_admin","company_owner","operation_manager","accounting"],
+          },
         ],
       },
     ],
@@ -868,6 +975,23 @@ export default function DashboardLayout({
 
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const [openSubMenus, setOpenSubMenus] =
+    useState<Set<string>>(() => new Set());
+
+  function toggleSubMenu(key: string) {
+    setOpenSubMenus((current) => {
+      const next = new Set(current);
+
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+
+      return next;
+    });
+  }
 
   const [
     sidebarAlertSummary,
@@ -1048,9 +1172,16 @@ export default function DashboardLayout({
     return menuGroups
       .map((group) => ({
         ...group,
-        items: group.items.filter((item) =>
-          item.roles.includes(membership.role)
-        ),
+        items: group.items
+          .filter((item) =>
+            item.roles.includes(membership.role)
+          )
+          .map((item) => ({
+            ...item,
+            children: item.children?.filter((child) =>
+              child.roles.includes(membership.role)
+            ),
+          })),
       }))
       .filter((group) => group.items.length > 0);
   }, [membership]);
@@ -1329,6 +1460,78 @@ export default function DashboardLayout({
                                     item.href
                                   );
 
+                            const hasChildren =
+                              Boolean(item.children?.length);
+
+                            const subMenuOpen =
+                              openSubMenus.has(item.href) ||
+                              item.children?.some((child) =>
+                                pathname.startsWith(child.href)
+                              );
+
+                            if (hasChildren) {
+                              return (
+                                <div key={item.href}>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      toggleSubMenu(item.href)
+                                    }
+                                    className={`group flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-bold transition ${
+                                      isActive
+                                        ? "bg-orange-500/15 text-orange-400"
+                                        : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
+                                    }`}
+                                  >
+                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950">
+                                      <Icon className="text-sm" />
+                                    </span>
+
+                                    <span className="min-w-0 flex-1 truncate text-left">
+                                      {item.label}
+                                    </span>
+
+                                    <FaChevronDown
+                                      className={`text-xs transition-transform ${
+                                        subMenuOpen
+                                          ? "rotate-180 text-orange-400"
+                                          : "text-slate-600"
+                                      }`}
+                                    />
+                                  </button>
+
+                                  {subMenuOpen && (
+                                    <div className="ml-5 mt-1 space-y-1 border-l border-white/10 pl-3">
+                                      {item.children?.map((child) => {
+                                        const ChildIcon = child.icon;
+
+                                        const childActive =
+                                          pathname === child.href ||
+                                          pathname.startsWith(
+                                            child.href + "/"
+                                          );
+
+                                        return (
+                                          <Link
+                                            key={child.href}
+                                            href={child.href}
+                                            className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-xs font-bold transition ${
+                                              childActive
+                                                ? "bg-orange-500 text-white"
+                                                : "text-slate-500 hover:bg-white/[0.05] hover:text-white"
+                                            }`}
+                                          >
+                                            <ChildIcon className="text-xs" />
+                                            <span>{child.label}</span>
+                                          </Link>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            }
+
                             return (
                               <Link
                                 key={item.href}
@@ -1339,35 +1542,17 @@ export default function DashboardLayout({
                                     : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
                                 }`}
                               >
-                                <span
-                                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                                    isActive
-                                      ? "bg-white/15"
-                                      : "bg-slate-950 group-hover:bg-white/[0.06]"
-                                  }`}
-                                >
+                                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                                  isActive
+                                    ? "bg-white/15"
+                                    : "bg-slate-950 group-hover:bg-white/[0.06]"
+                                }`}>
                                   <Icon className="text-sm" />
                                 </span>
 
                                 <span className="min-w-0 flex-1 truncate">
                                   {item.label}
                                 </span>
-
-                                {item.href ===
-                                  "/dashboard/package-os/alarm-center" &&
-                                  sidebarAlertSummary.unread > 0 && (
-                                    <span
-                                      className={`ml-auto inline-flex min-w-6 shrink-0 items-center justify-center rounded-full px-2 py-1 text-[10px] font-black ${
-                                        sidebarAlertSummary.critical > 0
-                                          ? "bg-red-500 text-white"
-                                          : "bg-orange-500 text-white"
-                                      }`}
-                                    >
-                                      {sidebarAlertSummary.unread > 99
-                                        ? "99+"
-                                        : sidebarAlertSummary.unread}
-                                    </span>
-                                  )}
                               </Link>
                             );
                           })}
