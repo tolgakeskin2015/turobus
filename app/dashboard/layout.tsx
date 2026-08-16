@@ -729,6 +729,12 @@ const menuGroups: MenuGroup[] = [
             icon: FaUsers,
             roles: ["super_admin","company_owner","operation_manager","accounting"],
           },
+          {
+            href: "/dashboard/villa-os/automation-center",
+            label: "Otomasyon & Kontrol",
+            icon: FaClipboardList,
+            roles: ["super_admin","company_owner","operation_manager","accounting"],
+          },
         ],
       },
 
