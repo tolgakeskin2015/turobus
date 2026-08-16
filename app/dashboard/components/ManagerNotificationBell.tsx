@@ -215,12 +215,13 @@ ManagerNotificationBell({
 
 
         if (result.error) {
-
-          console.error(
-            "Bildirim sayacı yüklenemedi:",
+          console.warn(
+            "Bildirim sayacı şu anda kullanılamıyor:",
             result.error.message
           );
 
+          setUnread(0);
+          setCritical(0);
           return;
         }
 
@@ -270,16 +271,13 @@ ManagerNotificationBell({
 
 
         if (result.error) {
-
-          console.error(
-            "Bildirimler yüklenemedi:",
+          console.warn(
+            "Bildirim listesi şu anda kullanılamıyor:",
             result.error.message
           );
 
-          setLoading(
-            false
-          );
-
+          setNotifications([]);
+          setLoading(false);
           return;
         }
 
