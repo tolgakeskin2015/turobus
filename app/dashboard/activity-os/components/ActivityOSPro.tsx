@@ -36,6 +36,8 @@ import {
 
 import ActivityCrudActions from "./ActivityCrudActions";
 
+import ActivityDailyCapacityBoard from "./ActivityDailyCapacityBoard";
+
 import {
   CurrentMembership,
   getCurrentMembership,
@@ -3145,6 +3147,23 @@ export default function ActivityOSPro({
                   </div>
 
                 </div>
+
+
+                <ActivityDailyCapacityBoard
+                  companyId={
+                    membership?.company_id ??
+                    ""
+                  }
+                  slots={
+                    slots
+                  }
+                  activities={
+                    activities
+                  }
+                  onRefresh={
+                    refresh
+                  }
+                />
 
 
                 <div className="mt-5 overflow-hidden rounded-3xl border border-white/10">
