@@ -2243,18 +2243,18 @@ export default function ActivityOSPro({
 
         {/* HEADER */}
 
-        <section className="border-b border-white/10 bg-gradient-to-r from-fuchsia-500/10 via-slate-950 to-orange-500/10 p-5 md:p-7">
+        <section className="border-b border-white/10 bg-gradient-to-r from-orange-500/[.10] via-slate-950 to-fuchsia-500/[.06] p-5 md:p-7 lg:p-8">
 
           <div className="flex flex-wrap items-start justify-between gap-5">
 
             <div>
 
               <div className="text-[10px] font-black uppercase tracking-[.24em] text-fuchsia-400">
-                TUROBUS ACTIVITY OS PRO
+                TUROBUS · ACTIVITY OS PRO
               </div>
 
               <h1 className="mt-2 text-3xl font-black md:text-4xl">
-                Aktivite İşletim Sistemi
+                Aktivite Operasyon & Yönetim Sistemi
               </h1>
 
               <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-400">
@@ -2295,13 +2295,13 @@ export default function ActivityOSPro({
         )}
 
 
-        <div className="grid xl:grid-cols-[230px_1fr]">
+        <div className="block">
 
           {/* LOCAL OS MENU */}
 
-          <aside className="border-r border-white/10 p-4">
+          <aside className="sticky top-20 z-30 border-b border-white/10 bg-slate-950/95 px-4 backdrop-blur-2xl md:px-6">
 
-            <div className="space-y-1">
+            <div className="flex gap-2 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 
               {menu.map(
                 (
@@ -2323,11 +2323,11 @@ export default function ActivityOSPro({
                           ? "/dashboard/activity-os"
                           : `/dashboard/activity-os/${item.key}`
                       }
-                      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-black transition ${
+                      className={`flex min-w-fit items-center gap-2 whitespace-nowrap rounded-xl px-4 py-3 text-xs font-black transition ${
                         section ===
                         item.key
-                          ? "bg-fuchsia-500 text-white"
-                          : "text-slate-400 hover:bg-white/[.05] hover:text-white"
+                          ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+                          : "border border-white/10 bg-white/[.03] text-slate-400 hover:border-orange-500/30 hover:bg-white/[.06] hover:text-white"
                       }`}
                     >
 
@@ -2346,7 +2346,7 @@ export default function ActivityOSPro({
           </aside>
 
 
-          <section className="min-w-0 p-4 md:p-6">
+          <section className="min-w-0 p-4 md:p-6 lg:p-8">
 
             {/* =================================================
                 OVERVIEW
@@ -2423,6 +2423,73 @@ export default function ActivityOSPro({
 
                     )
                   )}
+
+                </div>
+
+
+                <div className="mt-5 rounded-3xl border border-white/10 bg-white/[.025] p-4">
+
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+
+                    <div>
+                      <div className="text-[9px] font-black uppercase tracking-[.15em] text-orange-400">
+                        HIZLI İŞLEMLER
+                      </div>
+
+                      <div className="mt-1 text-sm font-black">
+                        Günlük operasyonu buradan yönet
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+
+                      {[
+                        {
+                          href: "/dashboard/activity-os/products",
+                          label: "Aktivite Ekle",
+                          icon: FaPlus,
+                        },
+                        {
+                          href: "/dashboard/activity-os/calendar",
+                          label: "Slot Oluştur",
+                          icon: FaCalendarAlt,
+                        },
+                        {
+                          href: "/dashboard/activity-os/bookings",
+                          label: "Rezervasyon",
+                          icon: FaClipboardList,
+                        },
+                        {
+                          href: "/dashboard/activity-os/partners",
+                          label: "Partner Ekle",
+                          icon: FaUserPlus,
+                        },
+                        {
+                          href: "/dashboard/activity-os/finance",
+                          label: "Finans",
+                          icon: FaCashRegister,
+                        },
+                      ].map((action) => {
+
+                        const ActionIcon =
+                          action.icon;
+
+                        return (
+                          <Link
+                            key={action.href}
+                            href={action.href}
+                            className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-[10px] font-black text-slate-300 transition hover:border-orange-500/30 hover:bg-orange-500 hover:text-white"
+                          >
+                            <ActionIcon />
+                            {action.label}
+                          </Link>
+                        );
+
+                      })}
+
+                    </div>
+
+                  </div>
 
                 </div>
 
