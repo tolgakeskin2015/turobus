@@ -61,8 +61,23 @@ type Activity = {
   category: string;
   city: string | null;
   district: string | null;
+  short_description: string | null;
   description: string | null;
+  meeting_point: string | null;
   cover_image_url: string | null;
+  gallery_image_urls: string[];
+  highlights: string[];
+  included_items: string[];
+  excluded_items: string[];
+  important_notes: string | null;
+  min_age: number | null;
+  max_age: number | null;
+  min_weight: number | null;
+  max_weight: number | null;
+  difficulty_level: string | null;
+  cancellation_policy: string | null;
+  meeting_instructions: string | null;
+  preparation_notes: string | null;
   pricing_unit: string;
   default_cost: number;
   default_sale_price: number | null;
@@ -76,13 +91,18 @@ type Activity = {
 type Slot = {
   id: string;
   activity_id: string;
+  activity_name?: string;
   slot_date: string;
   start_time: string | null;
+  end_time?: string | null;
   capacity: number;
   reserved_count: number;
+  remaining_count?: number;
+  occupancy_percent?: number;
   sale_price: number | null;
   currency: string;
   status: string;
+  notes?: string | null;
 };
 
 
@@ -374,6 +394,20 @@ function dateKey(
   ].join("-");
 }
 
+function splitLines(
+  value: string
+) {
+  return value
+    .split("\n")
+    .map(
+      (
+        item
+      ) =>
+        item.trim()
+    )
+    .filter(Boolean);
+}
+
 
 export default function ActivityOSPro({
   section,
@@ -560,6 +594,129 @@ export default function ActivityOSPro({
     useState("");
 
 
+  const [
+    activityShortDescription,
+    setActivityShortDescription,
+  ] =
+    useState("");
+
+
+  const [
+    activityDescription,
+    setActivityDescription,
+  ] =
+    useState("");
+
+
+  const [
+    activityMeetingPoint,
+    setActivityMeetingPoint,
+  ] =
+    useState("");
+
+
+  const [
+    activityHighlights,
+    setActivityHighlights,
+  ] =
+    useState("");
+
+
+  const [
+    activityIncluded,
+    setActivityIncluded,
+  ] =
+    useState("");
+
+
+  const [
+    activityExcluded,
+    setActivityExcluded,
+  ] =
+    useState("");
+
+
+  const [
+    activityImportantNotes,
+    setActivityImportantNotes,
+  ] =
+    useState("");
+
+
+  const [
+    activityMinAge,
+    setActivityMinAge,
+  ] =
+    useState("");
+
+
+  const [
+    activityMaxAge,
+    setActivityMaxAge,
+  ] =
+    useState("");
+
+
+  const [
+    activityMinWeight,
+    setActivityMinWeight,
+  ] =
+    useState("");
+
+
+  const [
+    activityMaxWeight,
+    setActivityMaxWeight,
+  ] =
+    useState("");
+
+
+  const [
+    activityDifficulty,
+    setActivityDifficulty,
+  ] =
+    useState("easy");
+
+
+  const [
+    activityCancellation,
+    setActivityCancellation,
+  ] =
+    useState("");
+
+
+  const [
+    activityMeetingInstructions,
+    setActivityMeetingInstructions,
+  ] =
+    useState("");
+
+
+  const [
+    activityPreparationNotes,
+    setActivityPreparationNotes,
+  ] =
+    useState("");
+
+
+  const [
+    activityCoverFile,
+    setActivityCoverFile,
+  ] =
+    useState<File | null>(
+      null
+    );
+
+
+  const [
+    activityGalleryFiles,
+    setActivityGalleryFiles,
+  ] =
+    useState<File[]>(
+      []
+    );
+
+
   // -------------------------------------------------------
   // SLOT FORM
   // -------------------------------------------------------
@@ -601,6 +758,22 @@ export default function ActivityOSPro({
   const [
     slotPrice,
     setSlotPrice,
+  ] =
+    useState("");
+
+
+  const [
+    slotEndTime,
+    setSlotEndTime,
+  ] =
+    useState(
+      "11:00"
+    );
+
+
+  const [
+    slotNotes,
+    setSlotNotes,
   ] =
     useState("");
 
@@ -928,7 +1101,7 @@ export default function ActivityOSPro({
                 "package_activities"
               )
               .select(
-                "id,name,category,city,district,description,cover_image_url,pricing_unit,default_cost,default_sale_price,currency,duration_minutes,requires_slot,is_active"
+                "id,name,category,city,district,short_description,description,meeting_point,cover_image_url,gallery_image_urls,highlights,included_items,excluded_items,important_notes,min_age,max_age,min_weight,max_weight,difficulty_level,cancellation_policy,meeting_instructions,preparation_notes,pricing_unit,default_cost,default_sale_price,currency,duration_minutes,requires_slot,is_active"
               )
               .eq(
                 "company_id",
@@ -938,35 +1111,23 @@ export default function ActivityOSPro({
                 "name"
               ),
 
-            supabase
-              .from(
-                "package_activity_slots"
-              )
-              .select(
-                "id,activity_id,slot_date,start_time,capacity,reserved_count,sale_price,currency,status"
-              )
-              .eq(
-                "company_id",
-                companyId
-              )
-              .gte(
-                "slot_date",
-                dateKey(
-                  start
-                )
-              )
-              .lte(
-                "slot_date",
-                dateKey(
-                  end
-                )
-              )
-              .order(
-                "slot_date"
-              )
-              .order(
-                "start_time"
-              ),
+            supabase.rpc(
+              "get_activity_os_calendar",
+              {
+                p_company_id:
+                  companyId,
+
+                p_from:
+                  dateKey(
+                    start
+                  ),
+
+                p_to:
+                  dateKey(
+                    end
+                  ),
+              }
+            ),
 
             supabase
               .from(
@@ -1095,6 +1256,34 @@ export default function ActivityOSPro({
           (
             slotsResult.data ??
             []
+          ).map(
+            (item: any) => ({
+              ...item,
+              id:
+                item.id,
+              activity_id:
+                item.activity_id,
+              reserved_count:
+                Number(
+                  item.reserved_count ??
+                  0
+                ),
+              remaining_count:
+                Number(
+                  item.remaining_count ??
+                  0
+                ),
+              occupancy_percent:
+                Number(
+                  item.occupancy_percent ??
+                  0
+                ),
+              capacity:
+                Number(
+                  item.capacity ??
+                  0
+                ),
+            })
           ) as Slot[]
         );
 
@@ -1323,6 +1512,72 @@ export default function ActivityOSPro({
   }
 
 
+  async function uploadActivityFile(
+    file: File,
+    folder: string
+  ) {
+
+    if (!membership) {
+      throw new Error(
+        "Firma bilgisi bulunamadı."
+      );
+    }
+
+
+    const safeName =
+      file.name.replace(
+        /[^a-zA-Z0-9._-]/g,
+        "-"
+      );
+
+
+    const path =
+      `${membership.company_id}/${folder}/${crypto.randomUUID()}-${safeName}`;
+
+
+    const {
+      error:
+        uploadError,
+    } =
+      await supabase.storage
+        .from(
+          "activity-media"
+        )
+        .upload(
+          path,
+          file,
+          {
+            upsert:
+              false,
+          }
+        );
+
+
+    if (
+      uploadError
+    ) {
+      throw uploadError;
+    }
+
+
+    const {
+      data:
+        publicData,
+    } =
+      supabase.storage
+        .from(
+          "activity-media"
+        )
+        .getPublicUrl(
+          path
+        );
+
+
+    return publicData.publicUrl;
+
+  }
+
+
   async function createActivity(
     event: FormEvent
   ) {
@@ -1339,6 +1594,58 @@ export default function ActivityOSPro({
 
     setError("");
     setMessage("");
+
+
+    let coverImageUrl:
+      string | null =
+        null;
+
+
+    const galleryImageUrls:
+      string[] =
+        [];
+
+
+    try {
+
+      if (
+        activityCoverFile
+      ) {
+        coverImageUrl =
+          await uploadActivityFile(
+            activityCoverFile,
+            "cover"
+          );
+      }
+
+
+      for (
+        const file
+        of activityGalleryFiles
+      ) {
+
+        galleryImageUrls.push(
+          await uploadActivityFile(
+            file,
+            "gallery"
+          )
+        );
+
+      }
+
+    } catch (
+      uploadError
+    ) {
+
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Fotoğraf yüklenemedi."
+      );
+
+      return;
+
+    }
 
 
     const {
@@ -1366,6 +1673,87 @@ export default function ActivityOSPro({
           district:
             activityDistrict.trim() ||
             null,
+
+          short_description:
+            activityShortDescription.trim() ||
+            null,
+
+          description:
+            activityDescription.trim() ||
+            null,
+
+          meeting_point:
+            activityMeetingPoint.trim() ||
+            null,
+
+          highlights:
+            splitLines(
+              activityHighlights
+            ),
+
+          included_items:
+            splitLines(
+              activityIncluded
+            ),
+
+          excluded_items:
+            splitLines(
+              activityExcluded
+            ),
+
+          important_notes:
+            activityImportantNotes.trim() ||
+            null,
+
+          min_age:
+            activityMinAge
+              ? Number(
+                  activityMinAge
+                )
+              : null,
+
+          max_age:
+            activityMaxAge
+              ? Number(
+                  activityMaxAge
+                )
+              : null,
+
+          min_weight:
+            activityMinWeight
+              ? Number(
+                  activityMinWeight
+                )
+              : null,
+
+          max_weight:
+            activityMaxWeight
+              ? Number(
+                  activityMaxWeight
+                )
+              : null,
+
+          difficulty_level:
+            activityDifficulty ||
+            null,
+
+          cancellation_policy:
+            activityCancellation.trim() ||
+            null,
+
+          meeting_instructions:
+            activityMeetingInstructions.trim() ||
+            null,
+
+          preparation_notes:
+            activityPreparationNotes.trim() ||
+            null,
+
+          cover_image_url:
+            coverImageUrl,
+
+          gallery_image_urls:
+            galleryImageUrls,
 
           pricing_unit:
             "per_person",
@@ -1416,6 +1804,23 @@ export default function ActivityOSPro({
     setActivityPrice("");
     setActivityCost("");
     setActivityDuration("");
+    setActivityShortDescription("");
+    setActivityDescription("");
+    setActivityMeetingPoint("");
+    setActivityHighlights("");
+    setActivityIncluded("");
+    setActivityExcluded("");
+    setActivityImportantNotes("");
+    setActivityMinAge("");
+    setActivityMaxAge("");
+    setActivityMinWeight("");
+    setActivityMaxWeight("");
+    setActivityDifficulty("easy");
+    setActivityCancellation("");
+    setActivityMeetingInstructions("");
+    setActivityPreparationNotes("");
+    setActivityCoverFile(null);
+    setActivityGalleryFiles([]);
 
     setMessage(
       "Aktivite oluşturuldu."
@@ -1455,38 +1860,32 @@ export default function ActivityOSPro({
       error:
         saveError,
     } =
-      await supabase
-        .from(
-          "package_activity_slots"
-        )
-        .insert({
-          company_id:
+      await supabase.rpc(
+        "activity_os_save_slot",
+        {
+          p_company_id:
             membership.company_id,
 
-          activity_id:
+          p_activity_id:
             slotActivity,
 
-          slot_date:
+          p_slot_date:
             slotDate,
 
-          start_time:
-            slotTime ||
+          p_start_time:
+            slotTime,
+
+          p_end_time:
+            slotEndTime ||
             null,
 
-          capacity:
+          p_capacity:
             Number(
               slotCapacity ||
               0
             ),
 
-          reserved_count:
-            0,
-
-          cost:
-            activity?.default_cost ??
-            0,
-
-          sale_price:
+          p_sale_price:
             slotPrice
               ? Number(
                   slotPrice
@@ -1494,13 +1893,11 @@ export default function ActivityOSPro({
               : activity?.default_sale_price ??
                 0,
 
-          currency:
-            activity?.currency ??
-            "TRY",
-
-          status:
-            "open",
-        });
+          p_notes:
+            slotNotes.trim() ||
+            null,
+        }
+      );
 
 
     if (
@@ -1514,7 +1911,7 @@ export default function ActivityOSPro({
 
 
     setMessage(
-      "Slot oluşturuldu."
+      "Slot oluşturuldu / güncellendi."
     );
 
     await refresh();
@@ -2792,7 +3189,7 @@ export default function ActivityOSPro({
                               key={
                                 `empty-${index}`
                               }
-                              className="min-h-[135px] border-b border-r border-white/5 bg-black/10"
+                              className="min-h-[230px] border-b border-r border-white/5 bg-black/10"
                             />
                           );
 
@@ -2832,7 +3229,7 @@ export default function ActivityOSPro({
                             key={
                               key
                             }
-                            className={`min-h-[135px] border-b border-r border-white/5 p-2 ${
+                            className={`min-h-[230px] border-b border-r border-white/5 p-3 ${
                               key ===
                               today()
                                 ? "bg-fuchsia-500/[.08]"
@@ -2845,53 +3242,166 @@ export default function ActivityOSPro({
                             </div>
 
 
-                            <div className="mt-2 space-y-1">
+                            <div className="mt-2 space-y-2">
 
                               {daySlots
                                 .slice(
                                   0,
-                                  3
+                                  4
                                 )
                                 .map(
                                   (
                                     slot
-                                  ) => (
+                                  ) => {
 
-                                    <div
-                                      key={
-                                        slot.id
-                                      }
-                                      className="rounded-lg bg-white/[.05] p-1.5 text-[8px]"
-                                    >
+                                    const reserved =
+                                      Number(
+                                        slot.reserved_count ??
+                                        0
+                                      );
 
-                                      <div className="truncate font-black">
-                                        {slot.start_time?.slice(
-                                          0,
-                                          5
-                                        ) ??
-                                          "-"}
-                                        {" "}
-                                        {activityNameById(
-                                          slot.activity_id
-                                        )}
+                                    const remaining =
+                                      Number(
+                                        slot.remaining_count ??
+                                        Math.max(
+                                          slot.capacity -
+                                          reserved,
+                                          0
+                                        )
+                                      );
+
+                                    const occupancy =
+                                      Number(
+                                        slot.occupancy_percent ??
+                                        (
+                                          slot.capacity > 0
+                                            ? (
+                                                reserved /
+                                                slot.capacity
+                                              ) * 100
+                                            : 0
+                                        )
+                                      );
+
+
+                                    return (
+
+                                      <div
+                                        key={
+                                          slot.id
+                                        }
+                                        className={`rounded-xl border p-2.5 text-[8px] ${
+                                          remaining <= 0
+                                            ? "border-red-500/20 bg-red-500/10"
+                                            : remaining <= Math.max(
+                                                2,
+                                                slot.capacity *
+                                                0.2
+                                              )
+                                              ? "border-orange-500/20 bg-orange-500/10"
+                                              : "border-white/10 bg-white/[.05]"
+                                        }`}
+                                      >
+
+                                        <div className="flex items-center justify-between gap-2">
+
+                                          <div className="truncate font-black text-white">
+                                            {slot.start_time?.slice(
+                                              0,
+                                              5
+                                            ) ??
+                                              "-"}
+                                            {" · "}
+                                            {activityNameById(
+                                              slot.activity_id
+                                            )}
+                                          </div>
+
+
+                                          <div className={`rounded-full px-2 py-1 font-black ${
+                                            remaining <= 0
+                                              ? "bg-red-500/20 text-red-300"
+                                              : "bg-emerald-500/10 text-emerald-300"
+                                          }`}>
+                                            {remaining <= 0
+                                              ? "DOLU"
+                                              : `${remaining} BOŞ`}
+                                          </div>
+
+                                        </div>
+
+
+                                        <div className="mt-2 grid grid-cols-3 gap-1">
+
+                                          <div className="rounded-lg bg-slate-950/70 p-1.5 text-center">
+                                            <div className="text-slate-600">
+                                              Kap.
+                                            </div>
+                                            <div className="mt-0.5 font-black text-white">
+                                              {slot.capacity}
+                                            </div>
+                                          </div>
+
+                                          <div className="rounded-lg bg-slate-950/70 p-1.5 text-center">
+                                            <div className="text-slate-600">
+                                              Satılan
+                                            </div>
+                                            <div className="mt-0.5 font-black text-orange-300">
+                                              {reserved}
+                                            </div>
+                                          </div>
+
+                                          <div className="rounded-lg bg-slate-950/70 p-1.5 text-center">
+                                            <div className="text-slate-600">
+                                              Doluluk
+                                            </div>
+                                            <div className="mt-0.5 font-black text-fuchsia-300">
+                                              %{Math.round(
+                                                occupancy
+                                              )}
+                                            </div>
+                                          </div>
+
+                                        </div>
+
+
+                                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-900">
+
+                                          <div
+                                            className="h-full rounded-full bg-gradient-to-r from-fuchsia-500 to-orange-500"
+                                            style={{
+                                              width:
+                                                `${Math.min(
+                                                  occupancy,
+                                                  100
+                                                )}%`,
+                                            }}
+                                          />
+
+                                        </div>
+
                                       </div>
 
-                                      <div className="mt-0.5 text-slate-500">
-                                        {slot.reserved_count}
-                                        /
-                                        {slot.capacity}
-                                      </div>
+                                    );
 
-                                    </div>
-
-                                  )
+                                  }
                                 )}
+
+
+                              {daySlots.length ===
+                                0 && (
+
+                                <div className="rounded-xl border border-dashed border-white/10 p-3 text-center text-[8px] text-slate-700">
+                                  Slot yok
+                                </div>
+
+                              )}
 
 
                               {dayBookings.length >
                                 0 && (
 
-                                <div className="text-[8px] font-black text-emerald-400">
+                                <div className="rounded-lg bg-emerald-500/10 p-2 text-[8px] font-black text-emerald-300">
                                   {dayBookings.reduce(
                                     (
                                       sum,
@@ -2900,7 +3410,7 @@ export default function ActivityOSPro({
                                       sum +
                                       booking.quantity,
                                     0
-                                  )} misafir
+                                  )} aktif misafir
                                 </div>
 
                               )}
@@ -3027,6 +3537,28 @@ export default function ActivityOSPro({
                     <label>
 
                       <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Bitiş Saati
+                      </span>
+
+                      <input
+                        type="time"
+                        value={
+                          slotEndTime
+                        }
+                        onChange={(event) =>
+                          setSlotEndTime(
+                            event.target.value
+                          )
+                        }
+                        className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm"
+                      />
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
                         Kapasite
                       </span>
 
@@ -3072,11 +3604,33 @@ export default function ActivityOSPro({
                     </label>
 
 
+                    <label className="md:col-span-5">
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Slot / Operasyon Notu
+                      </span>
+
+                      <textarea
+                        value={
+                          slotNotes
+                        }
+                        onChange={(event) =>
+                          setSlotNotes(
+                            event.target.value
+                          )
+                        }
+                        placeholder="Hava durumu, ekip, araç, özel operasyon notu..."
+                        className="min-h-[90px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm"
+                      />
+
+                    </label>
+
+
                     <button
                       type="submit"
-                      className="md:col-span-5 rounded-xl bg-fuchsia-500 px-5 py-4 font-black"
+                      className="md:col-span-5 rounded-xl bg-gradient-to-r from-fuchsia-500 to-orange-500 px-5 py-4 font-black"
                     >
-                      Slot Oluştur
+                      Slot Oluştur / Güncelle
                     </button>
 
                   </form>
@@ -3221,6 +3775,72 @@ export default function ActivityOSPro({
                     </div>
 
 
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Kısa Açıklama
+                      </span>
+
+                      <textarea
+                        value={
+                          activityShortDescription
+                        }
+                        onChange={(event) =>
+                          setActivityShortDescription(
+                            event.target.value
+                          )
+                        }
+                        placeholder="Marketplace kartında görünecek kısa açıklama"
+                        className="min-h-[80px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Detaylı Açıklama
+                      </span>
+
+                      <textarea
+                        value={
+                          activityDescription
+                        }
+                        onChange={(event) =>
+                          setActivityDescription(
+                            event.target.value
+                          )
+                        }
+                        placeholder="Aktivitenin tüm detayları, deneyim akışı, güvenlik vb."
+                        className="min-h-[130px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Buluşma Noktası
+                      </span>
+
+                      <input
+                        value={
+                          activityMeetingPoint
+                        }
+                        onChange={(event) =>
+                          setActivityMeetingPoint(
+                            event.target.value
+                          )
+                        }
+                        placeholder="Örn. Babadağ Teleferik Alt İstasyon"
+                        className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
                     <div className="grid grid-cols-2 gap-3">
 
                       <label>
@@ -3285,9 +3905,329 @@ export default function ActivityOSPro({
                     </label>
 
 
+                    <div className="grid grid-cols-2 gap-3">
+
+                      <label>
+                        <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                          Min. Yaş
+                        </span>
+
+                        <input
+                          type="number"
+                          value={
+                            activityMinAge
+                          }
+                          onChange={(event) =>
+                            setActivityMinAge(
+                              event.target.value
+                            )
+                          }
+                          className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                        />
+                      </label>
+
+
+                      <label>
+                        <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                          Maks. Yaş
+                        </span>
+
+                        <input
+                          type="number"
+                          value={
+                            activityMaxAge
+                          }
+                          onChange={(event) =>
+                            setActivityMaxAge(
+                              event.target.value
+                            )
+                          }
+                          className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                        />
+                      </label>
+
+
+                      <label>
+                        <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                          Min. Kilo
+                        </span>
+
+                        <input
+                          type="number"
+                          value={
+                            activityMinWeight
+                          }
+                          onChange={(event) =>
+                            setActivityMinWeight(
+                              event.target.value
+                            )
+                          }
+                          className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                        />
+                      </label>
+
+
+                      <label>
+                        <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                          Maks. Kilo
+                        </span>
+
+                        <input
+                          type="number"
+                          value={
+                            activityMaxWeight
+                          }
+                          onChange={(event) =>
+                            setActivityMaxWeight(
+                              event.target.value
+                            )
+                          }
+                          className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                        />
+                      </label>
+
+                    </div>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Zorluk Seviyesi
+                      </span>
+
+                      <select
+                        value={
+                          activityDifficulty
+                        }
+                        onChange={(event) =>
+                          setActivityDifficulty(
+                            event.target.value
+                          )
+                        }
+                        className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      >
+                        <option value="easy">Kolay</option>
+                        <option value="medium">Orta</option>
+                        <option value="hard">Zor</option>
+                        <option value="expert">Uzman</option>
+                      </select>
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Öne Çıkan Özellikler
+                      </span>
+
+                      <textarea
+                        value={
+                          activityHighlights
+                        }
+                        onChange={(event) =>
+                          setActivityHighlights(
+                            event.target.value
+                          )
+                        }
+                        placeholder={"Profesyonel ekip\nSigorta\nTransfer opsiyonu"}
+                        className="min-h-[100px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Dahil Olanlar
+                      </span>
+
+                      <textarea
+                        value={
+                          activityIncluded
+                        }
+                        onChange={(event) =>
+                          setActivityIncluded(
+                            event.target.value
+                          )
+                        }
+                        placeholder={"Ekipman\nEğitmen\nSigorta"}
+                        className="min-h-[100px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Hariç Olanlar
+                      </span>
+
+                      <textarea
+                        value={
+                          activityExcluded
+                        }
+                        onChange={(event) =>
+                          setActivityExcluded(
+                            event.target.value
+                          )
+                        }
+                        placeholder={"Fotoğraf / video\nKişisel harcamalar"}
+                        className="min-h-[100px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Hazırlık Notları
+                      </span>
+
+                      <textarea
+                        value={
+                          activityPreparationNotes
+                        }
+                        onChange={(event) =>
+                          setActivityPreparationNotes(
+                            event.target.value
+                          )
+                        }
+                        placeholder="Yanında ne getirmeli, nasıl giyinmeli..."
+                        className="min-h-[100px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Buluşma Talimatı
+                      </span>
+
+                      <textarea
+                        value={
+                          activityMeetingInstructions
+                        }
+                        onChange={(event) =>
+                          setActivityMeetingInstructions(
+                            event.target.value
+                          )
+                        }
+                        className="min-h-[100px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        İptal Koşulları
+                      </span>
+
+                      <textarea
+                        value={
+                          activityCancellation
+                        }
+                        onChange={(event) =>
+                          setActivityCancellation(
+                            event.target.value
+                          )
+                        }
+                        className="min-h-[100px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
+                    <label>
+
+                      <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                        Önemli Notlar
+                      </span>
+
+                      <textarea
+                        value={
+                          activityImportantNotes
+                        }
+                        onChange={(event) =>
+                          setActivityImportantNotes(
+                            event.target.value
+                          )
+                        }
+                        className="min-h-[100px] w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
+                      />
+
+                    </label>
+
+
+                    <div className="rounded-2xl border border-white/10 bg-slate-950 p-4">
+
+                      <div className="text-sm font-black">
+                        Aktivite Fotoğrafları
+                      </div>
+
+
+                      <label className="mt-4 block">
+
+                        <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                          Kapak Fotoğrafı
+                        </span>
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(event) =>
+                            setActivityCoverFile(
+                              event.target.files?.[0] ??
+                              null
+                            )
+                          }
+                          className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-xs"
+                        />
+
+                      </label>
+
+
+                      <label className="mt-4 block">
+
+                        <span className="mb-2 block text-[10px] font-black uppercase text-slate-500">
+                          Galeri Fotoğrafları
+                        </span>
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(event) =>
+                            setActivityGalleryFiles(
+                              Array.from(
+                                event.target.files ??
+                                []
+                              )
+                            )
+                          }
+                          className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-xs"
+                        />
+
+                      </label>
+
+
+                      <div className="mt-3 text-[9px] leading-5 text-slate-600">
+                        Kapak fotoğrafı Marketplace kartında kullanılır. Galeriye birden fazla fotoğraf yüklenebilir.
+                      </div>
+
+                    </div>
+
+
                     <button
                       type="submit"
-                      className="w-full rounded-xl bg-fuchsia-500 px-5 py-4 font-black"
+                      className="w-full rounded-xl bg-gradient-to-r from-fuchsia-500 to-orange-500 px-5 py-4 font-black shadow-lg shadow-fuchsia-500/10"
                     >
                       Aktivite Oluştur
                     </button>
