@@ -11,19 +11,14 @@ import {
 export async function POST(
   request: NextRequest
 ) {
-
   try {
-
-    const body =
-      await request.json();
-
-
     const {
       companyId,
       sellerId,
       email,
       fullName,
-    } = body;
+    } =
+      await request.json();
 
 
     if (
@@ -31,7 +26,6 @@ export async function POST(
       !sellerId ||
       !email
     ) {
-
       return NextResponse.json(
         {
           error:
@@ -41,33 +35,56 @@ export async function POST(
           status: 400,
         }
       );
-
     }
 
 
     const url =
-      process.env.NEXT_PUBLIC_SUPABASE_URL;
-
+      process.env
+        .NEXT_PUBLIC_SUPABASE_URL;
 
     const serviceKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY;
+      process.env
+        .SUPABASE_SERVICE_ROLE_KEY;
 
 
     if (
       !url ||
       !serviceKey
     ) {
-
       return NextResponse.json(
         {
           error:
-            "SUPABASE_SERVICE_ROLE_KEY tanımlı değil. Partner daveti için server anahtarı gerekli.",
+            "SUPABASE_SERVICE_ROLE_KEY tanımlı değil.",
         },
         {
           status: 503,
         }
       );
+    }
 
+
+    const authHeader =
+      request.headers.get(
+        "authorization"
+      );
+
+    const token =
+      authHeader?.replace(
+        /^Bearer\s+/i,
+        ""
+      );
+
+
+    if (!token) {
+      return NextResponse.json(
+        {
+          error:
+            "Oturum doğrulanamadı.",
+        },
+        {
+          status: 401,
+        }
+      );
     }
 
 
@@ -79,40 +96,11 @@ export async function POST(
           auth: {
             autoRefreshToken:
               false,
-
             persistSession:
               false,
           },
         }
       );
-
-
-    const authHeader =
-      request.headers.get(
-        "authorization"
-      );
-
-
-    const token =
-      authHeader?.replace(
-        /^Bearer\s+/i,
-        ""
-      );
-
-
-    if (!token) {
-
-      return NextResponse.json(
-        {
-          error:
-            "Oturum doğrulanamadı.",
-        },
-        {
-          status: 401,
-        }
-      );
-
-    }
 
 
     const {
@@ -130,7 +118,6 @@ export async function POST(
       userError ||
       !userData.user
     ) {
-
       return NextResponse.json(
         {
           error:
@@ -140,7 +127,6 @@ export async function POST(
           status: 401,
         }
       );
-
     }
 
 
@@ -180,7 +166,6 @@ export async function POST(
         membership.role
       )
     ) {
-
       return NextResponse.json(
         {
           error:
@@ -190,8 +175,55 @@ export async function POST(
           status: 403,
         }
       );
-
     }
+
+
+    const {
+      data:
+        seller,
+      error:
+        sellerError,
+    } =
+      await admin
+        .from(
+          "activity_os_sellers"
+        )
+        .select(
+          "id,company_id,name,is_active"
+        )
+        .eq(
+          "id",
+          sellerId
+        )
+        .eq(
+          "company_id",
+          companyId
+        )
+        .eq(
+          "is_active",
+          true
+        )
+        .maybeSingle();
+
+
+    if (
+      sellerError ||
+      !seller
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Satışçı / partner bulunamadı.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+
+    const origin =
+      request.nextUrl.origin;
 
 
     const {
@@ -200,29 +232,35 @@ export async function POST(
       error:
         inviteError,
     } =
-      await admin.auth.admin.inviteUserByEmail(
-        email,
-        {
-          data: {
-            full_name:
-              fullName ||
-              null,
+      await admin.auth.admin
+        .inviteUserByEmail(
+          email,
+          {
+            redirectTo:
+              `${origin}/activity-satici`,
 
-            turobus_company_id:
-              companyId,
+            data: {
+              full_name:
+                fullName ||
+                null,
 
-            activity_seller_id:
-              sellerId,
-          },
-        }
-      );
+              portal_type:
+                "activity_seller",
+
+              turobus_company_id:
+                companyId,
+
+              activity_seller_id:
+                sellerId,
+            },
+          }
+        );
 
 
     if (
       inviteError ||
       !invited.user
     ) {
-
       return NextResponse.json(
         {
           error:
@@ -233,7 +271,6 @@ export async function POST(
           status: 400,
         }
       );
-
     }
 
 
@@ -241,48 +278,16 @@ export async function POST(
       invited.user.id;
 
 
-    const {
-      error:
-        memberError,
-    } =
-      await admin
-        .from(
-          "company_members"
-        )
-        .insert({
-          user_id:
-            userId,
+    /*
+      IMPORTANT:
+      External seller is deliberately NOT inserted into company_members.
 
-          company_id:
-            companyId,
-
-          role:
-            "sales",
-
-          full_name:
-            fullName ||
-            null,
-
-          is_active:
-            true,
-        });
-
-
-    if (
-      memberError
-    ) {
-
-      return NextResponse.json(
-        {
-          error:
-            memberError.message,
-        },
-        {
-          status: 400,
-        }
-      );
-
-    }
+      Therefore:
+      - no internal dashboard membership
+      - no company finance access
+      - no other company bookings
+      - no cost/profit access
+    */
 
 
     const {
@@ -293,25 +298,30 @@ export async function POST(
         .from(
           "activity_os_seller_users"
         )
-        .insert({
-          company_id:
-            companyId,
+        .upsert(
+          {
+            company_id:
+              companyId,
 
-          seller_id:
-            sellerId,
+            seller_id:
+              sellerId,
 
-          user_id:
-            userId,
+            user_id:
+              userId,
 
-          is_active:
-            true,
-        });
+            is_active:
+              true,
+          },
+          {
+            onConflict:
+              "company_id,seller_id,user_id",
+          }
+        );
 
 
     if (
       sellerUserError
     ) {
-
       return NextResponse.json(
         {
           error:
@@ -321,19 +331,19 @@ export async function POST(
           status: 400,
         }
       );
-
     }
 
 
     return NextResponse.json({
       ok: true,
       userId,
+      portal:
+        "/activity-satici",
     });
 
   } catch (
     error
   ) {
-
     return NextResponse.json(
       {
         error:
@@ -345,7 +355,5 @@ export async function POST(
         status: 500,
       }
     );
-
   }
-
 }
