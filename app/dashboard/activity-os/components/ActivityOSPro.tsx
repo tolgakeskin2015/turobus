@@ -2303,6 +2303,14 @@ export default function ActivityOSPro({
 
             <div className="flex gap-2 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 
+              <Link
+                href="/dashboard/activity-control-center"
+                className="flex min-w-fit items-center gap-2 whitespace-nowrap rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-xs font-black text-orange-300 transition hover:bg-orange-500 hover:text-white"
+              >
+                <FaTasks />
+                Kontrol Merkezi
+              </Link>
+
               {menu.map(
                 (
                   item
