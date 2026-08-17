@@ -859,14 +859,134 @@ const menuGroups: MenuGroup[] = [
     title: "AKTİVİTE OS",
     items: [
       {
-        href: "/dashboard/activity-network",
-        label: "Activity Network",
+        href: "/dashboard/activity-os",
+        label: "Yönetim Merkezi",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+        children: [
+          {
+            href: "/dashboard/activity-os",
+            label: "Genel Bakış",
+            icon: FaChartLine,
+            roles: ["super_admin","company_owner","operation_manager","sales","accounting"],
+          },
+          {
+            href: "/dashboard/activity-os/calendar",
+            label: "Takvim & Slotlar",
+            icon: FaClipboardList,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+          {
+            href: "/dashboard/activity-os/bookings",
+            label: "Rezervasyonlar",
+            icon: FaClipboardList,
+            roles: ["super_admin","company_owner","operation_manager","sales","accounting"],
+          },
+          {
+            href: "/dashboard/activity-os/products",
+            label: "Aktiviteler",
+            icon: FaStar,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+        ],
+      },
+      {
+        href: "/dashboard/activity-os/operations",
+        label: "Operasyon Merkezi",
         icon: FaBus,
         roles: [
           "super_admin",
           "company_owner",
           "operation_manager",
           "sales",
+        ],
+        children: [
+          {
+            href: "/dashboard/activity-os/operations",
+            label: "Günlük Operasyon",
+            icon: FaClipboardList,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+          {
+            href: "/dashboard/activity-os/staff",
+            label: "Personel & Ekip",
+            icon: FaUsers,
+            roles: ["super_admin","company_owner","operation_manager"],
+          },
+          {
+            href: "/dashboard/activity-network",
+            label: "Activity Network",
+            icon: FaBus,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+        ],
+      },
+      {
+        href: "/dashboard/activity-os/partners",
+        label: "Satış & Partner Merkezi",
+        icon: FaUsers,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+        ],
+        children: [
+          {
+            href: "/dashboard/activity-os/partners",
+            label: "Satışçı & Partnerler",
+            icon: FaUsers,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+          {
+            href: "/dashboard/activity-os/guests",
+            label: "Misafirler",
+            icon: FaUserCircle,
+            roles: ["super_admin","company_owner","operation_manager","sales"],
+          },
+          {
+            href: "/dashboard/activity-os/marketplace",
+            label: "Marketplace",
+            icon: FaStar,
+            roles: ["super_admin","company_owner","operation_manager"],
+          },
+        ],
+      },
+      {
+        href: "/dashboard/activity-os/finance",
+        label: "Finans Merkezi",
+        icon: FaChartLine,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "accounting",
+        ],
+        children: [
+          {
+            href: "/dashboard/activity-os/finance",
+            label: "Finans Dashboard",
+            icon: FaChartLine,
+            roles: ["super_admin","company_owner","operation_manager","accounting"],
+          },
+          {
+            href: "/dashboard/activity-os/reports",
+            label: "Raporlar",
+            icon: FaChartLine,
+            roles: ["super_admin","company_owner","operation_manager","accounting"],
+          },
+          {
+            href: "/dashboard/activity-os/settings",
+            label: "Ayarlar",
+            icon: FaBuilding,
+            roles: ["super_admin","company_owner","operation_manager"],
+          },
         ],
       },
     ],
@@ -1017,6 +1137,7 @@ export default function DashboardLayout({
         "PAKET SATIŞ MERKEZİ",
         "OTEL PMS",
         "VİLLA OS",
+        "AKTİVİTE OS",
       ])
   );
   const [errorMessage, setErrorMessage] = useState("");
