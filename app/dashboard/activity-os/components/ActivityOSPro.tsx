@@ -1933,6 +1933,11 @@ export default function ActivityOSPro({
       return;
     }
 
+    if (!bookingSlot) {
+      setError("Rezervasyon için tarih ve saat slotu seçmek zorunludur.");
+      return;
+    }
+
 
     setError("");
     setMessage("");
@@ -4472,6 +4477,7 @@ export default function ActivityOSPro({
                             event.target.value
                           )
                         }
+                        required
                         className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3"
                       >
                         <option value="">
