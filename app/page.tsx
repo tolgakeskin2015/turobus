@@ -26,6 +26,7 @@ import {
   FaStar,
   FaStore,
   FaSuitcase,
+  FaTicketAlt,
   FaUsers,
 } from "react-icons/fa";
 
@@ -43,7 +44,8 @@ type MarketKey =
   | "activity"
   | "package"
   | "yacht"
-  | "transfer";
+  | "transfer"
+  | "ticket";
 
 
 type Market = {
@@ -156,6 +158,22 @@ const markets: Market[] = [
     image:
       "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1800&q=92",
     icon: FaShip,
+  },
+  {
+    key: "ticket",
+    short: "Biletler",
+    title: "Bilet Marketplace",
+    eyebrow: "ULAŞIM BİLETLERİ",
+    text:
+      "Otobüs, uçak, feribot ve tren biletlerini tek Turobus arama deneyiminde keşfet.",
+    micro:
+      "Rota · Tarih · Yolcu · Sefer",
+    seller:
+      "Bilet sağlayıcıları & taşıyıcılar",
+    href: "/biletler",
+    image:
+      "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1800&q=92",
+    icon: FaTicketAlt,
   },
   {
     key: "transfer",
@@ -317,6 +335,14 @@ const sellers = [
     text:
       "Tatil ve balayı paketleri",
   },
+  {
+    title:
+      "Bilet Sağlayıcıları",
+    icon:
+      FaTicketAlt,
+    text:
+      "Otobüs, uçak, feribot ve tren bilet ağı",
+  },
 ];
 
 
@@ -425,7 +451,9 @@ export default function Home() {
 
     if (
       activeKey ===
-      "transfer"
+      "transfer" ||
+      activeKey ===
+      "ticket"
     ) {
 
       if (
@@ -469,7 +497,9 @@ export default function Home() {
       ) {
 
         params.set(
-          "time",
+          activeKey === "ticket"
+            ? "returnDate"
+            : "time",
           secondValue
         );
 
@@ -536,10 +566,15 @@ export default function Home() {
       params.toString();
 
 
+    const targetHref =
+      activeKey === "ticket"
+        ? "/biletler/sonuclar"
+        : active.href;
+
     router.push(
       query
-        ? `${active.href}?${query}`
-        : active.href
+        ? `${targetHref}?${query}`
+        : targetHref
     );
 
   }
@@ -678,7 +713,7 @@ export default function Home() {
                       </div>
 
                       <div className="mt-2 text-2xl font-black">
-                        7 turizm pazarı
+                        8 turizm pazarı
                       </div>
 
                     </div>
@@ -1161,7 +1196,7 @@ export default function Home() {
 
                 <span className="text-slate-500">
                   {" "}
-                  Yedi Büyük Turizm Pazarı.
+                  Sekiz Büyük Turizm Pazarı.
                 </span>
 
               </h2>

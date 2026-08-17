@@ -20,6 +20,7 @@ const navigation = [
   { label: "Paketler", href: "/paketler" },
   { label: "Yat & Tekne", href: "/yatlar" },
   { label: "Transfer", href: "/transfer" },
+  { label: "Biletler", href: "/biletler" },
 ];
 
 export default function Navbar() {
@@ -96,12 +97,12 @@ export default function Navbar() {
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-5 xl:gap-6 lg:flex">
+          <nav className="hidden items-center gap-3 xl:gap-4 lg:flex">
             {navigation.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="whitespace-nowrap text-[13px] font-bold text-slate-300 transition hover:text-orange-400"
+                className="whitespace-nowrap text-[12px] font-bold text-slate-300 transition hover:text-orange-400"
               >
                 {item.label}
               </Link>
