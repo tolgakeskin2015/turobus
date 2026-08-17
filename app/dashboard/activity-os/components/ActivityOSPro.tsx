@@ -34,6 +34,8 @@ import {
   supabase,
 } from "@/lib/supabase";
 
+import ActivityCrudActions from "./ActivityCrudActions";
+
 import {
   CurrentMembership,
   getCurrentMembership,
@@ -3385,6 +3387,19 @@ export default function ActivityOSPro({
 
                                         </div>
 
+                                        <div className="mt-3">
+                                          <ActivityCrudActions
+                                            kind="slot"
+                                            companyId={
+                                              membership?.company_id ??
+                                              ""
+                                            }
+                                            record={
+                                              slot
+                                            }
+                                          />
+                                        </div>
+
                                       </div>
 
                                     );
@@ -4351,7 +4366,22 @@ export default function ActivityOSPro({
                             </div>
 
 
-                            <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+                            <div className="mt-4 border-t border-white/10 pt-4">
+
+                              <div className="mb-4">
+                                <ActivityCrudActions
+                                  kind="activity"
+                                  companyId={
+                                    membership?.company_id ??
+                                    ""
+                                  }
+                                  record={
+                                    activity
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between">
 
                               <span className="text-[10px] text-slate-500">
                                 Marketplace
@@ -4380,6 +4410,8 @@ export default function ActivityOSPro({
                                   ? "YAYINDA"
                                   : "KAPALI"}
                               </button>
+
+                              </div>
 
                             </div>
 
@@ -4903,6 +4935,17 @@ export default function ActivityOSPro({
                               Misafir
                               <FaExternalLinkAlt />
                             </Link>
+
+                            <ActivityCrudActions
+                              kind="booking"
+                              companyId={
+                                membership?.company_id ??
+                                ""
+                              }
+                              record={
+                                booking
+                              }
+                            />
 
                           </div>
 
