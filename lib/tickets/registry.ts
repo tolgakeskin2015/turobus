@@ -209,21 +209,60 @@ export async function createTicketHold(
 
 export function getTicketProviderHealth():
   TicketProviderHealth[] {
+  const checkedAt =
+    new Date().toISOString();
+
   return registry.map(
-    (entry) => ({
-      providerId:
-        entry.provider.id,
-      name:
-        entry.provider.name,
-      enabled:
-        entry.enabled,
-      modes:
-        entry.modes,
-      status:
-        entry.enabled
-          ? "healthy"
-          : "offline",
-    })
+    (entry) => {
+      const fallback =
+        entry.provider.id ===
+        "turobus_mock";
+
+      let status:
+        TicketProviderHealth["status"];
+
+      if (!entry.enabled) {
+        status = "disabled";
+      } else if (fallback) {
+        status = "healthy";
+      } else {
+        /*
+          Gerçek API adapter'ı aktif edildiğinde
+          canlı probe/latency sonucu buraya
+          bağlanacak.
+        */
+        status = "degraded";
+      }
+
+      return {
+        providerId:
+          entry.provider.id,
+        name:
+          entry.provider.name,
+        enabled:
+          entry.enabled,
+        modes:
+          entry.modes,
+        status,
+        priority:
+          entry.priority,
+        fallback,
+        latencyMs:
+          fallback ? 0 : null,
+        lastCheckedAt:
+          checkedAt,
+        lastSuccessAt:
+          fallback
+            ? checkedAt
+            : null,
+        lastError:
+          !entry.enabled
+            ? "Provider devre dışı."
+            : fallback
+              ? null
+              : "Canlı API health probe henüz yapılandırılmadı.",
+      };
+    }
   );
 }
 

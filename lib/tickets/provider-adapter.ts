@@ -5,12 +5,24 @@ import type {
   TicketSearchInput,
 } from "./types";
 
+export type TicketProviderStatus =
+  | "healthy"
+  | "degraded"
+  | "offline"
+  | "disabled";
+
 export type TicketProviderHealth = {
   providerId: string;
   name: string;
   enabled: boolean;
   modes: TicketMode[];
-  status: "healthy" | "degraded" | "offline";
+  status: TicketProviderStatus;
+  priority: number;
+  fallback: boolean;
+  latencyMs: number | null;
+  lastCheckedAt: string;
+  lastSuccessAt: string | null;
+  lastError: string | null;
 };
 
 export interface TicketProviderAdapter {
