@@ -13,8 +13,10 @@ import {
   FaMapMarkedAlt,
   FaPlusCircle,
   FaSignOutAlt,
+  FaShip,
   FaStar,
   FaTimes,
+  FaTicketAlt,
   FaUserCircle,
   FaUsers,
   FaHotel,} from "react-icons/fa";
@@ -530,6 +532,33 @@ const menuGroups: MenuGroup[] = [
           },
         ],
       },
+
+      {
+        href: "/biletler",
+        label: "Biletler",
+        icon: FaTicketAlt,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+
+      {
+        href: "/dashboard/yat-os",
+        label: "Yat & Tekne OS",
+        icon: FaShip,
+        roles: [
+          "super_admin",
+          "company_owner",
+          "operation_manager",
+          "sales",
+          "accounting",
+        ],
+      },
+
     ],
   },
 
