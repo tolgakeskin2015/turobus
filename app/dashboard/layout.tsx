@@ -1006,19 +1006,19 @@ export default function DashboardLayout({
       </header>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[310px] border-r border-white/[.07] bg-[#080d13] transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[276px] border-r border-white/[.06] bg-[#070c12] transition-transform duration-300 lg:translate-x-0 ${
           mobileOpen
             ? "translate-x-0"
             : "-translate-x-full"
         }`}
       >
         <div className="flex h-full flex-col">
-          <div className="border-b border-white/10 p-6">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-orange-400">
+          <div className="border-b border-white/[.06] px-4 py-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-400">
               TUROBUS OS
             </p>
 
-            <h2 className="mt-3 text-2xl font-black">
+            <h2 className="mt-2 truncate text-lg font-black tracking-tight">
               {membership.company.name}
             </h2>
 
@@ -1057,7 +1057,7 @@ export default function DashboardLayout({
               </div>
             )}
 
-            <div className="mt-4 flex items-center gap-3 rounded-2xl bg-slate-950 p-4">
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-white/[.05] bg-black/20 p-3">
               <FaBuilding className="text-orange-400" />
 
               <div className="min-w-0">
@@ -1066,15 +1066,15 @@ export default function DashboardLayout({
                     "TUROBUS Kullanıcısı"}
                 </p>
 
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-0.5 text-[10px] text-slate-500">
                   {roleLabels[membership.role]}
                 </p>
               </div>
             </div>
           </div>
 
-          <nav className="flex-1 overflow-y-auto px-3 py-4">
-            <div className="space-y-3">
+          <nav className="flex-1 overflow-y-auto px-2.5 py-3">
+            <div className="space-y-1.5">
               {visibleMenuGroups.map((group) => {
                 const isOpen =
                   openMenuGroups.has(group.title);
@@ -1098,14 +1098,14 @@ export default function DashboardLayout({
                       onClick={() =>
                         toggleMenuGroup(group.title)
                       }
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition ${
+                      className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left transition ${
                         hasActiveItem
                           ? "bg-white/[0.04]"
                           : "hover:bg-white/[0.03]"
                       }`}
                     >
                       <span
-                        className={`text-[10px] font-black uppercase tracking-[0.22em] ${
+                        className={`text-[9px] font-black uppercase tracking-[0.18em] ${
                           hasActiveItem
                             ? "text-orange-400"
                             : "text-slate-600"
@@ -1143,7 +1143,7 @@ export default function DashboardLayout({
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <div className="mt-1 space-y-1 pb-1">
+                        <div className="mt-1 space-y-0.5 pb-1">
                           {group.items.map((item) => {
                             const Icon = item.icon;
 
@@ -1171,13 +1171,13 @@ export default function DashboardLayout({
                                     onClick={() =>
                                       toggleSubMenu(item.href)
                                     }
-                                    className={`group flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-bold transition ${
+                                    className={`group flex min-h-10 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-bold transition ${
                                       isActive
                                         ? "border border-orange-500/20 bg-orange-500/10 text-orange-300"
                                         : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
                                     }`}
                                   >
-                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950">
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-950">
                                       <Icon className="text-sm" />
                                     </span>
 
@@ -1195,7 +1195,7 @@ export default function DashboardLayout({
                                   </button>
 
                                   {subMenuOpen && (
-                                    <div className="ml-5 mt-1 space-y-1 border-l border-white/10 pl-3">
+                                    <div className="ml-4 mt-1 space-y-0.5 border-l border-white/[.08] pl-2.5">
                                       {item.children?.map((child) => {
                                         const ChildIcon = child.icon;
 
@@ -1209,7 +1209,7 @@ export default function DashboardLayout({
                                           <Link
                                             key={child.href}
                                             href={child.href}
-                                            className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-xs font-bold transition ${
+                                            className={`flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-[11px] font-bold transition ${
                                               childActive
                                                 ? "bg-orange-500 text-white"
                                                 : "text-slate-500 hover:bg-white/[0.05] hover:text-white"
@@ -1230,13 +1230,13 @@ export default function DashboardLayout({
                               <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold transition ${
+                                className={`group flex min-h-10 items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-bold transition ${
                                   isActive
                                     ? "border border-orange-500/30 bg-orange-500/15 text-orange-300 shadow-lg shadow-orange-500/5"
                                     : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
                                 }`}
                               >
-                                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
                                   isActive
                                     ? "bg-white/15"
                                     : "bg-slate-950 group-hover:bg-white/[0.06]"
@@ -1259,7 +1259,7 @@ export default function DashboardLayout({
             </div>
           </nav>
 
-          <div className="border-t border-white/10 p-4">
+          <div className="border-t border-white/[.06] p-3">
             <button
               type="button"
               onClick={signOut}
@@ -1281,7 +1281,7 @@ export default function DashboardLayout({
         />
       )}
 
-      <div className="lg:pl-[310px]">
+      <div className="lg:pl-[276px]">
         {children}
       </div>
     </div>

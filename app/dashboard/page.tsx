@@ -919,16 +919,16 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen bg-[#05090f] text-white">
 
-      <div className="mx-auto max-w-[1700px] px-4 py-5 md:px-6 lg:px-8 lg:py-7">
+      <div className="mx-auto max-w-[1780px] px-4 py-4 md:px-5 lg:px-6 lg:py-5">
 
 
         {/* TOP BAR */}
 
-        <section className="relative overflow-hidden rounded-[32px] border border-white/[.08] bg-gradient-to-br from-[#111820] via-[#0b1118] to-[#070b10] p-6 shadow-[0_30px_100px_rgba(0,0,0,.28)] lg:p-8">
+        <section className="relative overflow-hidden rounded-[24px] border border-white/[.07] bg-gradient-to-br from-[#10161d] via-[#0b1016] to-[#070b10] px-5 py-5 shadow-[0_18px_60px_rgba(0,0,0,.22)] lg:px-6 lg:py-5">
 
           <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-orange-500/[.08] blur-3xl" />
 
-          <div className="relative flex flex-col justify-between gap-7 xl:flex-row xl:items-center">
+          <div className="relative flex flex-col justify-between gap-5 xl:flex-row xl:items-center">
 
             <div>
 
@@ -946,15 +946,15 @@ export default function Dashboard() {
               </div>
 
 
-              <h1 className="mt-5 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+              <h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl lg:text-[34px]">
                 Hoş geldiniz
-                {membership?.company?.name
-                  ? `, ${membership.company.name}`
+                {membership?.full_name
+                  ? `, ${membership.full_name}`
                   : ""}
               </h1>
 
 
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
+              <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-400">
                 Turizm işletmenizin satış, rezervasyon, kapasite, operasyon,
                 tahsilat ve Marketplace hareketlerini tek merkezden yönetin.
               </p>
@@ -964,7 +964,7 @@ export default function Dashboard() {
 
             <div className="flex flex-wrap items-center gap-3">
 
-              <div className="rounded-2xl border border-white/[.08] bg-black/20 px-5 py-3.5">
+              <div className="rounded-xl border border-white/[.07] bg-black/20 px-4 py-2.5">
 
                 <div className="text-[9px] font-black uppercase tracking-[.13em] text-slate-600">
                   Bugün
@@ -977,7 +977,7 @@ export default function Dashboard() {
               </div>
 
 
-              <div className="rounded-2xl border border-white/[.08] bg-black/20 px-5 py-3.5">
+              <div className="rounded-xl border border-white/[.07] bg-black/20 px-4 py-2.5">
 
                 <div className="text-[9px] font-black uppercase tracking-[.13em] text-slate-600">
                   Yetki
@@ -994,7 +994,7 @@ export default function Dashboard() {
 
               <Link
                 href="/dashboard/command-center"
-                className="flex min-h-14 items-center gap-3 rounded-2xl bg-orange-500 px-5 text-xs font-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
+                className="flex min-h-11 items-center gap-2.5 rounded-xl bg-orange-500 px-4 text-[11px] font-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
               >
                 <FaBolt />
                 Kontrol Merkezi
@@ -1018,7 +1018,7 @@ export default function Dashboard() {
 
         {/* KPI */}
 
-        <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 
           <Metric
             icon={
@@ -1080,12 +1080,12 @@ export default function Dashboard() {
 
         {/* MAIN GRID */}
 
-        <section className="mt-5 grid gap-5 2xl:grid-cols-[1.15fr_.85fr]">
+        <section className="mt-4 grid gap-4 2xl:grid-cols-[1.05fr_.95fr]">
 
 
           {/* SYSTEM CENTERS */}
 
-          <div className="rounded-[30px] border border-white/[.08] bg-[#0a1017] p-5 lg:p-6">
+          <div className="rounded-[22px] border border-white/[.07] bg-[#0a1017] p-4 lg:p-5">
 
             <div className="flex flex-wrap items-center justify-between gap-4">
 
@@ -1095,7 +1095,7 @@ export default function Dashboard() {
                   İŞLETME MERKEZLERİ
                 </div>
 
-                <h2 className="mt-2 text-2xl font-black">
+                <h2 className="mt-1.5 text-xl font-black">
                   Tüm operasyon sistemleri
                 </h2>
 
@@ -1108,7 +1108,7 @@ export default function Dashboard() {
             </div>
 
 
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <div className="mt-4 grid gap-2.5 md:grid-cols-2">
 
               {systemCards.map(
                 (
@@ -1127,7 +1127,7 @@ export default function Dashboard() {
                       href={
                         item.href
                       }
-                      className="group rounded-[24px] border border-white/[.07] bg-white/[.025] p-5 transition hover:border-orange-500/25 hover:bg-white/[.045]"
+                      className="group rounded-[18px] border border-white/[.06] bg-white/[.025] p-4 transition hover:border-orange-500/25 hover:bg-white/[.045]"
                     >
 
                       <div className="flex items-start justify-between gap-4">
@@ -1143,17 +1143,17 @@ export default function Dashboard() {
                       </div>
 
 
-                      <h3 className="mt-5 text-lg font-black">
+                      <h3 className="mt-3 text-[15px] font-black">
                         {item.title}
                       </h3>
 
 
-                      <p className="mt-2 min-h-[40px] text-xs leading-5 text-slate-500">
+                      <p className="mt-1.5 min-h-[34px] text-[10px] leading-5 text-slate-500">
                         {item.description}
                       </p>
 
 
-                      <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-orange-400">
+                      <div className="mt-3 flex items-center gap-2 text-[9px] font-black text-orange-400">
 
                         Merkezi Aç
 
@@ -1175,7 +1175,7 @@ export default function Dashboard() {
 
           {/* TODAY OPERATIONS */}
 
-          <div className="rounded-[30px] border border-white/[.08] bg-[#0a1017] p-5 lg:p-6">
+          <div className="rounded-[22px] border border-white/[.07] bg-[#0a1017] p-4 lg:p-5">
 
             <div className="flex items-center justify-between gap-4">
 
@@ -1185,7 +1185,7 @@ export default function Dashboard() {
                   BUGÜN
                 </div>
 
-                <h2 className="mt-2 text-2xl font-black">
+                <h2 className="mt-1.5 text-xl font-black">
                   Canlı Operasyon
                 </h2>
 
@@ -1202,7 +1202,7 @@ export default function Dashboard() {
             </div>
 
 
-            <div className="mt-5 space-y-2">
+            <div className="mt-4 space-y-2">
 
               {todayActivityBookings
                 .slice(
@@ -1219,7 +1219,7 @@ export default function Dashboard() {
                         booking.id
                       }
                       href="/dashboard/activity-os/bookings"
-                      className="flex items-center justify-between gap-4 rounded-2xl border border-white/[.06] bg-white/[.025] p-4 transition hover:bg-white/[.045]"
+                      className="flex items-center justify-between gap-4 rounded-xl border border-white/[.06] bg-white/[.025] p-3 transition hover:bg-white/[.045]"
                     >
 
                       <div className="flex min-w-0 items-center gap-4">
@@ -1302,7 +1302,7 @@ export default function Dashboard() {
             </div>
 
 
-            <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="mt-4 grid grid-cols-2 gap-2.5">
 
               <div className="rounded-2xl border border-white/[.06] bg-black/20 p-4">
 
@@ -1310,7 +1310,7 @@ export default function Dashboard() {
                   Gelecek Müsait Kontenjan
                 </div>
 
-                <div className="mt-2 text-2xl font-black text-emerald-400">
+                <div className="mt-1.5 text-xl font-black text-emerald-400">
                   {totalFutureCapacity}
                 </div>
 
@@ -1340,9 +1340,9 @@ export default function Dashboard() {
 
         {/* QUICK ACTIONS + STATUS */}
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-[1fr_390px]">
+        <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_340px]">
 
-          <div className="rounded-[30px] border border-white/[.08] bg-[#0a1017] p-5 lg:p-6">
+          <div className="rounded-[22px] border border-white/[.07] bg-[#0a1017] p-4 lg:p-5">
 
             <div>
 
@@ -1357,7 +1357,7 @@ export default function Dashboard() {
             </div>
 
 
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6">
 
               {quickActions.map(
                 (
@@ -1376,7 +1376,7 @@ export default function Dashboard() {
                       href={
                         item.href
                       }
-                      className="group flex min-h-[118px] flex-col items-center justify-center rounded-[22px] border border-white/[.07] bg-white/[.025] p-4 text-center transition hover:border-orange-500/25 hover:bg-orange-500/[.05]"
+                      className="group flex min-h-[96px] flex-col items-center justify-center rounded-[22px] border border-white/[.07] bg-white/[.025] p-4 text-center transition hover:border-orange-500/25 hover:bg-orange-500/[.05]"
                     >
 
                       <div className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-500/10 text-orange-400 transition group-hover:bg-orange-500 group-hover:text-white">
@@ -1494,7 +1494,7 @@ function Metric({
 }) {
 
   return (
-    <article className="rounded-[26px] border border-white/[.08] bg-[#0a1017] p-5 transition hover:border-orange-500/20">
+    <article className="rounded-[20px] border border-white/[.07] bg-[#0a1017] p-4 transition hover:border-orange-500/20">
 
       <div className="flex items-start justify-between gap-4">
 
@@ -1504,21 +1504,21 @@ function Metric({
             {label}
           </div>
 
-          <div className="mt-3 text-2xl font-black lg:text-3xl">
+          <div className="mt-1.5 text-xl font-black">
             {value}
           </div>
 
         </div>
 
 
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-orange-500/15 bg-orange-500/10 text-orange-400">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-orange-500/15 bg-orange-500/10 text-orange-400">
           <Icon />
         </div>
 
       </div>
 
 
-      <div className="mt-4 text-[10px] font-bold text-slate-500">
+      <div className="mt-3 text-[9px] font-bold text-slate-500">
         {sub}
       </div>
 
