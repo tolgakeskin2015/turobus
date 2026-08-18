@@ -2551,8 +2551,14 @@ export default function ActivityOSPro({
               bookingActivity &&
             slot.status ===
               "open" &&
-            slot.capacity >
-              slot.reserved_count
+            Number(
+              slot.remaining_count ??
+              Math.max(
+                slot.capacity -
+                slot.reserved_count,
+                0
+              )
+            ) > 0
         ),
       [
         slots,

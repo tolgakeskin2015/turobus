@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -196,6 +197,105 @@ export default function ActivityDailyCapacityBoard({
     setError,
   ] =
     useState("");
+
+
+  useEffect(
+    () => {
+
+      if (!companyId) {
+        return;
+      }
+
+
+      let timer:
+        ReturnType<typeof setTimeout> |
+        null =
+          null;
+
+
+      function queueRefresh() {
+
+        if (timer) {
+          clearTimeout(
+            timer
+          );
+        }
+
+
+        timer =
+          setTimeout(
+            () => {
+              void onRefresh();
+            },
+            250
+          );
+
+      }
+
+
+      const channel =
+        supabase
+          .channel(
+            `activity-capacity-${companyId}`
+          )
+          .on(
+            "postgres_changes",
+            {
+              event:
+                "*",
+
+              schema:
+                "public",
+
+              table:
+                "activity_os_bookings",
+
+              filter:
+                `company_id=eq.${companyId}`,
+            },
+            queueRefresh
+          )
+          .on(
+            "postgres_changes",
+            {
+              event:
+                "*",
+
+              schema:
+                "public",
+
+              table:
+                "package_activity_slots",
+
+              filter:
+                `company_id=eq.${companyId}`,
+            },
+            queueRefresh
+          )
+          .subscribe();
+
+
+      return () => {
+
+        if (timer) {
+          clearTimeout(
+            timer
+          );
+        }
+
+
+        void supabase.removeChannel(
+          channel
+        );
+
+      };
+
+    },
+    [
+      companyId,
+      onRefresh,
+    ]
+  );
 
 
   const filtered =
@@ -537,13 +637,10 @@ export default function ActivityDailyCapacityBoard({
         bookingError,
     } =
       await supabase.rpc(
-        "activity_os_create_booking",
+        "activity_os_quick_booking",
         {
           p_company_id:
             companyId,
-
-          p_activity_id:
-            activeSlot.activity_id,
 
           p_slot_id:
             activeSlot.id,
@@ -586,14 +683,6 @@ export default function ActivityDailyCapacityBoard({
           p_hotel_name:
             hotelName.trim() ||
             null,
-
-          p_room_no:
-            null,
-
-          p_pickup_required:
-            Boolean(
-              pickupLocation.trim()
-            ),
 
           p_pickup_location:
             pickupLocation.trim() ||
@@ -655,8 +744,20 @@ export default function ActivityDailyCapacityBoard({
 
           <div>
 
-            <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
-              GÜNLÜK KONTENJAN YÖNETİMİ
+            <div className="flex flex-wrap items-center gap-3">
+
+              <div className="text-[10px] font-black uppercase tracking-[.2em] text-orange-400">
+                GÜNLÜK KONTENJAN YÖNETİMİ
+              </div>
+
+              <div className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[8px] font-black uppercase tracking-[.12em] text-emerald-300">
+
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+
+                CANLI STOK
+
+              </div>
+
             </div>
 
             <h2 className="mt-2 text-2xl font-black md:text-3xl">
