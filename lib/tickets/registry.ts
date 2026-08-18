@@ -10,6 +10,13 @@ import type {
 } from "./provider-adapter";
 
 import {
+  getProviderRuntimeMetric,
+  recordProviderError,
+  recordProviderFallback,
+  recordProviderSuccess,
+} from "./runtime-metrics";
+
+import {
   mockProvider,
 } from "./providers/mock";
 
@@ -36,12 +43,20 @@ type RegistryEntry = {
   priority: number;
 };
 
+const PROVIDER_TIMEOUT_MS =
+  Number(
+    process.env
+      .TICKET_PROVIDER_TIMEOUT_MS ??
+      "8000"
+  );
+
 const registry: RegistryEntry[] = [
   {
     provider: busProvider,
     modes: ["bus"],
     enabled:
-      process.env.TICKET_BUS_PROVIDER_ENABLED ===
+      process.env
+        .TICKET_BUS_PROVIDER_ENABLED ===
       "true",
     priority: 10,
   },
@@ -49,7 +64,8 @@ const registry: RegistryEntry[] = [
     provider: flightProvider,
     modes: ["flight"],
     enabled:
-      process.env.TICKET_FLIGHT_PROVIDER_ENABLED ===
+      process.env
+        .TICKET_FLIGHT_PROVIDER_ENABLED ===
       "true",
     priority: 10,
   },
@@ -57,7 +73,8 @@ const registry: RegistryEntry[] = [
     provider: ferryProvider,
     modes: ["ferry"],
     enabled:
-      process.env.TICKET_FERRY_PROVIDER_ENABLED ===
+      process.env
+        .TICKET_FERRY_PROVIDER_ENABLED ===
       "true",
     priority: 10,
   },
@@ -65,7 +82,8 @@ const registry: RegistryEntry[] = [
     provider: trainProvider,
     modes: ["train"],
     enabled:
-      process.env.TICKET_TRAIN_PROVIDER_ENABLED ===
+      process.env
+        .TICKET_TRAIN_PROVIDER_ENABLED ===
       "true",
     priority: 10,
   },
@@ -81,6 +99,74 @@ const registry: RegistryEntry[] = [
     priority: 100,
   },
 ];
+
+function timeoutPromise<T>(
+  promise: Promise<T>,
+  providerId: string,
+  operation: string
+): Promise<T> {
+  return new Promise<T>(
+    (resolve, reject) => {
+      const timer =
+        setTimeout(
+          () => {
+            reject(
+              new Error(
+                `${providerId} ${operation} timeout (${PROVIDER_TIMEOUT_MS} ms)`
+              )
+            );
+          },
+          PROVIDER_TIMEOUT_MS
+        );
+
+      promise.then(
+        (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        (error) => {
+          clearTimeout(timer);
+          reject(error);
+        }
+      );
+    }
+  );
+}
+
+async function measuredCall<T>(
+  provider: TicketProviderAdapter,
+  operation: string,
+  callback: () => Promise<T>
+): Promise<T> {
+  const startedAt =
+    Date.now();
+
+  try {
+    const result =
+      await timeoutPromise(
+        callback(),
+        provider.id,
+        operation
+      );
+
+    recordProviderSuccess(
+      provider.id,
+      operation,
+      Date.now() - startedAt
+    );
+
+    return result;
+  } catch (error) {
+    recordProviderError(
+      provider.id,
+      operation,
+      error,
+      Date.now() - startedAt
+    );
+
+    throw error;
+  }
+}
 
 export function getTicketProviders(
   mode: TicketMode
@@ -127,8 +213,13 @@ export async function searchTicketOffers(
       providers.map(
         async (provider) => {
           const offers =
-            await provider.search(
-              input
+            await measuredCall(
+              provider,
+              "search",
+              () =>
+                provider.search(
+                  input
+                )
             );
 
           return offers.map(
@@ -142,13 +233,40 @@ export async function searchTicketOffers(
       )
     );
 
-  return results.flatMap(
-    (result) =>
-      result.status ===
-      "fulfilled"
-        ? result.value
-        : []
+  let failureSeen = false;
+
+  const offers:
+    TicketOffer[] = [];
+
+  results.forEach(
+    (result, index) => {
+      const provider =
+        providers[index];
+
+      if (
+        result.status ===
+        "rejected"
+      ) {
+        failureSeen = true;
+        return;
+      }
+
+      if (
+        failureSeen &&
+        result.value.length > 0
+      ) {
+        recordProviderFallback(
+          provider.id
+        );
+      }
+
+      offers.push(
+        ...result.value
+      );
+    }
   );
+
+  return offers;
 }
 
 export async function findTicketOffer(
@@ -160,17 +278,31 @@ export async function findTicketOffer(
       input.mode
     );
 
+  let previousFailure =
+    false;
+
   for (
     const provider of providers
   ) {
     try {
       const offer =
-        await provider.getOffer(
-          input,
-          offerId
+        await measuredCall(
+          provider,
+          "getOffer",
+          () =>
+            provider.getOffer(
+              input,
+              offerId
+            )
         );
 
       if (offer) {
+        if (previousFailure) {
+          recordProviderFallback(
+            provider.id
+          );
+        }
+
         return {
           ...offer,
           providerId:
@@ -178,8 +310,8 @@ export async function findTicketOffer(
         };
       }
     } catch {
-      // Bir sağlayıcı hata verirse
-      // diğer sağlayıcılarla devam edilir.
+      previousFailure =
+        true;
     }
   }
 
@@ -201,10 +333,48 @@ export async function createTicketHold(
     );
   }
 
-  return provider.createHold(
-    input,
-    offer
+  return measuredCall(
+    provider,
+    "createHold",
+    () =>
+      provider.createHold(
+        input,
+        offer
+      )
   );
+}
+
+function statusForProvider(
+  enabled: boolean,
+  fallback: boolean,
+  consecutiveErrors: number,
+  successCount: number
+):
+  TicketProviderHealth["status"] {
+  if (!enabled) {
+    return "disabled";
+  }
+
+  if (
+    consecutiveErrors >= 3
+  ) {
+    return "offline";
+  }
+
+  if (
+    consecutiveErrors > 0
+  ) {
+    return "degraded";
+  }
+
+  if (
+    successCount > 0 ||
+    fallback
+  ) {
+    return "healthy";
+  }
+
+  return "degraded";
 }
 
 export function getTicketProviderHealth():
@@ -218,73 +388,79 @@ export function getTicketProviderHealth():
         entry.provider.id ===
         "turobus_mock";
 
-      let status:
-        TicketProviderHealth["status"];
+      const metric =
+        getProviderRuntimeMetric(
+          entry.provider.id
+        );
 
-      if (!entry.enabled) {
-        status = "disabled";
-      } else if (fallback) {
-        status = "healthy";
-      } else {
-        /*
-          Gerçek API adapter'ı aktif edildiğinde
-          canlı probe/latency sonucu buraya
-          bağlanacak.
-        */
-        status = "degraded";
-      }
+      const status =
+        statusForProvider(
+          entry.enabled,
+          fallback,
+          metric.consecutiveErrors,
+          metric.successCount
+        );
 
       return {
         providerId:
           entry.provider.id,
+
         name:
           entry.provider.name,
+
         enabled:
           entry.enabled,
+
         modes:
           entry.modes,
+
         status,
+
         priority:
           entry.priority,
+
         fallback,
+
         latencyMs:
-          fallback ? 0 : null,
+          metric.latencyMs,
+
+        totalRequests:
+          metric.totalRequests,
+
+        successCount:
+          metric.successCount,
+
+        errorCount:
+          metric.errorCount,
+
+        consecutiveErrors:
+          metric.consecutiveErrors,
+
+        fallbackEvents:
+          metric.fallbackEvents,
+
         lastCheckedAt:
           checkedAt,
+
         lastSuccessAt:
-          fallback
-            ? checkedAt
-            : null,
+          metric.lastSuccessAt,
+
+        lastErrorAt:
+          metric.lastErrorAt,
+
+        lastOperation:
+          metric.lastOperation,
+
         lastError:
           !entry.enabled
             ? "Provider devre dışı."
-            : fallback
-              ? null
-              : "Canlı API health probe henüz yapılandırılmadı.",
+            : metric.lastError ??
+              (
+                fallback
+                  ? null
+                  : "Henüz canlı provider çağrısı yapılmadı."
+              ),
       };
     }
   );
 }
-
-/*
-  GERÇEK API EKLEME NOKTASI
-
-  Örnek:
-
-  {
-    provider: busRealProvider,
-    modes: ["bus"],
-    enabled: true,
-    priority: 10,
-  }
-
-  {
-    provider: flightRealProvider,
-    modes: ["flight"],
-    enabled: true,
-    priority: 10,
-  }
-
-  Böylece Turobus tek sağlayıcıya
-  bağımlı kalmaz.
-*/

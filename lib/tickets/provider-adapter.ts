@@ -19,9 +19,19 @@ export type TicketProviderHealth = {
   status: TicketProviderStatus;
   priority: number;
   fallback: boolean;
+
   latencyMs: number | null;
+
+  totalRequests: number;
+  successCount: number;
+  errorCount: number;
+  consecutiveErrors: number;
+  fallbackEvents: number;
+
   lastCheckedAt: string;
   lastSuccessAt: string | null;
+  lastErrorAt: string | null;
+  lastOperation: string | null;
   lastError: string | null;
 };
 
