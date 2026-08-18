@@ -30,6 +30,7 @@ import {
   FaStar,
   FaStore,
   FaSuitcaseRolling,
+  FaTicketAlt,
   FaUsers,
 } from "react-icons/fa";
 
@@ -828,6 +829,90 @@ export default function Dashboard() {
   ];
 
 
+  const frontModules = [
+    {
+      title: "Oteller",
+      subtitle: "PMS · Oda · Rezervasyon",
+      href: "/dashboard/hotel/yonetim-merkezi",
+      publicHref: "/oteller",
+      icon: FaHotel,
+      value: "Hotel OS",
+      detail: "Front Office & Dağıtım",
+      tone: "blue",
+    },
+    {
+      title: "Villalar",
+      subtitle: "ERP · Takvim · B2B",
+      href: "/dashboard/villa-os",
+      publicHref: "/villalar",
+      icon: FaBuilding,
+      value: "Villa OS",
+      detail: "Portföy & Partner Ağı",
+      tone: "emerald",
+    },
+    {
+      title: "Aktiviteler",
+      subtitle: "Slot · Kontenjan · Operasyon",
+      href: "/dashboard/activity-os",
+      publicHref: "/aktiviteler",
+      icon: FaStar,
+      value: `${todayActivityGuests} bugün`,
+      detail: `${totalFutureCapacity} müsait kontenjan`,
+      tone: "orange",
+    },
+    {
+      title: "Turlar",
+      subtitle: "Çıkış · Manifest · Satış",
+      href: "/dashboard/turlar",
+      publicHref: "/turlar",
+      icon: FaBus,
+      value: `${activeTours} aktif`,
+      detail: `${reservations.length} rezervasyon`,
+      tone: "amber",
+    },
+    {
+      title: "Paketler",
+      subtitle: "Teklif · Rezervasyon · Operasyon",
+      href: "/dashboard/package-os",
+      publicHref: "/paketler",
+      icon: FaSuitcaseRolling,
+      value: "Package OS",
+      detail: "Paket Satış Merkezi",
+      tone: "fuchsia",
+    },
+    {
+      title: "Biletler",
+      subtitle: "Uçak · Otobüs · Seyahat",
+      href: "/biletler",
+      publicHref: "/biletler",
+      icon: FaTicketAlt,
+      value: "Bilet Merkezi",
+      detail: "Provider-ready altyapı",
+      tone: "cyan",
+    },
+    {
+      title: "Transfer",
+      subtitle: "Araç · Pickup · Ulaşım",
+      href: "/dashboard/araclar",
+      publicHref: "/transfer",
+      icon: FaRoute,
+      value: "Transfer",
+      detail: "Operasyon & Marketplace",
+      tone: "violet",
+    },
+    {
+      title: "Yat & Tekne",
+      subtitle: "Tekne · Yat · Deniz",
+      href: "/yatlar",
+      publicHref: "/yatlar",
+      icon: FaShip,
+      value: "Yat & Tekne",
+      detail: "Marketplace",
+      tone: "sky",
+    },
+  ];
+
+
   const quickActions = [
     {
       label:
@@ -1016,6 +1101,134 @@ export default function Dashboard() {
         )}
 
 
+        {/* TUROBUS PRODUCT UNIVERSE */}
+
+        <section className="mt-4">
+
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+
+            <div>
+
+              <div className="text-[9px] font-black uppercase tracking-[.18em] text-orange-400">
+                TUROBUS EKOSİSTEMİ
+              </div>
+
+              <h2 className="mt-1 text-lg font-black tracking-tight">
+                Tüm turizm ürünleri tek merkezde
+              </h2>
+
+            </div>
+
+
+            <div className="hidden text-[9px] font-bold text-slate-600 lg:block">
+              Yönetim · Operasyon · Satış · Marketplace
+            </div>
+
+          </div>
+
+
+          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 2xl:grid-cols-8">
+
+            {frontModules.map(
+              (
+                module
+              ) => {
+
+                const Icon =
+                  module.icon;
+
+
+                return (
+
+                  <article
+                    key={
+                      module.title
+                    }
+                    className="group relative overflow-hidden rounded-[18px] border border-white/[.07] bg-gradient-to-br from-white/[.045] to-white/[.015] p-4 transition hover:-translate-y-0.5 hover:border-orange-500/25 hover:bg-white/[.055]"
+                  >
+
+                    <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-orange-500/[.035] blur-2xl" />
+
+
+                    <div className="relative">
+
+                      <div className="flex items-start justify-between gap-2">
+
+                        <div className="grid h-9 w-9 place-items-center rounded-xl border border-orange-500/15 bg-orange-500/10 text-orange-400">
+                          <Icon className="text-sm" />
+                        </div>
+
+
+                        <span className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[.1em] text-emerald-400">
+
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+
+                          AKTİF
+
+                        </span>
+
+                      </div>
+
+
+                      <h3 className="mt-4 text-sm font-black">
+                        {module.title}
+                      </h3>
+
+
+                      <p className="mt-1 min-h-[30px] text-[9px] leading-4 text-slate-600">
+                        {module.subtitle}
+                      </p>
+
+
+                      <div className="mt-3 border-t border-white/[.06] pt-3">
+
+                        <div className="truncate text-[13px] font-black text-white">
+                          {module.value}
+                        </div>
+
+                        <div className="mt-1 truncate text-[8px] font-bold text-slate-600">
+                          {module.detail}
+                        </div>
+
+                      </div>
+
+
+                      <div className="mt-3 grid grid-cols-2 gap-1.5">
+
+                        <Link
+                          href={
+                            module.href
+                          }
+                          className="flex min-h-8 items-center justify-center rounded-lg bg-orange-500/10 px-2 text-[8px] font-black text-orange-300 transition hover:bg-orange-500 hover:text-white"
+                        >
+                          Yönet
+                        </Link>
+
+                        <Link
+                          href={
+                            module.publicHref
+                          }
+                          className="flex min-h-8 items-center justify-center rounded-lg border border-white/[.07] px-2 text-[8px] font-black text-slate-500 transition hover:bg-white/[.05] hover:text-white"
+                        >
+                          Görüntüle
+                        </Link>
+
+                      </div>
+
+                    </div>
+
+                  </article>
+
+                );
+
+              }
+            )}
+
+          </div>
+
+        </section>
+
+
         {/* KPI */}
 
         <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -1038,7 +1251,7 @@ export default function Dashboard() {
             icon={
               FaUsers
             }
-            label="Bugünkü Aktivite Misafiri"
+            label="Bugünkü Aktif Misafir"
             value={todayActivityGuests.toLocaleString(
               "tr-TR"
             )}
@@ -1049,7 +1262,7 @@ export default function Dashboard() {
             icon={
               FaMoneyBillWave
             }
-            label="Toplam Satış"
+            label="Toplam Brüt Satış"
             value={money(
               totalRevenue
             )}
@@ -1063,7 +1276,7 @@ export default function Dashboard() {
                 ? FaExclamationTriangle
                 : FaCheckCircle
             }
-            label="Bekleyen İşlem"
+            label="Aksiyon Bekleyen"
             value={pendingReservations.toLocaleString(
               "tr-TR"
             )}
@@ -1096,13 +1309,13 @@ export default function Dashboard() {
                 </div>
 
                 <h2 className="mt-1.5 text-xl font-black">
-                  Tüm operasyon sistemleri
+                  Yönetim & operasyon merkezleri
                 </h2>
 
               </div>
 
               <span className="rounded-full border border-white/[.08] px-3 py-1.5 text-[9px] font-black text-slate-500">
-                Tek Oturum · Tek Firma
+                Tek Hesap · Çoklu Modül
               </span>
 
             </div>
