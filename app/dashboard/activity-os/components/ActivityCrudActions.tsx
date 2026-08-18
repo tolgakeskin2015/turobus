@@ -1080,21 +1080,21 @@ export default function ActivityCrudActions({
                 </Field>
 
 
-                <Field label="Ödenen">
+                <Field label="Ödenen · Ödeme Merkezi">
                   <input
                     type="number"
                     value={
                       form.paid_total ??
                       0
                     }
-                    onChange={(e) =>
-                      change(
-                        "paid_total",
-                        e.target.value
-                      )
-                    }
-                    className={inputClass}
+                    disabled
+                    className={`${inputClass} cursor-not-allowed opacity-60`}
                   />
+
+                  <div className="mt-2 text-[9px] leading-4 text-slate-600">
+                    Tahsilat tutarı rezervasyon düzenleme ekranından değiştirilemez.
+                    Ödeme Merkezi veya Finans ekranını kullanın.
+                  </div>
                 </Field>
 
 
