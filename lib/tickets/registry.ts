@@ -104,6 +104,34 @@ const registry: RegistryEntry[] = [
   },
 ];
 
+export class TicketProviderTimeoutError extends Error {
+  readonly providerId: string;
+  readonly operation: string;
+  readonly timeoutMs: number;
+
+  constructor(
+    providerId: string,
+    operation: string,
+    timeoutMs: number
+  ) {
+    super(
+      `${providerId} ${operation} timeout (${timeoutMs} ms)`
+    );
+
+    this.name =
+      "TicketProviderTimeoutError";
+
+    this.providerId =
+      providerId;
+
+    this.operation =
+      operation;
+
+    this.timeoutMs =
+      timeoutMs;
+  }
+}
+
 function timeoutPromise<T>(
   promise: Promise<T>,
   providerId: string,
@@ -115,8 +143,10 @@ function timeoutPromise<T>(
         setTimeout(
           () => {
             reject(
-              new Error(
-                `${providerId} ${operation} timeout (${PROVIDER_TIMEOUT_MS} ms)`
+              new TicketProviderTimeoutError(
+                providerId,
+                operation,
+                PROVIDER_TIMEOUT_MS
               )
             );
           },
@@ -140,7 +170,8 @@ function timeoutPromise<T>(
 async function measuredCall<T>(
   provider: TicketProviderAdapter,
   operation: string,
-  callback: () => Promise<T>
+  callback: () => Promise<T>,
+  mode?: TicketMode
 ): Promise<T> {
   const startedAt =
     Date.now();
@@ -162,9 +193,11 @@ async function measuredCall<T>(
       latency
     );
 
-    void persistProviderEvent({
+    await persistProviderEvent({
       providerId:
         provider.id,
+      mode:
+        mode ?? null,
       operation,
       status:
         "success",
@@ -189,14 +222,15 @@ async function measuredCall<T>(
         ? error.message
         : String(error);
 
-    void persistProviderEvent({
+    await persistProviderEvent({
       providerId:
         provider.id,
+      mode:
+        mode ?? null,
       operation,
       status:
-        message.includes(
-          "timeout ("
-        )
+        error instanceof
+          TicketProviderTimeoutError
           ? "timeout"
           : "error",
       latencyMs:
@@ -260,7 +294,8 @@ export async function searchTicketOffers(
               () =>
                 provider.search(
                   input
-                )
+                ),
+              input.mode
             );
 
           return offers.map(
@@ -274,51 +309,64 @@ export async function searchTicketOffers(
       )
     );
 
-  let failureSeen = false;
-
   const offers:
     TicketOffer[] = [];
 
-  results.forEach(
-    (result, index) => {
-      const provider =
-        providers[index];
+  let lastFailedProviderId:
+    string | null = null;
 
-      if (
-        result.status ===
-        "rejected"
-      ) {
-        failureSeen = true;
-        return;
-      }
+  for (
+    let index = 0;
+    index < results.length;
+    index += 1
+  ) {
+    const result =
+      results[index];
 
-      if (
-        failureSeen &&
-        result.value.length > 0
-      ) {
-        recordProviderFallback(
-          provider.id
-        );
+    const provider =
+      providers[index];
 
-        void persistProviderEvent({
-          providerId:
-            provider.id,
-          mode:
-            input.mode,
-          operation:
-            "search",
-          status:
-            "fallback",
-          failoverTo:
-            provider.id,
-        });
-      }
+    if (
+      result.status ===
+      "rejected"
+    ) {
+      lastFailedProviderId =
+        provider.id;
 
-      offers.push(
-        ...result.value
-      );
+      continue;
     }
-  );
+
+    if (
+      lastFailedProviderId &&
+      result.value.length > 0
+    ) {
+      recordProviderFallback(
+        provider.id
+      );
+
+      await persistProviderEvent({
+        providerId:
+          provider.id,
+        mode:
+          input.mode,
+        operation:
+          "search",
+        status:
+          "fallback",
+        failoverFrom:
+          lastFailedProviderId,
+        failoverTo:
+          provider.id,
+      });
+
+      lastFailedProviderId =
+        null;
+    }
+
+    offers.push(
+      ...result.value
+    );
+  }
 
   return offers;
 }
@@ -368,8 +416,8 @@ export async function findTicketOffer(
       input.mode
     );
 
-  let previousFailure =
-    false;
+  let lastFailedProviderId:
+    string | null = null;
 
   for (
     const provider of providers
@@ -383,16 +431,19 @@ export async function findTicketOffer(
             provider.getOffer(
               input,
               offerId
-            )
+            ),
+          input.mode
         );
 
       if (offer) {
-        if (previousFailure) {
+        if (
+          lastFailedProviderId
+        ) {
           recordProviderFallback(
             provider.id
           );
 
-          void persistProviderEvent({
+          await persistProviderEvent({
             providerId:
               provider.id,
             mode:
@@ -401,6 +452,8 @@ export async function findTicketOffer(
               "getOffer",
             status:
               "fallback",
+            failoverFrom:
+              lastFailedProviderId,
             failoverTo:
               provider.id,
           });
@@ -413,8 +466,8 @@ export async function findTicketOffer(
         };
       }
     } catch {
-      previousFailure =
-        true;
+      lastFailedProviderId =
+        provider.id;
     }
   }
 
@@ -443,7 +496,8 @@ export async function createTicketHold(
       provider.createHold(
         input,
         offer
-      )
+      ),
+    input.mode
   );
 }
 
