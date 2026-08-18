@@ -4,6 +4,89 @@ type AmadeusTokenResponse = {
   token_type: string;
 };
 
+export type AmadeusFlightSegment = {
+  id: string;
+  departure: {
+    iataCode: string;
+    terminal?: string;
+    at: string;
+  };
+  arrival: {
+    iataCode: string;
+    terminal?: string;
+    at: string;
+  };
+  carrierCode: string;
+  number: string;
+  aircraft?: {
+    code?: string;
+  };
+  duration?: string;
+  numberOfStops?: number;
+};
+
+export type AmadeusFlightItinerary = {
+  duration: string;
+  segments: AmadeusFlightSegment[];
+};
+
+export type AmadeusFlightOffer = {
+  type: string;
+  id: string;
+  source?: string;
+  instantTicketingRequired?: boolean;
+  nonHomogeneous?: boolean;
+  oneWay?: boolean;
+  lastTicketingDate?: string;
+  numberOfBookableSeats?: number;
+  itineraries: AmadeusFlightItinerary[];
+  price: {
+    currency: string;
+    total: string;
+    base?: string;
+    grandTotal?: string;
+  };
+  validatingAirlineCodes?: string[];
+  travelerPricings?: Array<{
+    travelerId?: string;
+    fareOption?: string;
+    travelerType?: string;
+    price?: {
+      currency?: string;
+      total?: string;
+      base?: string;
+    };
+    fareDetailsBySegment?: Array<{
+      segmentId?: string;
+      cabin?: string;
+      class?: string;
+      includedCheckedBags?: {
+        quantity?: number;
+        weight?: number;
+        weightUnit?: string;
+      };
+    }>;
+  }>;
+};
+
+export type AmadeusFlightOffersResponse = {
+  data: AmadeusFlightOffer[];
+  dictionaries?: {
+    carriers?: Record<string, string>;
+    aircraft?: Record<string, string>;
+    locations?: Record<
+      string,
+      {
+        cityCode?: string;
+        countryCode?: string;
+      }
+    >;
+  };
+  meta?: {
+    count?: number;
+  };
+};
+
 const TEST_BASE_URL =
   "https://test.api.amadeus.com";
 
@@ -81,6 +164,121 @@ export async function getAmadeusAccessToken() {
     throw new Error(
       payload.error_description ??
         `Amadeus token HTTP ${response.status}`
+    );
+  }
+
+  return payload;
+}
+
+type SearchFlightOffersInput = {
+  originLocationCode: string;
+  destinationLocationCode: string;
+  departureDate: string;
+  returnDate?: string;
+  adults: number;
+  children?: number;
+  infants?: number;
+  currencyCode?: string;
+  max?: number;
+};
+
+export async function searchAmadeusFlightOffers(
+  input: SearchFlightOffersInput
+): Promise<AmadeusFlightOffersResponse> {
+  const token =
+    await getAmadeusAccessToken();
+
+  const params =
+    new URLSearchParams({
+      originLocationCode:
+        input.originLocationCode,
+      destinationLocationCode:
+        input.destinationLocationCode,
+      departureDate:
+        input.departureDate,
+      adults:
+        String(
+          Math.max(
+            1,
+            input.adults
+          )
+        ),
+      max:
+        String(
+          input.max ?? 40
+        ),
+    });
+
+  if (input.returnDate) {
+    params.set(
+      "returnDate",
+      input.returnDate
+    );
+  }
+
+  if (
+    input.children &&
+    input.children > 0
+  ) {
+    params.set(
+      "children",
+      String(
+        input.children
+      )
+    );
+  }
+
+  if (
+    input.infants &&
+    input.infants > 0
+  ) {
+    params.set(
+      "infants",
+      String(
+        input.infants
+      )
+    );
+  }
+
+  if (input.currencyCode) {
+    params.set(
+      "currencyCode",
+      input.currencyCode
+    );
+  }
+
+  const response =
+    await fetch(
+      `${getAmadeusBaseUrl()}/v2/shopping/flight-offers?${params.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization:
+            `Bearer ${token.access_token}`,
+        },
+        cache: "no-store",
+      }
+    );
+
+  const payload =
+    await response.json() as
+      AmadeusFlightOffersResponse & {
+        errors?: Array<{
+          status?: number;
+          code?: number;
+          title?: string;
+          detail?: string;
+        }>;
+      };
+
+  if (!response.ok) {
+    const first =
+      payload.errors?.[0];
+
+    throw new Error(
+      first?.detail ??
+        first?.title ??
+        `Amadeus flight search HTTP ${response.status}`
     );
   }
 
