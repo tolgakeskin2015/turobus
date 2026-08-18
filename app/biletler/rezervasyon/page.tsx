@@ -25,10 +25,6 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 
 import {
-  activeTicketProvider,
-} from "@/lib/tickets/provider";
-
-import {
   ticketSearchFromParams,
   ticketSearchToParams,
 } from "@/lib/tickets/query";
@@ -164,6 +160,11 @@ export default function TicketBookingPage() {
           "offerId"
         );
 
+      const providerId =
+        params.get(
+          "providerId"
+        );
+
       setSearch(
         nextSearch
       );
@@ -216,7 +217,14 @@ export default function TicketBookingPage() {
       );
 
       async function load() {
-        if (!offerId) {
+        if (
+          !offerId ||
+          !providerId
+        ) {
+          setError(
+            "Sağlayıcı veya teklif bilgisi eksik."
+          );
+
           setLoading(
             false
           );
@@ -224,19 +232,63 @@ export default function TicketBookingPage() {
           return;
         }
 
-        const found =
-          await activeTicketProvider.getOffer(
-            nextSearch,
-            offerId
+        try {
+          const response =
+            await fetch(
+              "/api/tickets/offer",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+                body:
+                  JSON.stringify({
+                    search:
+                      nextSearch,
+                    providerId,
+                    offerId,
+                  }),
+              }
+            );
+
+          const payload =
+            await response.json() as {
+              ok?: boolean;
+              offer?: TicketOffer;
+              error?: string;
+            };
+
+          if (
+            !response.ok ||
+            !payload.ok ||
+            !payload.offer
+          ) {
+            setError(
+              payload.error ??
+                "Sefer bilgisi alınamadı."
+            );
+
+            return;
+          }
+
+          setOffer(
+            payload.offer
           );
+        } catch (
+          loadError
+        ) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Sefer bilgisi alınamadı."
+          );
+        } finally {
+          setLoading(
+            false
+          );
+        }
 
-        setOffer(
-          found
-        );
-
-        setLoading(
-          false
-        );
       }
 
       void load();
@@ -358,11 +410,67 @@ export default function TicketBookingPage() {
       true
     );
 
-    const hold =
-      await activeTicketProvider.createHold(
-        search,
-        offer
+    let hold;
+
+    try {
+      const response =
+        await fetch(
+          "/api/tickets/hold",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body:
+              JSON.stringify({
+                search,
+                offer,
+              }),
+          }
+        );
+
+      const payload =
+        await response.json() as {
+          ok?: boolean;
+          hold?: TicketBookingDraft["hold"];
+          error?: string;
+        };
+
+      if (
+        !response.ok ||
+        !payload.ok ||
+        !payload.hold
+      ) {
+        setSaving(
+          false
+        );
+
+        setError(
+          payload.error ??
+            "Bilet sağlayıcısında geçici rezervasyon oluşturulamadı."
+        );
+
+        return;
+      }
+
+      hold =
+        payload.hold;
+    } catch (
+      holdError
+    ) {
+      setSaving(
+        false
       );
+
+      setError(
+        holdError instanceof Error
+          ? holdError.message
+          : "Bilet hold işlemi başarısız."
+      );
+
+      return;
+    }
 
     const code =
       `TKT-${Date.now()

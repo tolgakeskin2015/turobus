@@ -323,6 +323,42 @@ export async function searchTicketOffers(
   return offers;
 }
 
+export async function findTicketOfferFromProvider(
+  input: TicketSearchInput,
+  providerId: string,
+  offerId: string
+): Promise<TicketOffer | null> {
+  const provider =
+    getTicketProvider(
+      providerId
+    );
+
+  if (!provider) {
+    return null;
+  }
+
+  const offer =
+    await measuredCall(
+      provider,
+      "getOffer",
+      () =>
+        provider.getOffer(
+          input,
+          offerId
+        )
+    );
+
+  if (!offer) {
+    return null;
+  }
+
+  return {
+    ...offer,
+    providerId:
+      provider.id,
+  };
+}
+
 export async function findTicketOffer(
   input: TicketSearchInput,
   offerId: string

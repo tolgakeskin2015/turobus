@@ -26,10 +26,6 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 
 import {
-  activeTicketProvider,
-} from "@/lib/tickets/provider";
-
-import {
   ticketSearchFromParams,
   ticketSearchToParams,
 } from "@/lib/tickets/query";
@@ -178,14 +174,42 @@ export default function TicketResultsPage() {
           true
         );
 
-        const rows =
-          await activeTicketProvider.search(
-            next
-          );
+        const response =
+            await fetch(
+              "/api/tickets/search",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+                body:
+                  JSON.stringify(
+                    next
+                  ),
+              }
+            );
 
-        setOffers(
-          rows
-        );
+          const payload =
+            await response.json() as {
+              ok?: boolean;
+              offers?: TicketOffer[];
+              error?: string;
+            };
+
+          if (
+            !response.ok ||
+            !payload.ok
+          ) {
+            throw new Error(
+              payload.error ??
+                "Bilet araması başarısız."
+            );
+          }
+
+          setOffers(
+            payload.offers ?? []
+          );
 
         setLoading(
           false
@@ -500,6 +524,11 @@ export default function TicketResultsPage() {
                     params.set(
                       "offerId",
                       offer.id
+                    );
+
+                    params.set(
+                      "providerId",
+                      offer.providerId
                     );
 
                     return (
