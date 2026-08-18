@@ -90,6 +90,17 @@ export type YachtOSBooking = {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  tracking_token: string;
+  voucher_token: string;
+  operation_status:
+    | "preparing"
+    | "ready"
+    | "guest_arrived"
+    | "departed"
+    | "cruising"
+    | "returning"
+    | "completed"
+    | "cancelled";
 };
 
 export type YachtOSTask = {
@@ -126,6 +137,7 @@ export type YachtOSSupplier = {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  portal_token: string;
 };
 
 export type YachtOSAvailability = {
