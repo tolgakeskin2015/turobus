@@ -284,3 +284,90 @@ export async function searchAmadeusFlightOffers(
 
   return payload;
 }
+
+
+export type AmadeusFlightOffersPriceResponse = {
+  data: {
+    type: string;
+    flightOffers:
+      AmadeusFlightOffer[];
+  };
+  dictionaries?: {
+    carriers?:
+      Record<string, string>;
+    aircraft?:
+      Record<string, string>;
+    locations?: Record<
+      string,
+      {
+        cityCode?: string;
+        countryCode?: string;
+      }
+    >;
+  };
+};
+
+export async function priceAmadeusFlightOffer(
+  offer: AmadeusFlightOffer
+): Promise<
+  AmadeusFlightOffersPriceResponse
+> {
+  const token =
+    await getAmadeusAccessToken();
+
+  const response =
+    await fetch(
+      `${getAmadeusBaseUrl()}/v1/shopping/flight-offers/pricing`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          Authorization:
+            `Bearer ${token.access_token}`,
+
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify({
+            data: {
+              type:
+                "flight-offers-pricing",
+
+              flightOffers: [
+                offer,
+              ],
+            },
+          }),
+
+        cache:
+          "no-store",
+      }
+    );
+
+  const payload =
+    await response.json() as
+      AmadeusFlightOffersPriceResponse & {
+        errors?: Array<{
+          status?: number;
+          code?: number;
+          title?: string;
+          detail?: string;
+        }>;
+      };
+
+  if (!response.ok) {
+    const first =
+      payload.errors?.[0];
+
+    throw new Error(
+      first?.detail ??
+        first?.title ??
+        `Amadeus flight price HTTP ${response.status}`
+    );
+  }
+
+  return payload;
+}

@@ -40,20 +40,16 @@ function isoDurationToMinutes(
 function clock(
   value: string
 ) {
-  const date =
-    new Date(value);
+  const time =
+    value.slice(
+      11,
+      16
+    );
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return value;
-  }
-
-  return date
-    .toISOString()
-    .slice(11, 16);
+  return (
+    time ||
+    value
+  );
 }
 
 function localDate(
@@ -133,7 +129,9 @@ export function mapAmadeusFlightOffers(
   response:
     AmadeusFlightOffersResponse,
   search:
-    TicketSearchInput
+    TicketSearchInput,
+  publicOfferIds:
+    Record<string, string> = {}
 ): TicketOffer[] {
   const carriers =
     response.dictionaries
@@ -210,6 +208,9 @@ export function mapAmadeusFlightOffers(
 
         return {
           id:
+            publicOfferIds[
+              offer.id
+            ] ??
             offer.id,
           providerId:
             "flight_primary",
