@@ -20,6 +20,7 @@ import {
   FaMapMarkerAlt,
   FaShip,
   FaStar,
+  FaTicketAlt,
   FaUsers,
 } from "react-icons/fa";
 
@@ -33,7 +34,8 @@ type MarketKey =
   | "activity"
   | "package"
   | "yacht"
-  | "transfer";
+  | "transfer"
+  | "ticket";
 
 
 type MarketCard = {
@@ -124,6 +126,9 @@ function fallbackImage(
 
       transfer:
         "https://images.unsplash.com/photo-1515569067071-ec3b51335dd0?auto=format&fit=crop&w=1400&q=88",
+
+      ticket:
+        "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1400&q=88",
     };
 
 
