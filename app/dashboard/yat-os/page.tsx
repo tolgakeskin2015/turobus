@@ -16,7 +16,9 @@ import {
   FaCheckCircle,
   FaClock,
   FaCoins,
+  FaCopy,
   FaExclamationTriangle,
+  FaExternalLinkAlt,
   FaFilter,
   FaMapMarkerAlt,
   FaPlus,
@@ -27,6 +29,7 @@ import {
   FaUserTie,
   FaUsers,
   FaWallet,
+  FaWhatsapp,
 } from "react-icons/fa";
 
 import {
@@ -41,6 +44,7 @@ import {
   createYachtTask,
   loadYachtOS,
   setYachtStatus,
+  setYachtBookingOperationStatus,
   toggleYachtTask,
   updateYachtBookingStatus,
   upsertYachtAvailability,
@@ -282,6 +286,63 @@ function bookingStatusLabel(
   }
 
   return "Onay Bekliyor";
+}
+
+
+
+function operationStatusLabel(
+  value:
+    YachtOSBooking[
+      "operation_status"
+    ]
+) {
+  if (value === "ready") {
+    return "Tekne Hazır";
+  }
+
+  if (
+    value ===
+    "guest_arrived"
+  ) {
+    return "Misafir Geldi";
+  }
+
+  if (
+    value ===
+    "departed"
+  ) {
+    return "Çıkış Yapıldı";
+  }
+
+  if (
+    value ===
+    "cruising"
+  ) {
+    return "Seyirde";
+  }
+
+  if (
+    value ===
+    "returning"
+  ) {
+    return "Dönüşte";
+  }
+
+  if (
+    value ===
+    "completed"
+  ) {
+    return "Tamamlandı";
+  }
+
+  if (
+    value ===
+    "cancelled"
+  ) {
+    return "İptal";
+  }
+
+  return "Hazırlanıyor";
 }
 
 
@@ -1186,6 +1247,148 @@ export default function YachtOSPage() {
       setSaving(
         false
       );
+    }
+  }
+
+
+
+  function publicUrl(
+    path: string
+  ) {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return path;
+    }
+
+    return (
+      `${window.location.origin}${path}`
+    );
+  }
+
+
+  async function copyLink(
+    path: string,
+    success:
+      string
+  ) {
+    const url =
+      publicUrl(path);
+
+    try {
+      await navigator
+        .clipboard
+        .writeText(url);
+
+      toast(success);
+    } catch {
+      window.prompt(
+        "Bağlantıyı kopyala:",
+        url
+      );
+    }
+  }
+
+
+  function openPublicPage(
+    path: string
+  ) {
+    window.open(
+      publicUrl(path),
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
+
+  function shareWhatsapp(
+    booking:
+      YachtOSBooking
+  ) {
+    const tracking =
+      publicUrl(
+        `/yat-takip/${booking.tracking_token}`
+      );
+
+    const voucher =
+      publicUrl(
+        `/yat-voucher/${booking.voucher_token}`
+      );
+
+    const message = [
+      "Turobus Yat & Tekne Rezervasyonu",
+      "",
+      `Rezervasyon: ${booking.booking_code}`,
+      `Misafir: ${booking.guest_name}`,
+      "",
+      `Canlı takip: ${tracking}`,
+      `Voucher: ${voucher}`,
+    ].join("\\n");
+
+    const phone =
+      (
+        booking.guest_phone ??
+        ""
+      ).replace(
+        /\\D/g,
+        ""
+      );
+
+    const target =
+      phone
+        ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+        : `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+    window.open(
+      target,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
+
+  async function changeOperationStatus(
+    booking:
+      YachtOSBooking,
+    next:
+      YachtOSBooking[
+        "operation_status"
+      ]
+  ) {
+    if (!companyId) {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      await setYachtBookingOperationStatus(
+        booking.id,
+        next
+      );
+
+      await refresh(
+        companyId
+      );
+
+      toast(
+        `Operasyon: ${operationStatusLabel(next)}`
+      );
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -2162,7 +2365,7 @@ export default function YachtOSPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1050px] text-left">
+              <table className="w-full min-w-[1450px] text-left">
                 <thead className="bg-white/[.025]">
                   <tr className="text-[8px] font-black uppercase tracking-wider text-slate-600">
                     <th className="px-5 py-4">
@@ -2184,7 +2387,13 @@ export default function YachtOSPage() {
                       Tahsil
                     </th>
                     <th className="px-5 py-4">
-                      Durum
+                      Rezervasyon
+                    </th>
+                    <th className="px-5 py-4">
+                      Operasyon
+                    </th>
+                    <th className="px-5 py-4">
+                      Paylaşım
                     </th>
                     <th className="px-5 py-4">
                       İşlem
@@ -2289,6 +2498,126 @@ export default function YachtOSPage() {
                           </td>
 
                           <td className="px-5 py-4">
+                            <select
+                              value={
+                                booking.operation_status
+                              }
+                              disabled={
+                                saving
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                void changeOperationStatus(
+                                  booking,
+                                  event.target.value as
+                                    YachtOSBooking[
+                                      "operation_status"
+                                    ]
+                                )
+                              }
+                              className="h-9 min-w-[130px] rounded-lg border border-white/10 bg-[#0b1723] px-2 text-[8px] font-black outline-none focus:border-orange-500/40"
+                            >
+                              <option value="preparing">
+                                Hazırlanıyor
+                              </option>
+
+                              <option value="ready">
+                                Tekne Hazır
+                              </option>
+
+                              <option value="guest_arrived">
+                                Misafir Geldi
+                              </option>
+
+                              <option value="departed">
+                                Çıkış Yapıldı
+                              </option>
+
+                              <option value="cruising">
+                                Seyirde
+                              </option>
+
+                              <option value="returning">
+                                Dönüşte
+                              </option>
+
+                              <option value="completed">
+                                Tamamlandı
+                              </option>
+
+                              <option value="cancelled">
+                                İptal
+                              </option>
+                            </select>
+
+                            <div className="mt-1 text-[7px] font-bold text-orange-300">
+                              {operationStatusLabel(
+                                booking.operation_status
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <div className="flex flex-wrap gap-1.5">
+
+                              <button
+                                type="button"
+                                title="Takip linkini kopyala"
+                                onClick={() =>
+                                  void copyLink(
+                                    `/yat-takip/${booking.tracking_token}`,
+                                    "Takip linki kopyalandı."
+                                  )
+                                }
+                                className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[.03] text-slate-300 transition hover:border-orange-500/30 hover:text-orange-300"
+                              >
+                                <FaCopy />
+                              </button>
+
+                              <button
+                                type="button"
+                                title="Canlı takibi aç"
+                                onClick={() =>
+                                  openPublicPage(
+                                    `/yat-takip/${booking.tracking_token}`
+                                  )
+                                }
+                                className="grid h-8 w-8 place-items-center rounded-lg border border-blue-500/20 bg-blue-500/[.06] text-blue-300"
+                              >
+                                <FaExternalLinkAlt />
+                              </button>
+
+                              <button
+                                type="button"
+                                title="Voucher aç"
+                                onClick={() =>
+                                  openPublicPage(
+                                    `/yat-voucher/${booking.voucher_token}`
+                                  )
+                                }
+                                className="grid h-8 w-8 place-items-center rounded-lg border border-orange-500/20 bg-orange-500/[.07] text-orange-300"
+                              >
+                                <FaAnchor />
+                              </button>
+
+                              <button
+                                type="button"
+                                title="WhatsApp ile gönder"
+                                onClick={() =>
+                                  shareWhatsapp(
+                                    booking
+                                  )
+                                }
+                                className="grid h-8 w-8 place-items-center rounded-lg border border-emerald-500/20 bg-emerald-500/[.07] text-emerald-300"
+                              >
+                                <FaWhatsapp />
+                              </button>
+
+                            </div>
+                          </td>
+
+                          <td className="px-5 py-4">
                             {booking.status ===
                             "pending" ? (
                               <button
@@ -2306,7 +2635,10 @@ export default function YachtOSPage() {
                                 Onayla
                               </button>
                             ) : (
-                              <FaCheck className="text-emerald-400" />
+                              <div className="flex items-center gap-2 text-[8px] font-black text-emerald-400">
+                                <FaCheck />
+                                Onaylı
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -2789,6 +3121,35 @@ export default function YachtOSPage() {
                             supplier.current_balance
                           )}
                         />
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-2 gap-2 border-t border-white/[.07] pt-4">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void copyLink(
+                              `/yat-tedarikci/${supplier.portal_token}`,
+                              "Partner portal linki kopyalandı."
+                            )
+                          }
+                          className="flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[.03] text-[8px] font-black text-slate-300 hover:border-orange-500/30"
+                        >
+                          <FaCopy />
+                          Linki Kopyala
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openPublicPage(
+                              `/yat-tedarikci/${supplier.portal_token}`
+                            )
+                          }
+                          className="flex h-10 items-center justify-center gap-2 rounded-xl bg-orange-500 text-[8px] font-black"
+                        >
+                          <FaExternalLinkAlt />
+                          Portalı Aç
+                        </button>
                       </div>
                     </div>
                   )

@@ -730,3 +730,38 @@ export async function createYachtFinanceEntry(
   return data as
     YachtOSFinanceEntry;
 }
+
+
+export async function setYachtBookingOperationStatus(
+  bookingId: string,
+  operationStatus:
+    YachtOSBooking[
+      "operation_status"
+    ]
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase
+      .from(
+        "yacht_os_bookings"
+      )
+      .update({
+        operation_status:
+          operationStatus,
+      })
+      .eq(
+        "id",
+        bookingId
+      )
+      .select("*")
+      .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as
+    YachtOSBooking;
+}
