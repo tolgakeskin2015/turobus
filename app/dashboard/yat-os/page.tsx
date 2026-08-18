@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -8,12 +9,11 @@ import {
 
 import {
   FaAnchor,
-  FaArrowRight,
   FaBell,
   FaCalendarAlt,
   FaChartLine,
+  FaCheck,
   FaCheckCircle,
-  FaChevronRight,
   FaClock,
   FaCoins,
   FaExclamationTriangle,
@@ -29,6 +29,31 @@ import {
   FaWallet,
 } from "react-icons/fa";
 
+import {
+  getCurrentMembership,
+  getCurrentUser,
+} from "@/lib/current-user";
+
+import {
+  createYacht,
+  createYachtBooking,
+  createYachtSupplier,
+  createYachtTask,
+  loadYachtOS,
+  setYachtStatus,
+  toggleYachtTask,
+  updateYachtBookingStatus,
+  upsertYachtAvailability,
+} from "@/lib/yacht-os/repository";
+
+import type {
+  YachtOSAvailability,
+  YachtOSBooking,
+  YachtOSSupplier,
+  YachtOSTask,
+  YachtOSYacht,
+} from "@/lib/yacht-os/types";
+
 
 type Section =
   | "overview"
@@ -40,377 +65,363 @@ type Section =
   | "suppliers";
 
 
-type YachtStatus =
-  | "available"
-  | "trip"
-  | "maintenance"
-  | "passive";
+type Modal =
+  | "yacht"
+  | "booking"
+  | "task"
+  | "supplier"
+  | null;
 
 
-type BookingStatus =
-  | "confirmed"
-  | "pending"
-  | "completed"
-  | "cancelled";
-
-
-type Yacht = {
-  id: string;
-  name: string;
-  type: string;
-  marina: string;
+type FormState = {
+  yachtName: string;
+  yachtType: string;
   city: string;
-  capacity: number;
-  cabins: number;
-  length: number;
-  captain: string;
-  status: YachtStatus;
-  dailyPrice: number;
-  todayRevenue: number;
-  nextTrip: string;
-  occupancy: number;
-};
+  marina: string;
+  maxGuests: string;
+  cabins: string;
+  dailyPrice: string;
+  captainName: string;
 
-
-type Booking = {
-  id: string;
-  code: string;
-  guest: string;
-  yacht: string;
-  phone: string;
-  date: string;
+  bookingYachtId: string;
+  guestName: string;
+  guestPhone: string;
+  guestCount: string;
+  startDate: string;
   endDate: string;
-  guests: number;
-  total: number;
-  paid: number;
-  commission: number;
-  status: BookingStatus;
-  source: string;
+  totalAmount: string;
+  paidAmount: string;
+  commissionAmount: string;
+
+  taskTitle: string;
+  taskYachtId: string;
+  taskAssignee: string;
+  taskDueAt: string;
+  taskPriority: string;
+
+  supplierName: string;
+  supplierContact: string;
+  supplierPhone: string;
+  supplierEmail: string;
+  supplierCommission: string;
 };
 
 
-type OperationTask = {
-  id: string;
-  title: string;
-  yacht: string;
-  time: string;
-  owner: string;
-  priority:
-    | "high"
-    | "medium"
-    | "low";
-  done: boolean;
+const emptyForm: FormState = {
+  yachtName: "",
+  yachtType: "motor_yacht",
+  city: "Fethiye",
+  marina: "",
+  maxGuests: "8",
+  cabins: "2",
+  dailyPrice: "",
+  captainName: "",
+
+  bookingYachtId: "",
+  guestName: "",
+  guestPhone: "",
+  guestCount: "2",
+  startDate: "",
+  endDate: "",
+  totalAmount: "",
+  paidAmount: "0",
+  commissionAmount: "0",
+
+  taskTitle: "",
+  taskYachtId: "",
+  taskAssignee: "",
+  taskDueAt: "",
+  taskPriority: "medium",
+
+  supplierName: "",
+  supplierContact: "",
+  supplierPhone: "",
+  supplierEmail: "",
+  supplierCommission: "15",
 };
 
 
-type Supplier = {
-  id: string;
-  name: string;
-  category: string;
-  contact: string;
-  boats: number;
-  commission: number;
-  balance: number;
-  rating: number;
-  status: "active" | "pending";
-};
-
-
-const initialYachts: Yacht[] = [
-  {
-    id: "YT-001",
-    name: "Azure 52",
-    type: "Motor Yat",
-    marina: "D-Marin",
-    city: "Göcek",
-    capacity: 10,
-    cabins: 3,
-    length: 16,
-    captain: "Mert Aydın",
-    status: "trip",
-    dailyPrice: 42000,
-    todayRevenue: 42000,
-    nextTrip: "Bugün 18:30",
-    occupancy: 82,
-  },
-  {
-    id: "YT-002",
-    name: "Aegean Dream",
-    type: "Gulet",
-    marina: "Karagözler",
-    city: "Fethiye",
-    capacity: 12,
-    cabins: 6,
-    length: 24,
-    captain: "Serkan Kaya",
-    status: "available",
-    dailyPrice: 68000,
-    todayRevenue: 0,
-    nextTrip: "20 Ağustos",
-    occupancy: 71,
-  },
-  {
-    id: "YT-003",
-    name: "Blue Horizon",
-    type: "Katamaran",
-    marina: "Yalıkavak",
-    city: "Bodrum",
-    capacity: 8,
-    cabins: 4,
-    length: 14,
-    captain: "Kerem Öztürk",
-    status: "maintenance",
-    dailyPrice: 51000,
-    todayRevenue: 0,
-    nextTrip: "22 Ağustos",
-    occupancy: 64,
-  },
-  {
-    id: "YT-004",
-    name: "Sunset One",
-    type: "Günlük Tekne",
-    marina: "Ece Saray",
-    city: "Fethiye",
-    capacity: 18,
-    cabins: 2,
-    length: 17,
-    captain: "Ali Demir",
-    status: "available",
-    dailyPrice: 32000,
-    todayRevenue: 32000,
-    nextTrip: "Bugün 19:00",
-    occupancy: 91,
-  },
+const yachtTypes = [
+  ["motor_yacht", "Motor Yat"],
+  ["gulet", "Gulet"],
+  ["catamaran", "Katamaran"],
+  ["sailing", "Yelkenli"],
+  ["daily_boat", "Günlük Özel Tekne"],
 ];
 
 
-const initialBookings: Booking[] = [
-  {
-    id: "BK-1",
-    code: "YAT-4821",
-    guest: "Emre Yılmaz",
-    yacht: "Azure 52",
-    phone: "0532 *** ** 21",
-    date: "18 Ağu",
-    endDate: "18 Ağu",
-    guests: 6,
-    total: 42000,
-    paid: 42000,
-    commission: 6300,
-    status: "confirmed",
-    source: "Turobus",
-  },
-  {
-    id: "BK-2",
-    code: "YAT-4822",
-    guest: "Selin Arslan",
-    yacht: "Aegean Dream",
-    phone: "0544 *** ** 75",
-    date: "20 Ağu",
-    endDate: "22 Ağu",
-    guests: 10,
-    total: 136000,
-    paid: 68000,
-    commission: 20400,
-    status: "pending",
-    source: "WhatsApp",
-  },
-  {
-    id: "BK-3",
-    code: "YAT-4814",
-    guest: "Murat Çelik",
-    yacht: "Sunset One",
-    phone: "0533 *** ** 42",
-    date: "17 Ağu",
-    endDate: "17 Ağu",
-    guests: 12,
-    total: 32000,
-    paid: 32000,
-    commission: 4800,
-    status: "completed",
-    source: "Acente",
-  },
-  {
-    id: "BK-4",
-    code: "YAT-4828",
-    guest: "Ayşe Korkmaz",
-    yacht: "Blue Horizon",
-    phone: "0505 *** ** 16",
-    date: "22 Ağu",
-    endDate: "24 Ağu",
-    guests: 8,
-    total: 102000,
-    paid: 25000,
-    commission: 15300,
-    status: "pending",
-    source: "Turobus",
-  },
-];
-
-
-const initialTasks: OperationTask[] = [
-  {
-    id: "OP-1",
-    title: "Yakıt kontrolü ve ikmal",
-    yacht: "Azure 52",
-    time: "16:00",
-    owner: "Mert",
-    priority: "high",
-    done: false,
-  },
-  {
-    id: "OP-2",
-    title: "Misafir karşılama hazırlığı",
-    yacht: "Sunset One",
-    time: "17:30",
-    owner: "Burak",
-    priority: "high",
-    done: false,
-  },
-  {
-    id: "OP-3",
-    title: "Temizlik kontrolü",
-    yacht: "Aegean Dream",
-    time: "14:30",
-    owner: "Ece",
-    priority: "medium",
-    done: true,
-  },
-  {
-    id: "OP-4",
-    title: "Teknik bakım raporu",
-    yacht: "Blue Horizon",
-    time: "12:00",
-    owner: "Kerem",
-    priority: "medium",
-    done: false,
-  },
-];
-
-
-const suppliers: Supplier[] = [
-  {
-    id: "SP-1",
-    name: "Göcek Marine Charter",
-    category: "Tekne Sahibi",
-    contact: "Ahmet K.",
-    boats: 8,
-    commission: 15,
-    balance: 184000,
-    rating: 4.9,
-    status: "active",
-  },
-  {
-    id: "SP-2",
-    name: "Fethiye Blue Fleet",
-    category: "Filo İşletmesi",
-    contact: "Can D.",
-    boats: 12,
-    commission: 14,
-    balance: 266000,
-    rating: 4.8,
-    status: "active",
-  },
-  {
-    id: "SP-3",
-    name: "Bodrum Yacht Network",
-    category: "B2B Partner",
-    contact: "Deniz T.",
-    boats: 6,
-    commission: 17,
-    balance: 97000,
-    rating: 4.7,
-    status: "pending",
-  },
-];
-
-
-const days = [
-  "18 Ağu",
-  "19 Ağu",
-  "20 Ağu",
-  "21 Ağu",
-  "22 Ağu",
-  "23 Ağu",
-  "24 Ağu",
-  "25 Ağu",
-];
-
-
-const money = (
-  value: number
-) =>
-  new Intl.NumberFormat(
+function money(
+  value: number,
+  currency = "TRY"
+) {
+  return new Intl.NumberFormat(
     "tr-TR",
     {
       style: "currency",
-      currency: "TRY",
+      currency,
       maximumFractionDigits: 0,
     }
-  ).format(value);
+  ).format(
+    Number(
+      value || 0
+    )
+  );
+}
 
 
-function statusLabel(
-  status: YachtStatus
+function shortDate(
+  value:
+    string | null
 ) {
-  if (status === "available")
+  if (!value) {
+    return "—";
+  }
+
+  const date =
+    new Date(
+      `${value}T12:00:00`
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "tr-TR",
+    {
+      day: "2-digit",
+      month: "short",
+    }
+  ).format(date);
+}
+
+
+function yachtStatusLabel(
+  value:
+    YachtOSYacht["status"]
+) {
+  if (
+    value ===
+    "available"
+  ) {
     return "Müsait";
+  }
 
-  if (status === "trip")
+  if (
+    value === "trip"
+  ) {
     return "Seferde";
+  }
 
-  if (status === "maintenance")
+  if (
+    value ===
+    "maintenance"
+  ) {
     return "Bakımda";
+  }
 
   return "Pasif";
 }
 
 
-function bookingLabel(
-  status: BookingStatus
+function yachtStatusTone(
+  value:
+    YachtOSYacht["status"]
 ) {
-  if (status === "confirmed")
+  if (
+    value ===
+    "available"
+  ) {
+    return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+  }
+
+  if (
+    value === "trip"
+  ) {
+    return "border-blue-500/20 bg-blue-500/10 text-blue-300";
+  }
+
+  if (
+    value ===
+    "maintenance"
+  ) {
+    return "border-amber-500/20 bg-amber-500/10 text-amber-300";
+  }
+
+  return "border-white/10 bg-white/[.03] text-slate-400";
+}
+
+
+function bookingStatusLabel(
+  value:
+    YachtOSBooking["status"]
+) {
+  if (
+    value ===
+    "confirmed"
+  ) {
     return "Onaylandı";
+  }
 
-  if (status === "pending")
-    return "Ödeme Bekliyor";
-
-  if (status === "completed")
+  if (
+    value ===
+    "completed"
+  ) {
     return "Tamamlandı";
+  }
 
-  return "İptal";
+  if (
+    value ===
+    "cancelled"
+  ) {
+    return "İptal";
+  }
+
+  return "Onay Bekliyor";
 }
 
 
-function yachtTone(
-  status: YachtStatus
+function bookingStatusTone(
+  value:
+    YachtOSBooking["status"]
 ) {
-  if (status === "available")
-    return "bg-emerald-500/10 text-emerald-300 border-emerald-500/20";
+  if (
+    value ===
+    "confirmed"
+  ) {
+    return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+  }
 
-  if (status === "trip")
-    return "bg-blue-500/10 text-blue-300 border-blue-500/20";
+  if (
+    value ===
+    "completed"
+  ) {
+    return "border-blue-500/20 bg-blue-500/10 text-blue-300";
+  }
 
-  if (status === "maintenance")
-    return "bg-amber-500/10 text-amber-300 border-amber-500/20";
+  if (
+    value ===
+    "cancelled"
+  ) {
+    return "border-red-500/20 bg-red-500/10 text-red-300";
+  }
 
-  return "bg-slate-500/10 text-slate-400 border-white/10";
+  return "border-amber-500/20 bg-amber-500/10 text-amber-300";
 }
 
 
-function bookingTone(
-  status: BookingStatus
+function availabilityTone(
+  value:
+    YachtOSAvailability[
+      "status"
+    ]
 ) {
-  if (status === "confirmed")
-    return "bg-emerald-500/10 text-emerald-300 border-emerald-500/20";
+  if (
+    value ===
+    "booked"
+  ) {
+    return "border-blue-500/20 bg-blue-500/[.08] text-blue-300";
+  }
 
-  if (status === "pending")
-    return "bg-amber-500/10 text-amber-300 border-amber-500/20";
+  if (
+    value ===
+    "option"
+  ) {
+    return "border-amber-500/20 bg-amber-500/[.08] text-amber-300";
+  }
 
-  if (status === "completed")
-    return "bg-blue-500/10 text-blue-300 border-blue-500/20";
+  if (
+    value ===
+      "maintenance" ||
+    value ===
+      "blocked"
+  ) {
+    return "border-red-500/20 bg-red-500/[.08] text-red-300";
+  }
 
-  return "bg-red-500/10 text-red-300 border-red-500/20";
+  return "border-emerald-500/20 bg-emerald-500/[.07] text-emerald-300";
+}
+
+
+function availabilityLabel(
+  value:
+    YachtOSAvailability[
+      "status"
+    ]
+) {
+  if (
+    value ===
+    "booked"
+  ) {
+    return "Dolu";
+  }
+
+  if (
+    value ===
+    "option"
+  ) {
+    return "Opsiyon";
+  }
+
+  if (
+    value ===
+    "maintenance"
+  ) {
+    return "Bakım";
+  }
+
+  if (
+    value ===
+    "blocked"
+  ) {
+    return "Kapalı";
+  }
+
+  return "Müsait";
+}
+
+
+function daysFromToday(
+  count: number
+) {
+  const rows:
+    string[] = [];
+
+  for (
+    let i = 0;
+    i < count;
+    i += 1
+  ) {
+    const date =
+      new Date();
+
+    date.setHours(
+      12,
+      0,
+      0,
+      0
+    );
+
+    date.setDate(
+      date.getDate() +
+        i
+    );
+
+    rows.push(
+      date
+        .toISOString()
+        .slice(
+          0,
+          10
+        )
+    );
+  }
+
+  return rows;
 }
 
 
@@ -419,39 +430,31 @@ function StatCard({
   value,
   detail,
   icon,
-  accent,
 }: {
   title: string;
   value: string;
   detail: string;
-  icon: React.ReactNode;
-  accent?: string;
+  icon:
+    React.ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f] p-5 shadow-[0_20px_60px_rgba(0,0,0,.18)]">
-      <div
-        className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${
-          accent ??
-          "bg-orange-500/10"
-        }`}
-      />
-
-      <div className="relative flex items-start justify-between gap-4">
+    <div className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-[10px] font-black uppercase tracking-[.18em] text-slate-500">
+          <div className="text-[9px] font-black uppercase tracking-[.18em] text-slate-600">
             {title}
           </div>
 
-          <div className="mt-3 text-3xl font-black tracking-tight text-white">
+          <div className="mt-3 text-2xl font-black tracking-tight">
             {value}
           </div>
 
-          <div className="mt-2 text-[11px] font-medium text-slate-500">
+          <div className="mt-2 text-[10px] text-slate-500">
             {detail}
           </div>
         </div>
 
-        <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-orange-400">
+        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
           {icon}
         </div>
       </div>
@@ -460,51 +463,30 @@ function StatCard({
 }
 
 
-function SectionButton({
+function NavButton({
   active,
-  label,
+  children,
   onClick,
 }: {
   active: boolean;
-  label: string;
+  children:
+    React.ReactNode;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
-      onClick={onClick}
-      className={`whitespace-nowrap rounded-xl px-4 py-2.5 text-[11px] font-black transition ${
+      onClick={
+        onClick
+      }
+      className={`whitespace-nowrap rounded-xl px-4 py-2.5 text-[10px] font-black transition ${
         active
-          ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
-          : "border border-white/10 bg-white/[.03] text-slate-400 hover:border-orange-500/30 hover:text-white"
+          ? "bg-orange-500 text-white"
+          : "border border-white/10 bg-white/[.025] text-slate-400 hover:text-white"
       }`}
     >
-      {label}
+      {children}
     </button>
-  );
-}
-
-
-function Progress({
-  value,
-}: {
-  value: number;
-}) {
-  return (
-    <div className="h-1.5 overflow-hidden rounded-full bg-white/[.06]">
-      <div
-        className="h-full rounded-full bg-orange-500"
-        style={{
-          width: `${Math.max(
-            0,
-            Math.min(
-              value,
-              100
-            )
-          )}%`,
-        }}
-      />
-    </div>
   );
 }
 
@@ -519,40 +501,24 @@ export default function YachtOSPage() {
     );
 
   const [
-    yachts,
-    setYachts,
+    modal,
+    setModal,
   ] =
-    useState<Yacht[]>(
-      initialYachts
+    useState<Modal>(
+      null
     );
 
   const [
-    bookings,
-    setBookings,
+    loading,
+    setLoading,
   ] =
-    useState<Booking[]>(
-      initialBookings
-    );
+    useState(true);
 
   const [
-    tasks,
-    setTasks,
+    saving,
+    setSaving,
   ] =
-    useState<OperationTask[]>(
-      initialTasks
-    );
-
-  const [
-    query,
-    setQuery,
-  ] =
-    useState("");
-
-  const [
-    filter,
-    setFilter,
-  ] =
-    useState("all");
+    useState(false);
 
   const [
     notice,
@@ -561,226 +527,204 @@ export default function YachtOSPage() {
     useState("");
 
   const [
-    modal,
-    setModal,
+    error,
+    setError,
+  ] =
+    useState("");
+
+  const [
+    query,
+    setQuery,
+  ] =
+    useState("");
+
+  const [
+    yachtFilter,
+    setYachtFilter,
+  ] =
+    useState("all");
+
+  const [
+    companyId,
+    setCompanyId,
+  ] =
+    useState("");
+
+  const [
+    userId,
+    setUserId,
+  ] =
+    useState("");
+
+  const [
+    companyName,
+    setCompanyName,
+  ] =
+    useState("");
+
+  const [
+    yachts,
+    setYachts,
   ] =
     useState<
-      | "booking"
-      | "yacht"
-      | "task"
-      | null
-    >(null);
+      YachtOSYacht[]
+    >([]);
+
+  const [
+    bookings,
+    setBookings,
+  ] =
+    useState<
+      YachtOSBooking[]
+    >([]);
+
+  const [
+    availability,
+    setAvailability,
+  ] =
+    useState<
+      YachtOSAvailability[]
+    >([]);
+
+  const [
+    tasks,
+    setTasks,
+  ] =
+    useState<
+      YachtOSTask[]
+    >([]);
+
+  const [
+    suppliers,
+    setSuppliers,
+  ] =
+    useState<
+      YachtOSSupplier[]
+    >([]);
+
+  const [
+    form,
+    setForm,
+  ] =
+    useState<FormState>(
+      emptyForm
+    );
+
+
+  const days =
+    useMemo(
+      () =>
+        daysFromToday(
+          8
+        ),
+      []
+    );
+
+
+  const refresh =
+    useCallback(
+      async (
+        nextCompanyId:
+          string
+      ) => {
+        const data =
+          await loadYachtOS(
+            nextCompanyId
+          );
+
+        setYachts(
+          data.yachts
+        );
+
+        setBookings(
+          data.bookings
+        );
+
+        setAvailability(
+          data.availability
+        );
+
+        setTasks(
+          data.tasks
+        );
+
+        setSuppliers(
+          data.suppliers
+        );
+      },
+      []
+    );
 
 
   useEffect(
     () => {
-      try {
-        const saved =
-          localStorage.getItem(
-            "TUROBUS_YACHT_OS_STATE_V1"
+      async function boot() {
+        setLoading(true);
+        setError("");
+
+        try {
+          const user =
+            await getCurrentUser();
+
+          if (!user) {
+            throw new Error(
+              "Oturum bulunamadı."
+            );
+          }
+
+          const membership =
+            await getCurrentMembership(
+              user.id
+            );
+
+          if (
+            !membership
+          ) {
+            throw new Error(
+              "Aktif firma üyeliği bulunamadı."
+            );
+          }
+
+          setUserId(
+            user.id
           );
 
-        if (!saved)
-          return;
+          setCompanyId(
+            membership.company_id
+          );
 
-        const parsed =
-          JSON.parse(saved);
+          setCompanyName(
+            membership.company
+              .name
+          );
 
-        if (
-          Array.isArray(
-            parsed.yachts
-          )
+          await refresh(
+            membership.company_id
+          );
+        } catch (
+          currentError
         ) {
-          setYachts(
-            parsed.yachts
+          setError(
+            currentError instanceof
+              Error
+              ? currentError.message
+              : String(
+                  currentError
+                )
+          );
+        } finally {
+          setLoading(
+            false
           );
         }
-
-        if (
-          Array.isArray(
-            parsed.bookings
-          )
-        ) {
-          setBookings(
-            parsed.bookings
-          );
-        }
-
-        if (
-          Array.isArray(
-            parsed.tasks
-          )
-        ) {
-          setTasks(
-            parsed.tasks
-          );
-        }
-      } catch {
-        // corrupted local demo state is ignored
       }
-    },
-    []
-  );
 
-
-  useEffect(
-    () => {
-      localStorage.setItem(
-        "TUROBUS_YACHT_OS_STATE_V1",
-        JSON.stringify({
-          yachts,
-          bookings,
-          tasks,
-        })
-      );
+      void boot();
     },
     [
-      yachts,
-      bookings,
-      tasks,
+      refresh,
     ]
   );
-
-
-  const activeYachts =
-    yachts.filter(
-      (item) =>
-        item.status !==
-        "passive"
-    ).length;
-
-
-  const todayTrips =
-    yachts.filter(
-      (item) =>
-        item.nextTrip.startsWith(
-          "Bugün"
-        )
-    ).length;
-
-
-  const openBookings =
-    bookings.filter(
-      (item) =>
-        item.status ===
-          "confirmed" ||
-        item.status ===
-          "pending"
-    ).length;
-
-
-  const totalSales =
-    bookings.reduce(
-      (
-        total,
-        item
-      ) =>
-        item.status ===
-        "cancelled"
-          ? total
-          : total +
-            item.total,
-      0
-    );
-
-
-  const paid =
-    bookings.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.paid,
-      0
-    );
-
-
-  const commission =
-    bookings.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.commission,
-      0
-    );
-
-
-  const receivable =
-    Math.max(
-      0,
-      totalSales -
-        paid
-    );
-
-
-  const filteredYachts =
-    useMemo(
-      () =>
-        yachts.filter(
-          (yacht) => {
-            const text =
-              `${yacht.name} ${yacht.city} ${yacht.marina} ${yacht.type}`
-                .toLocaleLowerCase(
-                  "tr"
-                );
-
-            const matches =
-              !query ||
-              text.includes(
-                query.toLocaleLowerCase(
-                  "tr"
-                )
-              );
-
-            const status =
-              filter ===
-                "all" ||
-              yacht.status ===
-                filter;
-
-            return (
-              matches &&
-              status
-            );
-          }
-        ),
-      [
-        yachts,
-        query,
-        filter,
-      ]
-    );
-
-
-  const filteredBookings =
-    useMemo(
-      () =>
-        bookings.filter(
-          (booking) => {
-            const text =
-              `${booking.code} ${booking.guest} ${booking.yacht} ${booking.source}`
-                .toLocaleLowerCase(
-                  "tr"
-                );
-
-            return (
-              !query ||
-              text.includes(
-                query.toLocaleLowerCase(
-                  "tr"
-                )
-              )
-            );
-          }
-        ),
-      [
-        bookings,
-        query,
-      ]
-    );
 
 
   function toast(
@@ -793,189 +737,808 @@ export default function YachtOSPage() {
     window.setTimeout(
       () =>
         setNotice(""),
-      2500
+      2300
     );
   }
 
 
-  function toggleTask(
-    id: string
+  function patchForm(
+    patch:
+      Partial<FormState>
   ) {
-    setTasks(
-      (current) =>
-        current.map(
-          (task) =>
-            task.id === id
-              ? {
-                  ...task,
-                  done:
-                    !task.done,
-                }
-              : task
-        )
-    );
-
-    toast(
-      "Operasyon görevi güncellendi."
+    setForm(
+      (
+        current
+      ) => ({
+        ...current,
+        ...patch,
+      })
     );
   }
 
 
-  function rotateYachtStatus(
-    id: string
+  function closeModal() {
+    setModal(null);
+
+    setForm(
+      emptyForm
+    );
+  }
+
+
+  async function runMutation(
+    callback:
+      () =>
+        Promise<void>,
+    message: string
+  ) {
+    if (
+      !companyId ||
+      !userId
+    ) {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      await callback();
+
+      await refresh(
+        companyId
+      );
+
+      closeModal();
+
+      toast(
+        message
+      );
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+    } finally {
+      setSaving(
+        false
+      );
+    }
+  }
+
+
+  async function saveYacht() {
+    if (
+      !form.yachtName.trim() ||
+      !form.city.trim()
+    ) {
+      setError(
+        "Tekne adı ve şehir zorunlu."
+      );
+
+      return;
+    }
+
+    await runMutation(
+      async () => {
+        await createYacht({
+          companyId,
+          userId,
+          name:
+            form.yachtName.trim(),
+          yachtType:
+            form.yachtType,
+          city:
+            form.city.trim(),
+          marina:
+            form.marina.trim(),
+          maxGuests:
+            Math.max(
+              1,
+              Number(
+                form.maxGuests
+              ) || 1
+            ),
+          cabins:
+            Math.max(
+              0,
+              Number(
+                form.cabins
+              ) || 0
+            ),
+          dailyPrice:
+            Math.max(
+              0,
+              Number(
+                form.dailyPrice
+              ) || 0
+            ),
+          captainName:
+            form.captainName.trim(),
+        });
+      },
+      "Tekne filoya eklendi."
+    );
+  }
+
+
+  async function saveBooking() {
+    if (
+      !form.bookingYachtId ||
+      !form.guestName.trim() ||
+      !form.startDate ||
+      !form.endDate
+    ) {
+      setError(
+        "Tekne, misafir ve tarihler zorunlu."
+      );
+
+      return;
+    }
+
+    if (
+      form.endDate <
+      form.startDate
+    ) {
+      setError(
+        "Dönüş tarihi başlangıç tarihinden önce olamaz."
+      );
+
+      return;
+    }
+
+    await runMutation(
+      async () => {
+        const booking =
+          await createYachtBooking({
+            companyId,
+            userId,
+
+            yachtId:
+              form.bookingYachtId,
+
+            bookingCode:
+              `YAT-${Date.now()
+                .toString()
+                .slice(-7)}`,
+
+            guestName:
+              form.guestName.trim(),
+
+            guestPhone:
+              form.guestPhone.trim(),
+
+            guestCount:
+              Math.max(
+                1,
+                Number(
+                  form.guestCount
+                ) || 1
+              ),
+
+            startDate:
+              form.startDate,
+
+            endDate:
+              form.endDate,
+
+            totalAmount:
+              Math.max(
+                0,
+                Number(
+                  form.totalAmount
+                ) || 0
+              ),
+
+            paidAmount:
+              Math.max(
+                0,
+                Number(
+                  form.paidAmount
+                ) || 0
+              ),
+
+            commissionAmount:
+              Math.max(
+                0,
+                Number(
+                  form.commissionAmount
+                ) || 0
+              ),
+          });
+
+        const start =
+          new Date(
+            `${form.startDate}T12:00:00`
+          );
+
+        const end =
+          new Date(
+            `${form.endDate}T12:00:00`
+          );
+
+        const cursor =
+          new Date(start);
+
+        while (
+          cursor <= end
+        ) {
+          const day =
+            cursor
+              .toISOString()
+              .slice(
+                0,
+                10
+              );
+
+          await upsertYachtAvailability({
+            companyId,
+            yachtId:
+              form.bookingYachtId,
+            day,
+            status:
+              "booked",
+            bookingId:
+              booking.id,
+          });
+
+          cursor.setDate(
+            cursor.getDate() +
+              1
+          );
+        }
+      },
+      "Rezervasyon oluşturuldu ve takvim kapatıldı."
+    );
+  }
+
+
+  async function saveTask() {
+    if (
+      !form.taskTitle.trim()
+    ) {
+      setError(
+        "Görev başlığı zorunlu."
+      );
+
+      return;
+    }
+
+    await runMutation(
+      async () => {
+        await createYachtTask({
+          companyId,
+          userId,
+
+          yachtId:
+            form.taskYachtId ||
+            undefined,
+
+          title:
+            form.taskTitle.trim(),
+
+          assignedTo:
+            form.taskAssignee.trim(),
+
+          dueAt:
+            form.taskDueAt
+              ? new Date(
+                  form.taskDueAt
+                ).toISOString()
+              : undefined,
+
+          priority:
+            form.taskPriority as
+              YachtOSTask[
+                "priority"
+              ],
+        });
+      },
+      "Operasyon görevi oluşturuldu."
+    );
+  }
+
+
+  async function saveSupplier() {
+    if (
+      !form.supplierName.trim()
+    ) {
+      setError(
+        "Tedarikçi adı zorunlu."
+      );
+
+      return;
+    }
+
+    await runMutation(
+      async () => {
+        await createYachtSupplier({
+          companyId,
+          userId,
+
+          name:
+            form.supplierName.trim(),
+
+          contactName:
+            form.supplierContact.trim(),
+
+          phone:
+            form.supplierPhone.trim(),
+
+          email:
+            form.supplierEmail.trim(),
+
+          commissionRate:
+            Math.max(
+              0,
+              Math.min(
+                100,
+                Number(
+                  form.supplierCommission
+                ) || 0
+              )
+            ),
+        });
+      },
+      "Tedarikçi kaydedildi."
+    );
+  }
+
+
+  async function cycleYachtStatus(
+    yacht:
+      YachtOSYacht
   ) {
     const order:
-      YachtStatus[] = [
+      YachtOSYacht[
+        "status"
+      ][] = [
         "available",
         "trip",
         "maintenance",
         "passive",
       ];
 
-    setYachts(
-      (current) =>
-        current.map(
-          (yacht) => {
-            if (
-              yacht.id !== id
-            ) {
-              return yacht;
-            }
+    const index =
+      order.indexOf(
+        yacht.status
+      );
 
-            const index =
-              order.indexOf(
-                yacht.status
+    const next =
+      order[
+        (
+          index +
+          1
+        ) %
+          order.length
+      ];
+
+    setSaving(true);
+
+    try {
+      await setYachtStatus(
+        yacht.id,
+        next
+      );
+
+      await refresh(
+        companyId
+      );
+
+      toast(
+        "Tekne durumu güncellendi."
+      );
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+    } finally {
+      setSaving(
+        false
+      );
+    }
+  }
+
+
+  async function toggleTask(
+    task:
+      YachtOSTask
+  ) {
+    setSaving(true);
+
+    try {
+      await toggleYachtTask(
+        task
+      );
+
+      await refresh(
+        companyId
+      );
+
+      toast(
+        "Görev güncellendi."
+      );
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+    } finally {
+      setSaving(
+        false
+      );
+    }
+  }
+
+
+  async function confirmBooking(
+    booking:
+      YachtOSBooking
+  ) {
+    setSaving(true);
+
+    try {
+      await updateYachtBookingStatus(
+        booking.id,
+        "confirmed"
+      );
+
+      await refresh(
+        companyId
+      );
+
+      toast(
+        "Rezervasyon onaylandı."
+      );
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+    } finally {
+      setSaving(
+        false
+      );
+    }
+  }
+
+
+  function availabilityFor(
+    yachtId: string,
+    day: string
+  ) {
+    return (
+      availability.find(
+        (
+          item
+        ) =>
+          item.yacht_id ===
+            yachtId &&
+          item.day === day
+      )?.status ??
+      "available"
+    );
+  }
+
+
+  async function cycleAvailability(
+    yachtId: string,
+    day: string
+  ) {
+    const current =
+      availabilityFor(
+        yachtId,
+        day
+      );
+
+    const order:
+      YachtOSAvailability[
+        "status"
+      ][] = [
+        "available",
+        "option",
+        "booked",
+        "maintenance",
+        "blocked",
+      ];
+
+    const index =
+      order.indexOf(
+        current
+      );
+
+    const next =
+      order[
+        (
+          index +
+          1
+        ) %
+          order.length
+      ];
+
+    setSaving(true);
+
+    try {
+      await upsertYachtAvailability({
+        companyId,
+        yachtId,
+        day,
+        status:
+          next,
+      });
+
+      await refresh(
+        companyId
+      );
+
+      toast(
+        "Müsaitlik güncellendi."
+      );
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+    } finally {
+      setSaving(
+        false
+      );
+    }
+  }
+
+
+  const filteredYachts =
+    useMemo(
+      () => {
+        const needle =
+          query
+            .trim()
+            .toLocaleLowerCase(
+              "tr"
+            );
+
+        return yachts.filter(
+          (
+            yacht
+          ) => {
+            const text =
+              `${yacht.name} ${yacht.city} ${yacht.marina ?? ""} ${yacht.yacht_type}`
+                .toLocaleLowerCase(
+                  "tr"
+                );
+
+            const matchesText =
+              !needle ||
+              text.includes(
+                needle
               );
 
-            return {
-              ...yacht,
-              status:
-                order[
-                  (
-                    index +
-                    1
-                  ) %
-                    order.length
-                ],
-            };
+            const matchesStatus =
+              yachtFilter ===
+                "all" ||
+              yacht.status ===
+                yachtFilter;
+
+            return (
+              matchesText &&
+              matchesStatus
+            );
           }
-        )
+        );
+      },
+      [
+        yachts,
+        query,
+        yachtFilter,
+      ]
     );
 
-    toast(
-      "Tekne durumu güncellendi."
+
+  const filteredBookings =
+    useMemo(
+      () => {
+        const needle =
+          query
+            .trim()
+            .toLocaleLowerCase(
+              "tr"
+            );
+
+        return bookings.filter(
+          (
+            booking
+          ) => {
+            const yacht =
+              yachts.find(
+                (
+                  item
+                ) =>
+                  item.id ===
+                  booking.yacht_id
+              );
+
+            const text =
+              `${booking.booking_code} ${booking.guest_name} ${yacht?.name ?? ""} ${booking.source}`
+                .toLocaleLowerCase(
+                  "tr"
+                );
+
+            return (
+              !needle ||
+              text.includes(
+                needle
+              )
+            );
+          }
+        );
+      },
+      [
+        bookings,
+        yachts,
+        query,
+      ]
     );
-  }
 
 
-  function confirmBooking(
-    id: string
-  ) {
-    setBookings(
-      (current) =>
-        current.map(
-          (booking) =>
-            booking.id === id
-              ? {
-                  ...booking,
-                  status:
-                    "confirmed",
-                }
-              : booking
-        )
-    );
-
-    toast(
-      "Rezervasyon onaylandı."
-    );
-  }
-
-
-  const availability =
-    (
-      yachtIndex:
-        number,
-      dayIndex:
-        number
-    ) => {
-      const code =
+  const totalSales =
+    bookings
+      .filter(
         (
-          yachtIndex *
-            3 +
-          dayIndex
-        ) %
-        7;
+          booking
+        ) =>
+          booking.status !==
+          "cancelled"
+      )
+      .reduce(
+        (
+          total,
+          booking
+        ) =>
+          total +
+          Number(
+            booking.total_amount
+          ),
+        0
+      );
 
-      if (
-        code === 0
-      ) {
-        return "maintenance";
-      }
 
-      if (
-        code === 1 ||
-        code === 2
-      ) {
-        return "booked";
-      }
+  const totalPaid =
+    bookings.reduce(
+      (
+        total,
+        booking
+      ) =>
+        total +
+        Number(
+          booking.paid_amount
+        ),
+      0
+    );
 
-      if (
-        code === 3
-      ) {
-        return "option";
-      }
 
-      return "available";
-    };
+  const totalCommission =
+    bookings.reduce(
+      (
+        total,
+        booking
+      ) =>
+        total +
+        Number(
+          booking.commission_amount
+        ),
+      0
+    );
+
+
+  const openBalance =
+    Math.max(
+      0,
+      totalSales -
+        totalPaid
+    );
+
+
+  const activeTasks =
+    tasks.filter(
+      (
+        task
+      ) =>
+        task.status !==
+          "completed" &&
+        task.status !==
+          "cancelled"
+    );
+
+
+  if (loading) {
+    return (
+      <main className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+        <div className="text-center">
+          <FaShip className="mx-auto animate-pulse text-3xl text-orange-400" />
+
+          <div className="mt-4 text-sm font-black">
+            Yat & Tekne OS yükleniyor...
+          </div>
+        </div>
+      </main>
+    );
+  }
 
 
   return (
     <main className="min-h-screen bg-[#030a11] text-white">
+
       {notice && (
-        <div className="fixed right-6 top-6 z-[100] flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-[#07131f] px-5 py-4 shadow-2xl">
+        <div className="fixed right-5 top-5 z-[100] flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-[#07131f] px-5 py-4 shadow-2xl">
           <FaCheckCircle className="text-emerald-400" />
 
-          <div className="text-xs font-black">
+          <span className="text-xs font-black">
             {notice}
-          </div>
+          </span>
         </div>
       )}
 
 
-      <div className="mx-auto max-w-[1600px] px-5 py-7 lg:px-8 lg:py-9">
+      <div className="mx-auto max-w-[1600px] px-5 py-7 lg:px-8">
 
-        {/* HEADER */}
-        <section className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.16),transparent_35%),linear-gradient(145deg,#07131f,#040b12)] p-6 shadow-[0_30px_80px_rgba(0,0,0,.28)] lg:p-8">
-
-          <div className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
-
+        <section className="rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.16),transparent_35%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.22em] text-orange-300">
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.2em] text-orange-300">
                   TUROBUS YACHT OS
                 </span>
 
-                <span className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[9px] font-black text-emerald-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Sistem aktif
+                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[9px] font-black text-emerald-300">
+                  ● Supabase canlı
                 </span>
               </div>
 
-              <h1 className="mt-5 text-3xl font-black tracking-[-.04em] sm:text-4xl lg:text-5xl">
-                Yat & Tekne
+              <h1 className="mt-5 text-3xl font-black tracking-[-.04em] lg:text-5xl">
+                Yat & Tekne{" "}
                 <span className="text-orange-400">
-                  {" "}
                   Operasyon Merkezi
                 </span>
               </h1>
 
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-                Filo, rezervasyon, müsaitlik, görev,
-                tahsilat, komisyon ve tedarikçi süreçlerini
-                tek merkezden takip et.
+              <p className="mt-3 text-xs text-slate-400">
+                {companyName || "Aktif firma"}
+                {" · "}
+                Filo, rezervasyon, müsaitlik,
+                operasyon ve finans tek merkezde.
               </p>
             </div>
-
 
             <div className="flex flex-wrap gap-3">
               <button
@@ -985,10 +1548,10 @@ export default function YachtOSPage() {
                     "task"
                   )
                 }
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-5 text-xs font-black hover:border-orange-500/30"
+                className="flex min-h-12 items-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-5 text-xs font-black"
               >
                 <FaTasks />
-                Görev Oluştur
+                Görev
               </button>
 
               <button
@@ -998,305 +1561,267 @@ export default function YachtOSPage() {
                     "booking"
                   )
                 }
-                className="flex min-h-12 items-center gap-2 rounded-xl bg-orange-500 px-5 text-xs font-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
+                disabled={
+                  yachts.length ===
+                  0
+                }
+                className="flex min-h-12 items-center gap-2 rounded-xl bg-orange-500 px-5 text-xs font-black disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <FaPlus />
                 Yeni Rezervasyon
               </button>
             </div>
-
           </div>
         </section>
 
 
-        {/* KPI */}
+        {error && (
+          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/[.06] p-4">
+            <FaExclamationTriangle className="mt-0.5 shrink-0 text-red-400" />
+
+            <div className="min-w-0 flex-1 text-xs font-bold text-red-200">
+              {error}
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setError("")
+              }
+              className="text-red-300"
+            >
+              <FaTimes />
+            </button>
+          </div>
+        )}
+
+
         <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <StatCard
             title="Aktif Filo"
             value={String(
-              activeYachts
+              yachts.filter(
+                (
+                  yacht
+                ) =>
+                  yacht.status !==
+                  "passive"
+              ).length
             )}
             detail={`${yachts.length} kayıtlı tekne`}
             icon={<FaShip />}
           />
 
           <StatCard
-            title="Bugünkü Çıkış"
+            title="Rezervasyon"
             value={String(
-              todayTrips
+              bookings.length
             )}
-            detail="Planlanan operasyon"
-            icon={<FaAnchor />}
-            accent="bg-blue-500/10"
-          />
-
-          <StatCard
-            title="Açık Rezervasyon"
-            value={String(
-              openBookings
-            )}
-            detail="Onay + ödeme bekleyen"
+            detail="Toplam yat rezervasyonu"
             icon={<FaCalendarAlt />}
-            accent="bg-violet-500/10"
           />
 
           <StatCard
-            title="Tahsil Edilen"
+            title="Açık Görev"
+            value={String(
+              activeTasks.length
+            )}
+            detail="Operasyon takibi"
+            icon={<FaTasks />}
+          />
+
+          <StatCard
+            title="Tahsilat"
             value={money(
-              paid
+              totalPaid
             )}
             detail={`${money(
-              receivable
+              openBalance
             )} açık bakiye`}
             icon={<FaWallet />}
-            accent="bg-emerald-500/10"
           />
 
           <StatCard
             title="Komisyon"
             value={money(
-              commission
+              totalCommission
             )}
-            detail="Toplam beklenen gelir"
+            detail="Turobus brüt komisyon"
             icon={<FaCoins />}
-            accent="bg-amber-500/10"
           />
         </section>
 
 
-        {/* NAV */}
         <section className="mt-5 overflow-x-auto rounded-[22px] border border-white/10 bg-[#07131f] p-2">
           <div className="flex min-w-max gap-2">
-            <SectionButton
+            <NavButton
               active={
                 section ===
                 "overview"
               }
-              label="Genel Bakış"
               onClick={() =>
                 setSection(
                   "overview"
                 )
               }
-            />
+            >
+              Genel Bakış
+            </NavButton>
 
-            <SectionButton
+            <NavButton
               active={
                 section ===
                 "fleet"
               }
-              label="Filo"
               onClick={() =>
                 setSection(
                   "fleet"
                 )
               }
-            />
+            >
+              Filo
+            </NavButton>
 
-            <SectionButton
+            <NavButton
               active={
                 section ===
                 "bookings"
               }
-              label="Rezervasyonlar"
               onClick={() =>
                 setSection(
                   "bookings"
                 )
               }
-            />
+            >
+              Rezervasyonlar
+            </NavButton>
 
-            <SectionButton
+            <NavButton
               active={
                 section ===
                 "calendar"
               }
-              label="Müsaitlik Takvimi"
               onClick={() =>
                 setSection(
                   "calendar"
                 )
               }
-            />
+            >
+              Müsaitlik Takvimi
+            </NavButton>
 
-            <SectionButton
+            <NavButton
               active={
                 section ===
                 "operations"
               }
-              label="Operasyon"
               onClick={() =>
                 setSection(
                   "operations"
                 )
               }
-            />
+            >
+              Operasyon
+            </NavButton>
 
-            <SectionButton
+            <NavButton
               active={
                 section ===
                 "finance"
               }
-              label="Finans"
               onClick={() =>
                 setSection(
                   "finance"
                 )
               }
-            />
+            >
+              Finans
+            </NavButton>
 
-            <SectionButton
+            <NavButton
               active={
                 section ===
                 "suppliers"
               }
-              label="Tedarikçiler"
               onClick={() =>
                 setSection(
                   "suppliers"
                 )
               }
-            />
+            >
+              Tedarikçiler
+            </NavButton>
           </div>
         </section>
 
 
-        {/* SEARCH */}
-        {(section ===
-          "fleet" ||
-          section ===
-            "bookings") && (
-          <section className="mt-5 flex flex-col gap-3 rounded-[22px] border border-white/10 bg-[#07131f] p-4 md:flex-row md:items-center">
-
-            <div className="relative flex-1">
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-slate-600" />
-
-              <input
-                value={query}
-                onChange={(
-                  event
-                ) =>
-                  setQuery(
-                    event.target.value
-                  )
-                }
-                placeholder={
-                  section ===
-                  "fleet"
-                    ? "Tekne, marina, şehir veya tip ara..."
-                    : "Rezervasyon, müşteri, tekne veya kanal ara..."
-                }
-                className="h-12 w-full rounded-xl border border-white/10 bg-white/[.03] pl-10 pr-4 text-xs font-semibold outline-none transition placeholder:text-slate-600 focus:border-orange-500/40"
-              />
-            </div>
-
-            {section ===
-              "fleet" && (
-              <div className="flex items-center gap-2 overflow-x-auto">
-                <FaFilter className="mx-1 text-slate-600" />
-
-                {[
-                  [
-                    "all",
-                    "Tümü",
-                  ],
-                  [
-                    "available",
-                    "Müsait",
-                  ],
-                  [
-                    "trip",
-                    "Seferde",
-                  ],
-                  [
-                    "maintenance",
-                    "Bakımda",
-                  ],
-                ].map(
-                  ([
-                    value,
-                    label,
-                  ]) => (
-                    <button
-                      key={
-                        value
-                      }
-                      type="button"
-                      onClick={() =>
-                        setFilter(
-                          value
-                        )
-                      }
-                      className={`rounded-xl px-4 py-3 text-[10px] font-black ${
-                        filter ===
-                        value
-                          ? "bg-orange-500 text-white"
-                          : "border border-white/10 text-slate-400"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  )
-                )}
-              </div>
-            )}
-          </section>
-        )}
-
-
-        {/* OVERVIEW */}
         {section ===
           "overview" && (
-          <div className="mt-5 grid gap-5 xl:grid-cols-[1.45fr_.85fr]">
+          <div className="mt-5 grid gap-5 xl:grid-cols-[1.3fr_.7fr]">
 
-            <div className="space-y-5">
-
-              <section className="rounded-[28px] border border-white/10 bg-[#07131f] p-5 lg:p-6">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <div className="text-lg font-black">
-                      Bugünün Operasyonu
-                    </div>
-                    <div className="mt-1 text-[10px] text-slate-500">
-                      Canlı çıkış ve hazırlık durumu
-                    </div>
+            <section className="rounded-[28px] border border-white/10 bg-[#07131f] p-5 lg:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-lg font-black">
+                    Filo Durumu
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSection(
-                        "operations"
-                      )
-                    }
-                    className="flex items-center gap-2 text-[10px] font-black text-orange-400"
-                  >
-                    Tümünü gör
-                    <FaChevronRight />
-                  </button>
+                  <div className="mt-1 text-[10px] text-slate-500">
+                    Canlı Supabase kayıtları
+                  </div>
                 </div>
 
-                <div className="mt-5 space-y-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setModal(
+                      "yacht"
+                    )
+                  }
+                  className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-[9px] font-black"
+                >
+                  <FaPlus />
+                  Tekne Ekle
+                </button>
+              </div>
+
+              {yachts.length ===
+              0 ? (
+                <div className="mt-6 rounded-[24px] border border-dashed border-white/10 p-10 text-center">
+                  <FaShip className="mx-auto text-3xl text-slate-700" />
+
+                  <div className="mt-4 text-sm font-black">
+                    Henüz filoda tekne yok
+                  </div>
+
+                  <div className="mt-2 text-[10px] text-slate-500">
+                    İlk tekneyi ekleyerek Yat OS operasyonunu başlat.
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-5 grid gap-3 md:grid-cols-2">
                   {yachts
-                    .filter(
-                      (item) =>
-                        item.nextTrip.startsWith(
-                          "Bugün"
-                        )
+                    .slice(
+                      0,
+                      6
                     )
                     .map(
-                      (yacht) => (
-                        <div
+                      (
+                        yacht
+                      ) => (
+                        <button
+                          type="button"
                           key={
                             yacht.id
                           }
-                          className="grid gap-4 rounded-2xl border border-white/10 bg-white/[.025] p-4 md:grid-cols-[1fr_auto_auto] md:items-center"
+                          onClick={() =>
+                            void cycleYachtStatus(
+                              yacht
+                            )
+                          }
+                          className="rounded-2xl border border-white/10 bg-white/[.025] p-4 text-left transition hover:border-orange-500/20"
                         >
-                          <div className="flex items-center gap-4">
-                            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
-                              <FaShip />
-                            </div>
-
+                          <div className="flex items-start justify-between gap-3">
                             <div>
                               <div className="text-sm font-black">
                                 {
@@ -1304,299 +1829,209 @@ export default function YachtOSPage() {
                                 }
                               </div>
 
-                              <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
+                              <div className="mt-1 flex items-center gap-2 text-[9px] text-slate-500">
                                 <FaMapMarkerAlt />
-                                {
-                                  yacht.marina
-                                }
-                                {" · "}
                                 {
                                   yacht.city
                                 }
+                                {yacht.marina
+                                  ? ` · ${yacht.marina}`
+                                  : ""}
                               </div>
                             </div>
-                          </div>
 
-                          <div>
-                            <div className="text-[9px] font-black uppercase text-slate-600">
-                              Çıkış
-                            </div>
-                            <div className="mt-1 text-xs font-black">
-                              {
-                                yacht.nextTrip
-                              }
-                            </div>
-                          </div>
-
-                          <span className={`w-fit rounded-full border px-3 py-1.5 text-[9px] font-black ${yachtTone(
-                            yacht.status
-                          )}`}>
-                            {statusLabel(
+                            <span className={`rounded-full border px-2.5 py-1 text-[8px] font-black ${yachtStatusTone(
                               yacht.status
-                            )}
-                          </span>
-                        </div>
+                            )}`}>
+                              {yachtStatusLabel(
+                                yacht.status
+                              )}
+                            </span>
+                          </div>
+
+                          <div className="mt-4 flex items-center justify-between border-t border-white/[.06] pt-3">
+                            <span className="text-[9px] text-slate-500">
+                              {
+                                yacht.max_guests
+                              } kişi · {
+                                yacht.cabins
+                              } kabin
+                            </span>
+
+                            <span className="text-[10px] font-black text-orange-300">
+                              {money(
+                                yacht.base_daily_price,
+                                yacht.currency
+                              )}
+                            </span>
+                          </div>
+                        </button>
                       )
                     )}
                 </div>
-              </section>
+              )}
+            </section>
 
 
-              <section className="rounded-[28px] border border-white/10 bg-[#07131f] p-5 lg:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-lg font-black">
-                      Son Rezervasyonlar
-                    </div>
-                    <div className="mt-1 text-[10px] text-slate-500">
-                      Satış ve tahsilat görünümü
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSection(
-                        "bookings"
-                      )
-                    }
-                    className="text-[10px] font-black text-orange-400"
-                  >
-                    Tüm rezervasyonlar
-                  </button>
+            <section className="rounded-[28px] border border-white/10 bg-[#07131f] p-5">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-500/10 text-red-400">
+                  <FaBell />
                 </div>
 
-                <div className="mt-5 overflow-x-auto">
-                  <table className="w-full min-w-[760px] text-left">
-                    <thead>
-                      <tr className="border-b border-white/10 text-[9px] font-black uppercase tracking-wider text-slate-600">
-                        <th className="pb-3">
-                          Rezervasyon
-                        </th>
-                        <th className="pb-3">
-                          Tekne
-                        </th>
-                        <th className="pb-3">
-                          Tarih
-                        </th>
-                        <th className="pb-3">
-                          Tutar
-                        </th>
-                        <th className="pb-3">
-                          Durum
-                        </th>
-                      </tr>
-                    </thead>
+                <div>
+                  <div className="text-sm font-black">
+                    Kontrol Merkezi
+                  </div>
 
-                    <tbody>
-                      {bookings.map(
+                  <div className="text-[9px] text-slate-500">
+                    Anlık operasyon riskleri
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[.05] p-4">
+                  <div className="text-xs font-black">
+                    {
+                      bookings.filter(
                         (
                           booking
-                        ) => (
-                          <tr
-                            key={
-                              booking.id
-                            }
-                            className="border-b border-white/[.06] text-xs"
-                          >
-                            <td className="py-4">
-                              <div className="font-black">
-                                {
-                                  booking.guest
-                                }
-                              </div>
-                              <div className="mt-1 text-[9px] text-slate-600">
-                                {
-                                  booking.code
-                                }
-                              </div>
-                            </td>
-
-                            <td className="py-4 font-bold text-slate-300">
-                              {
-                                booking.yacht
-                              }
-                            </td>
-
-                            <td className="py-4 text-slate-400">
-                              {
-                                booking.date
-                              }
-                            </td>
-
-                            <td className="py-4 font-black">
-                              {money(
-                                booking.total
-                              )}
-                            </td>
-
-                            <td className="py-4">
-                              <span className={`rounded-full border px-2.5 py-1 text-[8px] font-black ${bookingTone(
-                                booking.status
-                              )}`}>
-                                {bookingLabel(
-                                  booking.status
-                                )}
-                              </span>
-                            </td>
-                          </tr>
-                        )
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            </div>
-
-
-            <div className="space-y-5">
-
-              <section className="rounded-[28px] border border-white/10 bg-[#07131f] p-5">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-500/10 text-red-400">
-                    <FaBell />
+                        ) =>
+                          booking.payment_status !==
+                          "paid"
+                      ).length
+                    } ödeme açık
                   </div>
 
-                  <div>
-                    <div className="text-sm font-black">
-                      Kontrol Merkezi
-                    </div>
-                    <div className="text-[9px] text-slate-500">
-                      Dikkat gerektiren işlemler
-                    </div>
+                  <div className="mt-1 text-[9px] text-slate-500">
+                    Tam tahsil edilmemiş rezervasyonlar.
                   </div>
                 </div>
 
-                <div className="mt-5 space-y-3">
-                  <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[.06] p-4">
-                    <div className="flex gap-3">
-                      <FaExclamationTriangle className="mt-0.5 text-amber-400" />
-
-                      <div>
-                        <div className="text-xs font-black">
-                          2 ödeme bekliyor
-                        </div>
-                        <div className="mt-1 text-[9px] leading-4 text-slate-500">
-                          Açık bakiyeleri rezervasyon öncesi kontrol et.
-                        </div>
-                      </div>
-                    </div>
+                <div className="rounded-2xl border border-red-500/20 bg-red-500/[.05] p-4">
+                  <div className="text-xs font-black">
+                    {
+                      activeTasks.filter(
+                        (
+                          task
+                        ) =>
+                          task.priority ===
+                            "high" ||
+                          task.priority ===
+                            "critical"
+                      ).length
+                    } kritik görev
                   </div>
 
-                  <div className="rounded-2xl border border-red-500/20 bg-red-500/[.05] p-4">
-                    <div className="flex gap-3">
-                      <FaTasks className="mt-0.5 text-red-400" />
-
-                      <div>
-                        <div className="text-xs font-black">
-                          {
-                            tasks.filter(
-                              (task) =>
-                                !task.done &&
-                                task.priority ===
-                                  "high"
-                            ).length
-                          } kritik görev
-                        </div>
-                        <div className="mt-1 text-[9px] leading-4 text-slate-500">
-                          Çıkış öncesi tamamlanması gereken işler var.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-blue-500/20 bg-blue-500/[.05] p-4">
-                    <div className="flex gap-3">
-                      <FaShip className="mt-0.5 text-blue-400" />
-
-                      <div>
-                        <div className="text-xs font-black">
-                          1 tekne bakımda
-                        </div>
-                        <div className="mt-1 text-[9px] leading-4 text-slate-500">
-                          Blue Horizon için bakım kapanışı bekleniyor.
-                        </div>
-                      </div>
-                    </div>
+                  <div className="mt-1 text-[9px] text-slate-500">
+                    Operasyon öncesi kontrol edilmeli.
                   </div>
                 </div>
-              </section>
 
+                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/[.05] p-4">
+                  <div className="text-xs font-black">
+                    {
+                      yachts.filter(
+                        (
+                          yacht
+                        ) =>
+                          yacht.status ===
+                          "maintenance"
+                      ).length
+                    } tekne bakımda
+                  </div>
 
-              <section className="rounded-[28px] border border-white/10 bg-[#07131f] p-5">
-                <div className="text-sm font-black">
-                  Filo Doluluk
+                  <div className="mt-1 text-[9px] text-slate-500">
+                    Müsaitlik takvimini etkileyebilir.
+                  </div>
                 </div>
-
-                <div className="mt-5 space-y-5">
-                  {yachts.map(
-                    (yacht) => (
-                      <div
-                        key={
-                          yacht.id
-                        }
-                      >
-                        <div className="mb-2 flex items-center justify-between gap-3">
-                          <span className="text-[10px] font-black">
-                            {
-                              yacht.name
-                            }
-                          </span>
-
-                          <span className="text-[10px] font-black text-orange-400">
-                            {
-                              yacht.occupancy
-                            }%
-                          </span>
-                        </div>
-
-                        <Progress
-                          value={
-                            yacht.occupancy
-                          }
-                        />
-                      </div>
-                    )
-                  )}
-                </div>
-              </section>
-            </div>
+              </div>
+            </section>
           </div>
         )}
 
 
-        {/* FLEET */}
         {section ===
           "fleet" && (
           <section className="mt-5 rounded-[28px] border border-white/10 bg-[#07131f] p-5 lg:p-6">
 
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <div className="text-lg font-black">
-                  Filo Yönetimi
-                </div>
-                <div className="mt-1 text-[10px] text-slate-500">
-                  {filteredYachts.length} tekne görüntüleniyor
-                </div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="relative flex-1">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-slate-600" />
+
+                <input
+                  value={
+                    query
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setQuery(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Tekne, şehir, marina ara..."
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/[.03] pl-10 pr-4 text-xs outline-none focus:border-orange-500/40"
+                />
               </div>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setModal(
-                    "yacht"
+              <div className="flex gap-2 overflow-x-auto">
+                <FaFilter className="my-auto text-slate-600" />
+
+                {[
+                  ["all", "Tümü"],
+                  ["available", "Müsait"],
+                  ["trip", "Seferde"],
+                  ["maintenance", "Bakım"],
+                ].map(
+                  (
+                    [
+                      value,
+                      label,
+                    ]
+                  ) => (
+                    <button
+                      type="button"
+                      key={
+                        value
+                      }
+                      onClick={() =>
+                        setYachtFilter(
+                          value
+                        )
+                      }
+                      className={`rounded-xl px-3 py-3 text-[9px] font-black ${
+                        yachtFilter ===
+                        value
+                          ? "bg-orange-500"
+                          : "border border-white/10 text-slate-400"
+                      }`}
+                    >
+                      {label}
+                    </button>
                   )
-                }
-                className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-[10px] font-black"
-              >
-                <FaPlus />
-                Tekne Ekle
-              </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setModal(
+                      "yacht"
+                    )
+                  }
+                  className="rounded-xl bg-orange-500 px-4 py-3 text-[9px] font-black"
+                >
+                  + Tekne
+                </button>
+              </div>
             </div>
 
             <div className="mt-5 grid gap-4 xl:grid-cols-2">
               {filteredYachts.map(
-                (yacht) => (
+                (
+                  yacht
+                ) => (
                   <div
                     key={
                       yacht.id
@@ -1604,8 +2039,8 @@ export default function YachtOSPage() {
                     className="rounded-[24px] border border-white/10 bg-white/[.025] p-5"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-orange-500/10 text-xl text-orange-400">
+                      <div className="flex gap-4">
+                        <div className="grid h-13 w-13 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
                           <FaShip />
                         </div>
 
@@ -1616,9 +2051,9 @@ export default function YachtOSPage() {
                             }
                           </div>
 
-                          <div className="mt-1 text-[10px] text-slate-500">
+                          <div className="mt-1 text-[9px] text-slate-500">
                             {
-                              yacht.type
+                              yacht.yacht_type
                             }
                             {" · "}
                             {
@@ -1630,89 +2065,52 @@ export default function YachtOSPage() {
 
                       <button
                         type="button"
+                        disabled={
+                          saving
+                        }
                         onClick={() =>
-                          rotateYachtStatus(
-                            yacht.id
+                          void cycleYachtStatus(
+                            yacht
                           )
                         }
-                        className={`rounded-full border px-3 py-1.5 text-[9px] font-black ${yachtTone(
+                        className={`rounded-full border px-3 py-1.5 text-[8px] font-black ${yachtStatusTone(
                           yacht.status
                         )}`}
                       >
-                        {statusLabel(
+                        {yachtStatusLabel(
                           yacht.status
                         )}
                       </button>
                     </div>
 
-                    <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      {[
-                        [
-                          "Kapasite",
-                          `${yacht.capacity} kişi`,
-                        ],
-                        [
-                          "Kabin",
-                          `${yacht.cabins}`,
-                        ],
-                        [
-                          "Boy",
-                          `${yacht.length} m`,
-                        ],
-                        [
-                          "Günlük",
-                          money(
-                            yacht.dailyPrice
-                          ),
-                        ],
-                      ].map(
-                        ([
-                          label,
-                          value,
-                        ]) => (
-                          <div
-                            key={
-                              label
-                            }
-                            className="rounded-xl border border-white/[.07] bg-black/10 p-3"
-                          >
-                            <div className="text-[8px] font-black uppercase text-slate-600">
-                              {
-                                label
-                              }
-                            </div>
-                            <div className="mt-1.5 text-[10px] font-black">
-                              {
-                                value
-                              }
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
+                    <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      <Info
+                        title="Kapasite"
+                        value={`${yacht.max_guests} kişi`}
+                      />
 
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-white/[.07] pt-4">
-                      <div>
-                        <div className="text-[9px] text-slate-600">
-                          Kaptan
-                        </div>
-                        <div className="mt-1 text-[10px] font-black">
-                          {
-                            yacht.captain
-                          }
-                        </div>
-                      </div>
+                      <Info
+                        title="Kabin"
+                        value={String(
+                          yacht.cabins
+                        )}
+                      />
 
-                      <div className="text-right">
-                        <div className="text-[9px] text-slate-600">
-                          Sonraki operasyon
-                        </div>
-                        <div className="mt-1 text-[10px] font-black text-orange-300">
-                          {
-                            yacht.nextTrip
-                          }
-                        </div>
-                      </div>
+                      <Info
+                        title="Kaptan"
+                        value={
+                          yacht.captain_name ||
+                          "—"
+                        }
+                      />
+
+                      <Info
+                        title="Günlük"
+                        value={money(
+                          yacht.base_daily_price,
+                          yacht.currency
+                        )}
+                      />
                     </div>
                   </div>
                 )
@@ -1722,41 +2120,53 @@ export default function YachtOSPage() {
         )}
 
 
-        {/* BOOKINGS */}
         {section ===
           "bookings" && (
           <section className="mt-5 overflow-hidden rounded-[28px] border border-white/10 bg-[#07131f]">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 p-5 lg:p-6">
-              <div>
-                <div className="text-lg font-black">
-                  Rezervasyon Takibi
-                </div>
 
-                <div className="mt-1 text-[10px] text-slate-500">
-                  Satış, ödeme ve misafir operasyonları
-                </div>
+            <div className="flex flex-col gap-3 border-b border-white/10 p-5 md:flex-row md:items-center">
+              <div className="relative flex-1">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-slate-600" />
+
+                <input
+                  value={
+                    query
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setQuery(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Rezervasyon veya misafir ara..."
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/[.03] pl-10 pr-4 text-xs outline-none"
+                />
               </div>
 
               <button
                 type="button"
+                disabled={
+                  yachts.length ===
+                  0
+                }
                 onClick={() =>
                   setModal(
                     "booking"
                   )
                 }
-                className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-[10px] font-black"
+                className="h-12 rounded-xl bg-orange-500 px-5 text-[9px] font-black disabled:opacity-40"
               >
-                <FaPlus />
-                Rezervasyon Ekle
+                + Rezervasyon
               </button>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1050px] text-left">
                 <thead className="bg-white/[.025]">
-                  <tr className="text-[9px] font-black uppercase tracking-wider text-slate-600">
+                  <tr className="text-[8px] font-black uppercase tracking-wider text-slate-600">
                     <th className="px-5 py-4">
-                      Kod / Misafir
+                      Misafir
                     </th>
                     <th className="px-5 py-4">
                       Tekne
@@ -1771,10 +2181,7 @@ export default function YachtOSPage() {
                       Satış
                     </th>
                     <th className="px-5 py-4">
-                      Tahsilat
-                    </th>
-                    <th className="px-5 py-4">
-                      Kanal
+                      Tahsil
                     </th>
                     <th className="px-5 py-4">
                       Durum
@@ -1789,119 +2196,122 @@ export default function YachtOSPage() {
                   {filteredBookings.map(
                     (
                       booking
-                    ) => (
-                      <tr
-                        key={
-                          booking.id
-                        }
-                        className="border-t border-white/[.06] text-xs"
-                      >
-                        <td className="px-5 py-4">
-                          <div className="font-black">
+                    ) => {
+                      const yacht =
+                        yachts.find(
+                          (
+                            item
+                          ) =>
+                            item.id ===
+                            booking.yacht_id
+                        );
+
+                      return (
+                        <tr
+                          key={
+                            booking.id
+                          }
+                          className="border-t border-white/[.06] text-[10px]"
+                        >
+                          <td className="px-5 py-4">
+                            <div className="font-black">
+                              {
+                                booking.guest_name
+                              }
+                            </div>
+
+                            <div className="mt-1 text-[8px] text-slate-600">
+                              {
+                                booking.booking_code
+                              }
+                            </div>
+                          </td>
+
+                          <td className="px-5 py-4 font-bold">
                             {
-                              booking.guest
+                              yacht?.name ??
+                              "—"
                             }
-                          </div>
-                          <div className="mt-1 text-[9px] text-slate-600">
+                          </td>
+
+                          <td className="px-5 py-4 text-slate-400">
+                            {shortDate(
+                              booking.start_date
+                            )}
+                            {" → "}
+                            {shortDate(
+                              booking.end_date
+                            )}
+                          </td>
+
+                          <td className="px-5 py-4">
                             {
-                              booking.code
+                              booking.guest_count
                             }
-                          </div>
-                        </td>
+                          </td>
 
-                        <td className="px-5 py-4 font-bold">
-                          {
-                            booking.yacht
-                          }
-                        </td>
-
-                        <td className="px-5 py-4 text-slate-400">
-                          {
-                            booking.date
-                          }
-                          {" → "}
-                          {
-                            booking.endDate
-                          }
-                        </td>
-
-                        <td className="px-5 py-4">
-                          {
-                            booking.guests
-                          }
-                        </td>
-
-                        <td className="px-5 py-4 font-black">
-                          {money(
-                            booking.total
-                          )}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <div className="font-black text-emerald-300">
+                          <td className="px-5 py-4 font-black">
                             {money(
-                              booking.paid
+                              booking.total_amount,
+                              booking.currency
                             )}
-                          </div>
-                          <div className="mt-1 text-[8px] text-slate-600">
-                            Kalan{" "}
-                            {money(
-                              Math.max(
-                                0,
-                                booking.total -
-                                  booking.paid
-                              )
-                            )}
-                          </div>
-                        </td>
+                          </td>
 
-                        <td className="px-5 py-4 text-slate-400">
-                          {
-                            booking.source
-                          }
-                        </td>
+                          <td className="px-5 py-4">
+                            <div className="font-black text-emerald-300">
+                              {money(
+                                booking.paid_amount,
+                                booking.currency
+                              )}
+                            </div>
 
-                        <td className="px-5 py-4">
-                          <span className={`rounded-full border px-2.5 py-1 text-[8px] font-black ${bookingTone(
-                            booking.status
-                          )}`}>
-                            {bookingLabel(
+                            <div className="mt-1 text-[8px] text-slate-600">
+                              Kalan{" "}
+                              {money(
+                                Math.max(
+                                  0,
+                                  booking.total_amount -
+                                    booking.paid_amount
+                                ),
+                                booking.currency
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <span className={`rounded-full border px-2.5 py-1 text-[8px] font-black ${bookingStatusTone(
                               booking.status
-                            )}
-                          </span>
-                        </td>
+                            )}`}>
+                              {bookingStatusLabel(
+                                booking.status
+                              )}
+                            </span>
+                          </td>
 
-                        <td className="px-5 py-4">
-                          {booking.status ===
-                          "pending" ? (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                confirmBooking(
-                                  booking.id
-                                )
-                              }
-                              className="rounded-lg bg-orange-500 px-3 py-2 text-[9px] font-black"
-                            >
-                              Onayla
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                toast(
-                                  `${booking.code} kaydı açıldı.`
-                                )
-                              }
-                              className="flex items-center gap-2 text-[9px] font-black text-slate-400"
-                            >
-                              Detay
-                              <FaArrowRight />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    )
+                          <td className="px-5 py-4">
+                            {booking.status ===
+                            "pending" ? (
+                              <button
+                                type="button"
+                                disabled={
+                                  saving
+                                }
+                                onClick={() =>
+                                  void confirmBooking(
+                                    booking
+                                  )
+                                }
+                                className="rounded-lg bg-orange-500 px-3 py-2 text-[8px] font-black"
+                              >
+                                Onayla
+                              </button>
+                            ) : (
+                              <FaCheck className="text-emerald-400" />
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    }
                   )}
                 </tbody>
               </table>
@@ -1910,82 +2320,63 @@ export default function YachtOSPage() {
         )}
 
 
-        {/* CALENDAR */}
         {section ===
           "calendar" && (
           <section className="mt-5 rounded-[28px] border border-white/10 bg-[#07131f] p-5 lg:p-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <div className="text-lg font-black">
-                  Müsaitlik & Kontenjan
-                </div>
-
-                <div className="mt-1 text-[10px] text-slate-500">
-                  Filo bazında günlük operasyon görünümü
-                </div>
+            <div>
+              <div className="text-lg font-black">
+                Müsaitlik Takvimi
               </div>
 
-              <div className="flex flex-wrap gap-3 text-[8px] font-black">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  Müsait
-                </span>
-
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-blue-400" />
-                  Dolu
-                </span>
-
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-amber-400" />
-                  Opsiyon
-                </span>
-
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-red-400" />
-                  Bakım
-                </span>
+              <div className="mt-1 text-[10px] text-slate-500">
+                Hücreye tıklayarak Müsait → Opsiyon → Dolu → Bakım → Kapalı durumları arasında geçiş yap.
               </div>
             </div>
 
             <div className="mt-6 overflow-x-auto">
-              <div className="min-w-[950px]">
+              <div className="min-w-[980px]">
                 <div className="grid grid-cols-[220px_repeat(8,1fr)] gap-2">
+
                   <div />
 
                   {days.map(
-                    (day) => (
+                    (
+                      day
+                    ) => (
                       <div
                         key={
                           day
                         }
-                        className="pb-2 text-center text-[9px] font-black text-slate-500"
+                        className="pb-2 text-center text-[8px] font-black text-slate-500"
                       >
-                        {day}
+                        {shortDate(
+                          day
+                        )}
                       </div>
                     )
                   )}
 
                   {yachts.flatMap(
                     (
-                      yacht,
-                      yachtIndex
+                      yacht
                     ) => [
                       <div
-                        key={`${yacht.id}-title`}
+                        key={`${yacht.id}-name`}
                         className="flex items-center gap-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3"
                       >
                         <FaShip className="text-orange-400" />
 
                         <div>
-                          <div className="text-[10px] font-black">
+                          <div className="text-[9px] font-black">
                             {
                               yacht.name
                             }
                           </div>
+
                           <div className="mt-1 text-[8px] text-slate-600">
                             {
-                              yacht.marina
+                              yacht.marina ||
+                              yacht.city
                             }
                           </div>
                         </div>
@@ -1993,47 +2384,34 @@ export default function YachtOSPage() {
 
                       ...days.map(
                         (
-                          day,
-                          dayIndex
+                          day
                         ) => {
                           const status =
-                            availability(
-                              yachtIndex,
-                              dayIndex
+                            availabilityFor(
+                              yacht.id,
+                              day
                             );
 
                           return (
                             <button
                               type="button"
+                              disabled={
+                                saving
+                              }
                               key={`${yacht.id}-${day}`}
                               onClick={() =>
-                                toast(
-                                  `${yacht.name} · ${day} müsaitlik kaydı açıldı.`
+                                void cycleAvailability(
+                                  yacht.id,
+                                  day
                                 )
                               }
-                              className={`min-h-14 rounded-xl border text-[8px] font-black transition ${
-                                status ===
-                                "available"
-                                  ? "border-emerald-500/20 bg-emerald-500/[.07] text-emerald-300"
-                                  : status ===
-                                    "booked"
-                                    ? "border-blue-500/20 bg-blue-500/[.08] text-blue-300"
-                                    : status ===
-                                      "option"
-                                      ? "border-amber-500/20 bg-amber-500/[.08] text-amber-300"
-                                      : "border-red-500/20 bg-red-500/[.08] text-red-300"
-                              }`}
+                              className={`min-h-14 rounded-xl border text-[8px] font-black ${availabilityTone(
+                                status
+                              )}`}
                             >
-                              {status ===
-                              "available"
-                                ? "Müsait"
-                                : status ===
-                                  "booked"
-                                  ? "Dolu"
-                                  : status ===
-                                    "option"
-                                    ? "Opsiyon"
-                                    : "Bakım"}
+                              {availabilityLabel(
+                                status
+                              )}
                             </button>
                           );
                         }
@@ -2047,69 +2425,93 @@ export default function YachtOSPage() {
         )}
 
 
-        {/* OPERATIONS */}
         {section ===
           "operations" && (
-          <div className="mt-5 grid gap-5 xl:grid-cols-[1.3fr_.7fr]">
-            <section className="rounded-[28px] border border-white/10 bg-[#07131f] p-5 lg:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-lg font-black">
-                    Operasyon Görevleri
-                  </div>
-                  <div className="mt-1 text-[10px] text-slate-500">
-                    Çıkış öncesi kontrol ve ekip takibi
-                  </div>
+          <section className="mt-5 rounded-[28px] border border-white/10 bg-[#07131f] p-5 lg:p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="text-lg font-black">
+                  Operasyon Görevleri
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setModal(
-                      "task"
-                    )
-                  }
-                  className="rounded-xl bg-orange-500 px-4 py-3 text-[9px] font-black"
-                >
-                  + Görev
-                </button>
+                <div className="mt-1 text-[10px] text-slate-500">
+                  Personel, hazırlık, bakım ve çıkış kontrolleri
+                </div>
               </div>
 
-              <div className="mt-5 space-y-3">
-                {tasks.map(
-                  (task) => (
+              <button
+                type="button"
+                onClick={() =>
+                  setModal(
+                    "task"
+                  )
+                }
+                className="rounded-xl bg-orange-500 px-4 py-3 text-[9px] font-black"
+              >
+                + Görev
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {tasks.length ===
+              0 && (
+                <EmptyState
+                  icon={<FaTasks />}
+                  title="Henüz görev yok"
+                  text="İlk operasyon görevini oluştur."
+                />
+              )}
+
+              {tasks.map(
+                (
+                  task
+                ) => {
+                  const yacht =
+                    yachts.find(
+                      (
+                        item
+                      ) =>
+                        item.id ===
+                        task.yacht_id
+                    );
+
+                  const done =
+                    task.status ===
+                    "completed";
+
+                  return (
                     <button
                       type="button"
+                      disabled={
+                        saving
+                      }
                       key={
                         task.id
                       }
                       onClick={() =>
-                        toggleTask(
-                          task.id
+                        void toggleTask(
+                          task
                         )
                       }
-                      className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition ${
-                        task.done
+                      className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left ${
+                        done
                           ? "border-emerald-500/10 bg-emerald-500/[.03] opacity-60"
-                          : "border-white/10 bg-white/[.02] hover:border-orange-500/20"
+                          : "border-white/10 bg-white/[.025]"
                       }`}
                     >
                       <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
-                        task.done
+                        done
                           ? "bg-emerald-500/10 text-emerald-400"
-                          : task.priority ===
-                            "high"
-                            ? "bg-red-500/10 text-red-400"
-                            : "bg-orange-500/10 text-orange-400"
+                          : "bg-orange-500/10 text-orange-400"
                       }`}>
-                        {task.done
+                        {done
                           ? <FaCheckCircle />
                           : <FaTasks />}
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <div className={`text-xs font-black ${
-                          task.done
+                          done
                             ? "line-through"
                             : ""
                         }`}>
@@ -2120,155 +2522,87 @@ export default function YachtOSPage() {
 
                         <div className="mt-1 text-[9px] text-slate-600">
                           {
-                            task.yacht
+                            yacht?.name ??
+                            "Genel görev"
                           }
-                          {" · "}
-                          {
-                            task.owner
-                          }
+                          {task.assigned_to_name
+                            ? ` · ${task.assigned_to_name}`
+                            : ""}
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <div className="flex items-center gap-2 text-[10px] font-black">
-                          <FaClock className="text-slate-600" />
+                      <div className="text-right text-[8px]">
+                        <div className="font-black uppercase text-orange-300">
                           {
-                            task.time
+                            task.priority
                           }
                         </div>
 
-                        <div className={`mt-1 text-[8px] font-black ${
-                          task.priority ===
-                          "high"
-                            ? "text-red-400"
-                            : "text-slate-600"
-                        }`}>
-                          {task.priority ===
-                          "high"
-                            ? "KRİTİK"
-                            : task.priority ===
-                              "medium"
-                              ? "NORMAL"
-                              : "DÜŞÜK"}
+                        <div className="mt-1 text-slate-600">
+                          {task.due_at
+                            ? new Intl.DateTimeFormat(
+                                "tr-TR",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              ).format(
+                                new Date(
+                                  task.due_at
+                                )
+                              )
+                            : "Tarih yok"}
                         </div>
                       </div>
                     </button>
-                  )
-                )}
-              </div>
-            </section>
-
-
-            <section className="rounded-[28px] border border-white/10 bg-[#07131f] p-5">
-              <div className="text-sm font-black">
-                Operasyon Sağlığı
-              </div>
-
-              <div className="mt-5 space-y-4">
-                {[
-                  [
-                    "Tamamlanan görev",
-                    `${tasks.filter(
-                      (task) =>
-                        task.done
-                    ).length}/${tasks.length}`,
-                    72,
-                  ],
-                  [
-                    "Filo hazırlığı",
-                    "86%",
-                    86,
-                  ],
-                  [
-                    "Misafir bilgileri",
-                    "92%",
-                    92,
-                  ],
-                  [
-                    "Tahsilat kontrolü",
-                    "74%",
-                    74,
-                  ],
-                ].map(
-                  ([
-                    title,
-                    value,
-                    progress,
-                  ]) => (
-                    <div
-                      key={
-                        String(
-                          title
-                        )
-                      }
-                    >
-                      <div className="mb-2 flex justify-between text-[10px]">
-                        <span className="font-bold text-slate-400">
-                          {title}
-                        </span>
-                        <span className="font-black">
-                          {value}
-                        </span>
-                      </div>
-
-                      <Progress
-                        value={
-                          Number(
-                            progress
-                          )
-                        }
-                      />
-                    </div>
-                  )
-                )}
-              </div>
-            </section>
-          </div>
+                  );
+                }
+              )}
+            </div>
+          </section>
         )}
 
 
-        {/* FINANCE */}
         {section ===
           "finance" && (
           <div className="mt-5 space-y-5">
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <StatCard
-                title="Toplam Satış"
+                title="Satış Hacmi"
                 value={money(
                   totalSales
                 )}
-                detail="Aktif rezervasyon hacmi"
-                icon={<FaCoins />}
+                detail="İptal hariç"
+                icon={<FaChartLine />}
               />
 
               <StatCard
                 title="Tahsilat"
                 value={money(
-                  paid
+                  totalPaid
                 )}
-                detail="Kasaya giren tutar"
+                detail="Alınan ödeme"
                 icon={<FaWallet />}
-                accent="bg-emerald-500/10"
               />
 
               <StatCard
                 title="Açık Bakiye"
                 value={money(
-                  receivable
+                  openBalance
                 )}
-                detail="Takip edilmesi gereken"
+                detail="Takip edilecek"
                 icon={<FaClock />}
-                accent="bg-red-500/10"
               />
 
               <StatCard
-                title="Turobus Komisyon"
+                title="Komisyon"
                 value={money(
-                  commission
+                  totalCommission
                 )}
-                detail="Beklenen brüt komisyon"
-                icon={<FaChartLine />}
-                accent="bg-violet-500/10"
+                detail="Turobus geliri"
+                icon={<FaCoins />}
               />
             </section>
 
@@ -2277,349 +2611,1004 @@ export default function YachtOSPage() {
                 Rezervasyon Finans Takibi
               </div>
 
-              <div className="mt-5 space-y-4">
-                {bookings
-                  .filter(
-                    (booking) =>
-                      booking.status !==
-                      "cancelled"
-                  )
-                  .map(
-                    (
-                      booking
-                    ) => {
-                      const ratio =
-                        Math.round(
-                          (
-                            booking.paid /
-                            booking.total
-                          ) *
-                            100
-                        );
+              <div className="mt-5 space-y-3">
+                {bookings.map(
+                  (
+                    booking
+                  ) => {
+                    const yacht =
+                      yachts.find(
+                        (
+                          item
+                        ) =>
+                          item.id ===
+                          booking.yacht_id
+                      );
 
-                      return (
-                        <div
-                          key={
-                            booking.id
-                          }
-                          className="rounded-2xl border border-white/[.07] bg-white/[.02] p-4"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-4">
-                            <div>
-                              <div className="text-xs font-black">
-                                {
-                                  booking.code
-                                }
-                                {" · "}
-                                {
-                                  booking.guest
-                                }
-                              </div>
+                    const ratio =
+                      booking.total_amount >
+                      0
+                        ? Math.min(
+                            100,
+                            Math.round(
+                              (
+                                booking.paid_amount /
+                                booking.total_amount
+                              ) *
+                                100
+                            )
+                          )
+                        : 0;
 
-                              <div className="mt-1 text-[9px] text-slate-600">
-                                {
-                                  booking.yacht
-                                }
-                              </div>
+                    return (
+                      <div
+                        key={
+                          booking.id
+                        }
+                        className="rounded-2xl border border-white/[.07] bg-white/[.02] p-4"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-5">
+                          <div>
+                            <div className="text-xs font-black">
+                              {
+                                booking.booking_code
+                              }
+                              {" · "}
+                              {
+                                booking.guest_name
+                              }
                             </div>
 
-                            <div className="flex gap-7 text-right">
-                              <div>
-                                <div className="text-[8px] uppercase text-slate-600">
-                                  Satış
-                                </div>
-                                <div className="mt-1 text-[10px] font-black">
-                                  {money(
-                                    booking.total
-                                  )}
-                                </div>
-                              </div>
-
-                              <div>
-                                <div className="text-[8px] uppercase text-slate-600">
-                                  Tahsil
-                                </div>
-                                <div className="mt-1 text-[10px] font-black text-emerald-300">
-                                  {money(
-                                    booking.paid
-                                  )}
-                                </div>
-                              </div>
-
-                              <div>
-                                <div className="text-[8px] uppercase text-slate-600">
-                                  Komisyon
-                                </div>
-                                <div className="mt-1 text-[10px] font-black text-orange-300">
-                                  {money(
-                                    booking.commission
-                                  )}
-                                </div>
-                              </div>
+                            <div className="mt-1 text-[8px] text-slate-600">
+                              {
+                                yacht?.name ??
+                                "—"
+                              }
                             </div>
                           </div>
 
-                          <div className="mt-4">
-                            <Progress
-                              value={
-                                ratio
-                              }
+                          <div className="flex gap-6 text-right">
+                            <Amount
+                              label="Satış"
+                              value={booking.total_amount}
                             />
-                            <div className="mt-2 text-right text-[8px] font-black text-slate-600">
-                              %{ratio} tahsil edildi
-                            </div>
+
+                            <Amount
+                              label="Tahsil"
+                              value={booking.paid_amount}
+                            />
+
+                            <Amount
+                              label="Komisyon"
+                              value={booking.commission_amount}
+                            />
                           </div>
                         </div>
-                      );
-                    }
-                  )}
+
+                        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[.06]">
+                          <div
+                            className="h-full rounded-full bg-orange-500"
+                            style={{
+                              width:
+                                `${ratio}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  }
+                )}
               </div>
             </section>
           </div>
         )}
 
 
-        {/* SUPPLIERS */}
         {section ===
           "suppliers" && (
           <section className="mt-5 rounded-[28px] border border-white/10 bg-[#07131f] p-5 lg:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4">
               <div>
                 <div className="text-lg font-black">
-                  Tedarikçi & Filo Partnerleri
+                  Tedarikçi & Partnerler
                 </div>
 
                 <div className="mt-1 text-[10px] text-slate-500">
-                  Komisyon, bakiye ve partner performansı
+                  Tekne sahibi ve filo partner ağı
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() =>
-                  toast(
-                    "Tedarikçi davet akışı hazırlanacak."
+                  setModal(
+                    "supplier"
                   )
                 }
-                className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-[9px] font-black"
+                className="rounded-xl bg-orange-500 px-4 py-3 text-[9px] font-black"
               >
-                <FaPlus />
-                Tedarikçi Ekle
+                + Tedarikçi
               </button>
             </div>
 
-            <div className="mt-5 grid gap-4 xl:grid-cols-3">
-              {suppliers.map(
-                (
-                  supplier
-                ) => (
-                  <div
-                    key={
-                      supplier.id
-                    }
-                    className="rounded-[24px] border border-white/10 bg-white/[.025] p-5"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
-                        <FaUserTie />
-                      </div>
-
-                      <span className={`rounded-full border px-2.5 py-1 text-[8px] font-black ${
-                        supplier.status ===
-                        "active"
-                          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                          : "border-amber-500/20 bg-amber-500/10 text-amber-300"
-                      }`}>
-                        {supplier.status ===
-                        "active"
-                          ? "Aktif"
-                          : "Onay Bekliyor"}
-                      </span>
-                    </div>
-
-                    <div className="mt-5 text-sm font-black">
-                      {
-                        supplier.name
+            {suppliers.length ===
+            0 ? (
+              <div className="mt-5">
+                <EmptyState
+                  icon={<FaUserTie />}
+                  title="Henüz tedarikçi yok"
+                  text="Tekne sahibi veya filo partnerini ekle."
+                />
+              </div>
+            ) : (
+              <div className="mt-5 grid gap-4 xl:grid-cols-3">
+                {suppliers.map(
+                  (
+                    supplier
+                  ) => (
+                    <div
+                      key={
+                        supplier.id
                       }
-                    </div>
-
-                    <div className="mt-1 text-[9px] text-slate-500">
-                      {
-                        supplier.category
-                      }
-                      {" · "}
-                      {
-                        supplier.contact
-                      }
-                    </div>
-
-                    <div className="mt-5 grid grid-cols-3 gap-2">
-                      <div className="rounded-xl border border-white/[.06] p-3">
-                        <div className="text-[8px] text-slate-600">
-                          Filo
+                      className="rounded-[24px] border border-white/10 bg-white/[.025] p-5"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
+                          <FaUserTie />
                         </div>
-                        <div className="mt-1 text-xs font-black">
+
+                        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[8px] font-black text-emerald-300">
                           {
-                            supplier.boats
+                            supplier.status
                           }
-                        </div>
+                        </span>
                       </div>
 
-                      <div className="rounded-xl border border-white/[.06] p-3">
-                        <div className="text-[8px] text-slate-600">
-                          Komisyon
-                        </div>
-                        <div className="mt-1 text-xs font-black text-orange-300">
-                          %
-                          {
-                            supplier.commission
-                          }
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-white/[.06] p-3">
-                        <div className="text-[8px] text-slate-600">
-                          Puan
-                        </div>
-                        <div className="mt-1 text-xs font-black">
-                          ⭐{" "}
-                          {
-                            supplier.rating
-                          }
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between border-t border-white/[.07] pt-4">
-                      <div>
-                        <div className="text-[8px] text-slate-600">
-                          Ödenecek
-                        </div>
-                        <div className="mt-1 text-xs font-black">
-                          {money(
-                            supplier.balance
-                          )}
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          toast(
-                            `${supplier.name} partner hesabı açıldı.`
-                          )
+                      <div className="mt-5 text-sm font-black">
+                        {
+                          supplier.name
                         }
-                        className="flex items-center gap-2 text-[9px] font-black text-orange-400"
-                      >
-                        Partner kartı
-                        <FaArrowRight />
-                      </button>
+                      </div>
+
+                      <div className="mt-1 text-[9px] text-slate-500">
+                        {
+                          supplier.contact_name ||
+                          "Yetkili belirtilmedi"
+                        }
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-2 gap-2">
+                        <Info
+                          title="Komisyon"
+                          value={`%${supplier.commission_rate}`}
+                        />
+
+                        <Info
+                          title="Bakiye"
+                          value={money(
+                            supplier.current_balance
+                          )}
+                        />
+                      </div>
                     </div>
-                  </div>
-                )
-              )}
-            </div>
+                  )
+                )}
+              </div>
+            )}
           </section>
         )}
 
       </div>
 
 
-      {/* QUICK MODAL */}
       {modal && (
-        <div className="fixed inset-0 z-[90] grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-[28px] border border-white/10 bg-[#07131f] p-6 shadow-2xl">
+        <ModalShell
+          title={
+            modal === "yacht"
+              ? "Yeni Tekne"
+              : modal ===
+                "booking"
+                ? "Yeni Rezervasyon"
+                : modal ===
+                  "task"
+                  ? "Yeni Operasyon Görevi"
+                  : "Yeni Tedarikçi"
+          }
+          saving={
+            saving
+          }
+          onClose={
+            closeModal
+          }
+          onSave={() => {
+            if (
+              modal ===
+              "yacht"
+            ) {
+              void saveYacht();
+            }
 
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="text-[9px] font-black uppercase tracking-[.2em] text-orange-400">
-                  Hızlı İşlem
-                </div>
+            if (
+              modal ===
+              "booking"
+            ) {
+              void saveBooking();
+            }
 
-                <div className="mt-2 text-xl font-black">
-                  {modal ===
-                  "booking"
-                    ? "Yeni Rezervasyon"
-                    : modal ===
-                      "yacht"
-                      ? "Yeni Tekne"
-                      : "Yeni Operasyon Görevi"}
-                </div>
+            if (
+              modal ===
+              "task"
+            ) {
+              void saveTask();
+            }
+
+            if (
+              modal ===
+              "supplier"
+            ) {
+              void saveSupplier();
+            }
+          }}
+        >
+          {modal ===
+            "yacht" && (
+            <>
+              <Field
+                label="Tekne Adı"
+                value={
+                  form.yachtName
+                }
+                onChange={(
+                  value
+                ) =>
+                  patchForm({
+                    yachtName:
+                      value,
+                  })
+                }
+              />
+
+              <SelectField
+                label="Tekne Tipi"
+                value={
+                  form.yachtType
+                }
+                options={
+                  yachtTypes
+                }
+                onChange={(
+                  value
+                ) =>
+                  patchForm({
+                    yachtType:
+                      value,
+                  })
+                }
+              />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  label="Şehir"
+                  value={
+                    form.city
+                  }
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      city:
+                        value,
+                    })
+                  }
+                />
+
+                <Field
+                  label="Marina"
+                  value={
+                    form.marina
+                  }
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      marina:
+                        value,
+                    })
+                  }
+                />
               </div>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setModal(null)
-                }
-                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-slate-400"
-              >
-                <FaTimes />
-              </button>
-            </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Field
+                  label="Kapasite"
+                  value={
+                    form.maxGuests
+                  }
+                  type="number"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      maxGuests:
+                        value,
+                    })
+                  }
+                />
 
-            <div className="mt-6 grid gap-3">
-              <input
-                placeholder={
-                  modal ===
-                  "booking"
-                    ? "Misafir / müşteri adı"
-                    : modal ===
-                      "yacht"
-                      ? "Tekne adı"
-                      : "Görev başlığı"
+                <Field
+                  label="Kabin"
+                  value={
+                    form.cabins
+                  }
+                  type="number"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      cabins:
+                        value,
+                    })
+                  }
+                />
+
+                <Field
+                  label="Günlük Fiyat"
+                  value={
+                    form.dailyPrice
+                  }
+                  type="number"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      dailyPrice:
+                        value,
+                    })
+                  }
+                />
+              </div>
+
+              <Field
+                label="Kaptan"
+                value={
+                  form.captainName
                 }
-                className="h-12 rounded-xl border border-white/10 bg-white/[.03] px-4 text-xs outline-none focus:border-orange-500/40"
+                onChange={(
+                  value
+                ) =>
+                  patchForm({
+                    captainName:
+                      value,
+                  })
+                }
               />
+            </>
+          )}
 
-              <input
-                placeholder={
-                  modal ===
-                  "booking"
-                    ? "Tekne / tarih"
-                    : modal ===
-                      "yacht"
-                      ? "Marina / şehir"
-                      : "Tekne / personel"
+
+          {modal ===
+            "booking" && (
+            <>
+              <SelectField
+                label="Tekne"
+                value={
+                  form.bookingYachtId
                 }
-                className="h-12 rounded-xl border border-white/10 bg-white/[.03] px-4 text-xs outline-none focus:border-orange-500/40"
-              />
+                options={[
+                  [
+                    "",
+                    "Tekne seç",
+                  ],
+                  ...yachts.map(
+                    (
+                      yacht
+                    ) => [
+                      yacht.id,
+                      yacht.name,
+                    ]
+                  ),
+                ]}
+                onChange={(
+                  value
+                ) => {
+                  const yacht =
+                    yachts.find(
+                      (
+                        item
+                      ) =>
+                        item.id ===
+                        value
+                    );
 
-              <textarea
-                placeholder="Not / açıklama"
-                className="min-h-24 resize-none rounded-xl border border-white/10 bg-white/[.03] p-4 text-xs outline-none focus:border-orange-500/40"
-              />
-            </div>
+                  patchForm({
+                    bookingYachtId:
+                      value,
 
-            <div className="mt-5 flex gap-3">
-              <button
-                type="button"
-                onClick={() =>
-                  setModal(null)
-                }
-                className="h-12 flex-1 rounded-xl border border-white/10 text-xs font-black text-slate-400"
-              >
-                Vazgeç
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setModal(null);
-
-                  toast(
-                    "Kayıt taslağı oluşturuldu."
-                  );
+                    totalAmount:
+                      yacht
+                        ? String(
+                            yacht.base_daily_price
+                          )
+                        : "",
+                  });
                 }}
-                className="h-12 flex-1 rounded-xl bg-orange-500 text-xs font-black"
-              >
-                Kaydet
-              </button>
+              />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  label="Misafir"
+                  value={
+                    form.guestName
+                  }
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      guestName:
+                        value,
+                    })
+                  }
+                />
+
+                <Field
+                  label="Telefon"
+                  value={
+                    form.guestPhone
+                  }
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      guestPhone:
+                        value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Field
+                  label="Kişi"
+                  value={
+                    form.guestCount
+                  }
+                  type="number"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      guestCount:
+                        value,
+                    })
+                  }
+                />
+
+                <Field
+                  label="Başlangıç"
+                  value={
+                    form.startDate
+                  }
+                  type="date"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      startDate:
+                        value,
+                    })
+                  }
+                />
+
+                <Field
+                  label="Bitiş"
+                  value={
+                    form.endDate
+                  }
+                  type="date"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      endDate:
+                        value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Field
+                  label="Toplam"
+                  value={
+                    form.totalAmount
+                  }
+                  type="number"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      totalAmount:
+                        value,
+                    })
+                  }
+                />
+
+                <Field
+                  label="Tahsil"
+                  value={
+                    form.paidAmount
+                  }
+                  type="number"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      paidAmount:
+                        value,
+                    })
+                  }
+                />
+
+                <Field
+                  label="Komisyon"
+                  value={
+                    form.commissionAmount
+                  }
+                  type="number"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      commissionAmount:
+                        value,
+                    })
+                  }
+                />
+              </div>
+            </>
+          )}
+
+
+          {modal ===
+            "task" && (
+            <>
+              <Field
+                label="Görev"
+                value={
+                  form.taskTitle
+                }
+                onChange={(
+                  value
+                ) =>
+                  patchForm({
+                    taskTitle:
+                      value,
+                  })
+                }
+              />
+
+              <SelectField
+                label="Tekne"
+                value={
+                  form.taskYachtId
+                }
+                options={[
+                  [
+                    "",
+                    "Genel görev",
+                  ],
+                  ...yachts.map(
+                    (
+                      yacht
+                    ) => [
+                      yacht.id,
+                      yacht.name,
+                    ]
+                  ),
+                ]}
+                onChange={(
+                  value
+                ) =>
+                  patchForm({
+                    taskYachtId:
+                      value,
+                  })
+                }
+              />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  label="Personel"
+                  value={
+                    form.taskAssignee
+                  }
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      taskAssignee:
+                        value,
+                    })
+                  }
+                />
+
+                <Field
+                  label="Tarih / Saat"
+                  value={
+                    form.taskDueAt
+                  }
+                  type="datetime-local"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      taskDueAt:
+                        value,
+                    })
+                  }
+                />
+              </div>
+
+              <SelectField
+                label="Öncelik"
+                value={
+                  form.taskPriority
+                }
+                options={[
+                  ["low", "Düşük"],
+                  ["medium", "Normal"],
+                  ["high", "Yüksek"],
+                  ["critical", "Kritik"],
+                ]}
+                onChange={(
+                  value
+                ) =>
+                  patchForm({
+                    taskPriority:
+                      value,
+                  })
+                }
+              />
+            </>
+          )}
+
+
+          {modal ===
+            "supplier" && (
+            <>
+              <Field
+                label="Tedarikçi / Firma"
+                value={
+                  form.supplierName
+                }
+                onChange={(
+                  value
+                ) =>
+                  patchForm({
+                    supplierName:
+                      value,
+                  })
+                }
+              />
+
+              <Field
+                label="Yetkili"
+                value={
+                  form.supplierContact
+                }
+                onChange={(
+                  value
+                ) =>
+                  patchForm({
+                    supplierContact:
+                      value,
+                  })
+                }
+              />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  label="Telefon"
+                  value={
+                    form.supplierPhone
+                  }
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      supplierPhone:
+                        value,
+                    })
+                  }
+                />
+
+                <Field
+                  label="E-posta"
+                  value={
+                    form.supplierEmail
+                  }
+                  type="email"
+                  onChange={(
+                    value
+                  ) =>
+                    patchForm({
+                      supplierEmail:
+                        value,
+                    })
+                  }
+                />
+              </div>
+
+              <Field
+                label="Komisyon %"
+                value={
+                  form.supplierCommission
+                }
+                type="number"
+                onChange={(
+                  value
+                ) =>
+                  patchForm({
+                    supplierCommission:
+                      value,
+                  })
+                }
+              />
+            </>
+          )}
+        </ModalShell>
+      )}
+    </main>
+  );
+}
+
+
+function Info({
+  title,
+  value,
+}: {
+  title: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-white/[.07] bg-black/10 p-3">
+      <div className="text-[7px] font-black uppercase text-slate-600">
+        {title}
+      </div>
+
+      <div className="mt-1.5 truncate text-[9px] font-black">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+
+function Amount({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div>
+      <div className="text-[7px] uppercase text-slate-600">
+        {label}
+      </div>
+
+      <div className="mt-1 text-[9px] font-black">
+        {money(
+          value
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+function EmptyState({
+  icon,
+  title,
+  text,
+}: {
+  icon:
+    React.ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="rounded-[22px] border border-dashed border-white/10 p-9 text-center">
+      <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white/[.03] text-xl text-slate-700">
+        {icon}
+      </div>
+
+      <div className="mt-4 text-sm font-black">
+        {title}
+      </div>
+
+      <div className="mt-2 text-[9px] text-slate-500">
+        {text}
+      </div>
+    </div>
+  );
+}
+
+
+function Field({
+  label,
+  value,
+  type = "text",
+  onChange,
+}: {
+  label: string;
+  value: string;
+  type?: string;
+  onChange:
+    (
+      value: string
+    ) => void;
+}) {
+  return (
+    <label>
+      <span className="mb-1.5 block text-[8px] font-black uppercase tracking-wider text-slate-500">
+        {label}
+      </span>
+
+      <input
+        type={
+          type
+        }
+        value={
+          value
+        }
+        onChange={(
+          event
+        ) =>
+          onChange(
+            event.target.value
+          )
+        }
+        className="h-12 w-full rounded-xl border border-white/10 bg-white/[.03] px-4 text-xs outline-none focus:border-orange-500/40"
+      />
+    </label>
+  );
+}
+
+
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options:
+    string[][];
+  onChange:
+    (
+      value: string
+    ) => void;
+}) {
+  return (
+    <label>
+      <span className="mb-1.5 block text-[8px] font-black uppercase tracking-wider text-slate-500">
+        {label}
+      </span>
+
+      <select
+        value={
+          value
+        }
+        onChange={(
+          event
+        ) =>
+          onChange(
+            event.target.value
+          )
+        }
+        className="h-12 w-full rounded-xl border border-white/10 bg-[#0b1723] px-4 text-xs outline-none focus:border-orange-500/40"
+      >
+        {options.map(
+          (
+            option
+          ) => (
+            <option
+              key={
+                option[0]
+              }
+              value={
+                option[0]
+              }
+            >
+              {
+                option[1]
+              }
+            </option>
+          )
+        )}
+      </select>
+    </label>
+  );
+}
+
+
+function ModalShell({
+  title,
+  saving,
+  children,
+  onClose,
+  onSave,
+}: {
+  title: string;
+  saving: boolean;
+  children:
+    React.ReactNode;
+  onClose:
+    () => void;
+  onSave:
+    () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-black/75 p-4 backdrop-blur-sm">
+      <div className="my-8 w-full max-w-2xl rounded-[28px] border border-white/10 bg-[#07131f] p-6 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-[8px] font-black uppercase tracking-[.2em] text-orange-400">
+              YAT & TEKNE OS
+            </div>
+
+            <div className="mt-2 text-xl font-black">
+              {title}
             </div>
           </div>
-        </div>
-      )}
 
-    </main>
+          <button
+            type="button"
+            onClick={
+              onClose
+            }
+            className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-slate-400"
+          >
+            <FaTimes />
+          </button>
+        </div>
+
+        <div className="mt-6 grid gap-4">
+          {children}
+        </div>
+
+        <div className="mt-6 flex gap-3">
+          <button
+            type="button"
+            disabled={
+              saving
+            }
+            onClick={
+              onClose
+            }
+            className="h-12 flex-1 rounded-xl border border-white/10 text-xs font-black text-slate-400"
+          >
+            Vazgeç
+          </button>
+
+          <button
+            type="button"
+            disabled={
+              saving
+            }
+            onClick={
+              onSave
+            }
+            className="h-12 flex-1 rounded-xl bg-orange-500 text-xs font-black disabled:opacity-50"
+          >
+            {saving
+              ? "Kaydediliyor..."
+              : "Kaydet"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
