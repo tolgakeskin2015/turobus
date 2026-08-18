@@ -17,6 +17,10 @@ import {
 } from "./runtime-metrics";
 
 import {
+  persistProviderEvent,
+} from "./persistent-metrics";
+
+import {
   mockProvider,
 } from "./providers/mock";
 
@@ -149,20 +153,57 @@ async function measuredCall<T>(
         operation
       );
 
+    const latency =
+      Date.now() - startedAt;
+
     recordProviderSuccess(
       provider.id,
       operation,
-      Date.now() - startedAt
+      latency
     );
+
+    void persistProviderEvent({
+      providerId:
+        provider.id,
+      operation,
+      status:
+        "success",
+      latencyMs:
+        latency,
+    });
 
     return result;
   } catch (error) {
+    const latency =
+      Date.now() - startedAt;
+
     recordProviderError(
       provider.id,
       operation,
       error,
-      Date.now() - startedAt
+      latency
     );
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    void persistProviderEvent({
+      providerId:
+        provider.id,
+      operation,
+      status:
+        message.includes(
+          "timeout ("
+        )
+          ? "timeout"
+          : "error",
+      latencyMs:
+        latency,
+      errorMessage:
+        message,
+    });
 
     throw error;
   }
@@ -258,6 +299,19 @@ export async function searchTicketOffers(
         recordProviderFallback(
           provider.id
         );
+
+        void persistProviderEvent({
+          providerId:
+            provider.id,
+          mode:
+            input.mode,
+          operation:
+            "search",
+          status:
+            "fallback",
+          failoverTo:
+            provider.id,
+        });
       }
 
       offers.push(
@@ -301,6 +355,19 @@ export async function findTicketOffer(
           recordProviderFallback(
             provider.id
           );
+
+          void persistProviderEvent({
+            providerId:
+              provider.id,
+            mode:
+              input.mode,
+            operation:
+              "getOffer",
+            status:
+              "fallback",
+            failoverTo:
+              provider.id,
+          });
         }
 
         return {
