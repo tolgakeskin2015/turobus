@@ -13,6 +13,22 @@ import {
   mockProvider,
 } from "./providers/mock";
 
+import {
+  busProvider,
+} from "./providers/bus/adapter";
+
+import {
+  flightProvider,
+} from "./providers/flight/adapter";
+
+import {
+  ferryProvider,
+} from "./providers/ferry/adapter";
+
+import {
+  trainProvider,
+} from "./providers/train/adapter";
+
 type RegistryEntry = {
   provider: TicketProviderAdapter;
   modes: TicketMode[];
@@ -21,6 +37,38 @@ type RegistryEntry = {
 };
 
 const registry: RegistryEntry[] = [
+  {
+    provider: busProvider,
+    modes: ["bus"],
+    enabled:
+      process.env.TICKET_BUS_PROVIDER_ENABLED ===
+      "true",
+    priority: 10,
+  },
+  {
+    provider: flightProvider,
+    modes: ["flight"],
+    enabled:
+      process.env.TICKET_FLIGHT_PROVIDER_ENABLED ===
+      "true",
+    priority: 10,
+  },
+  {
+    provider: ferryProvider,
+    modes: ["ferry"],
+    enabled:
+      process.env.TICKET_FERRY_PROVIDER_ENABLED ===
+      "true",
+    priority: 10,
+  },
+  {
+    provider: trainProvider,
+    modes: ["train"],
+    enabled:
+      process.env.TICKET_TRAIN_PROVIDER_ENABLED ===
+      "true",
+    priority: 10,
+  },
   {
     provider: mockProvider,
     modes: [
