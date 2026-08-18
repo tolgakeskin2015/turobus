@@ -457,6 +457,25 @@ export default function ActivityGuestPage() {
 
               </div>
 
+
+              {data.remaining_total > 0 ? (
+
+                <Link
+                  href={`/activity-odeme/${params.token}`}
+                  className="mt-5 flex min-h-14 items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-orange-500 to-fuchsia-500 px-5 text-sm font-black shadow-xl"
+                >
+                  <FaMoneyBillWave />
+                  Online Ödeme Yap
+                </Link>
+
+              ) : (
+
+                <div className="mt-5 rounded-xl bg-emerald-500/10 p-4 text-center text-xs font-black text-emerald-300">
+                  Ödeme tamamlandı
+                </div>
+
+              )}
+
             </div>
 
           </aside>

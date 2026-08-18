@@ -2723,6 +2723,14 @@ export default function ActivityOSPro({
                 Kontrol Merkezi
               </Link>
 
+              <Link
+                href="/dashboard/activity-payment-center"
+                className="flex min-w-fit items-center gap-2 whitespace-nowrap rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-xs font-black text-emerald-300 transition hover:bg-emerald-500 hover:text-slate-950"
+              >
+                <FaMoneyBillWave />
+                Ödeme Merkezi
+              </Link>
+
               {menu.map(
                 (
                   item
@@ -4960,6 +4968,24 @@ export default function ActivityOSPro({
                               Misafir
                               <FaExternalLinkAlt />
                             </Link>
+
+                            {Number(
+                              booking.sale_total
+                            ) >
+                              Number(
+                                booking.paid_total
+                              ) && (
+
+                              <Link
+                                href={`/activity-odeme/${booking.guest_token}`}
+                                target="_blank"
+                                className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[10px] font-black text-emerald-300"
+                              >
+                                <FaMoneyBillWave />
+                                Ödeme Linki
+                              </Link>
+
+                            )}
 
                             <ActivityCrudActions
                               kind="booking"
