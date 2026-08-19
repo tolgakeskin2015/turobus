@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState } from "react";
+import { usePathname,
+  useRouter } from "next/navigation";
 import {
   FaBars,
   FaBuilding,
@@ -19,7 +24,9 @@ import {
   FaTicketAlt,
   FaUserCircle,
   FaUsers,
-  FaHotel,} from "react-icons/fa";
+  FaHotel,
+  FaCoins,
+} from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 import ManagerNotificationBell from "./components/ManagerNotificationBell";
 import {
@@ -557,6 +564,198 @@ const menuGroups: MenuGroup[] = [
           "sales",
           "accounting",
         ],
+        children: [
+          {
+            href: "/dashboard/yat-os",
+            label: "Genel Bakış",
+            icon: FaChartLine,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+              "accounting",
+            ],
+          },
+          {
+            href: "/dashboard/yat-os/executive-center",
+            label: "Yönetici & Karar Merkezi",
+            icon: FaChartLine,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+          {
+            href: "/dashboard/yat-os/control-tower",
+            label: "Control Tower",
+            icon: FaMapMarkedAlt,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+
+          {
+            href: "/dashboard/yat-os/crm-center",
+            label: "CRM & Lead Center",
+            icon: FaUsers,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+            ],
+          },
+          {
+            href: "/dashboard/yat-os/crm-automation",
+            label: "CRM Otomasyon & Alarm",
+            icon: FaStar,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+            ],
+          },
+
+          {
+            href: "/dashboard/yat-os/sales-center",
+            label: "Satış & Teklif",
+            icon: FaCoins,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+            ],
+          },
+          {
+            href: "/dashboard/yat-os/sales-team",
+            label: "Satış Ekibi & Hedefler",
+            icon: FaUsers,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+          {
+            href: "/dashboard/yat-os/sales-performance",
+            label: "Satış Performansı",
+            icon: FaChartLine,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+            ],
+          },
+          {
+            href: "/dashboard/yat-os/sales-commission",
+            label: "Prim & Komisyon",
+            icon: FaCoins,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+              "accounting",
+            ],
+          },
+
+          {
+            href: "/dashboard/yat-os/operation-center",
+            label: "Operasyon Merkezi",
+            icon: FaClipboardList,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+          {
+            href: "/dashboard/yat-os/dispatch-center",
+            label: "Sefer Çıkış Kontrol",
+            icon: FaMapMarkedAlt,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+
+          {
+            href: "/dashboard/yat-os/fleet-maintenance",
+            label: "Filo Bakım & Evrak",
+            icon: FaShip,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+
+          {
+            href: "/dashboard/yat-os/revenue-center",
+            label: "Revenue & Fiyat Merkezi",
+            icon: FaChartLine,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "accounting",
+            ],
+          },
+          {
+            href: "/dashboard/yat-os/revenue-intelligence",
+            label: "Revenue Intelligence",
+            icon: FaChartLine,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "accounting",
+            ],
+          },
+
+          {
+            href: "/dashboard/yat-os/finance-center",
+            label: "Finans & Tahsilat",
+            icon: FaChartLine,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "accounting",
+            ],
+          },
+          {
+            href: "/dashboard/yat-os/finance-control-tower",
+            label: "Finance Control Tower",
+            icon: FaChartLine,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "accounting",
+            ],
+          },
+
+          {
+            href: "/dashboard/yat-os/partner-center",
+            label: "Partner Control",
+            icon: FaBuilding,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+            ],
+          },
+        ],
       },
 
     ],
@@ -1035,7 +1234,7 @@ export default function DashboardLayout({
       </header>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[276px] border-r border-white/[.06] bg-[#070c12] transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[296px] border-r border-white/[.06] bg-[#070c12] transition-transform duration-300 lg:translate-x-0 ${
           mobileOpen
             ? "translate-x-0"
             : "-translate-x-full"
@@ -1102,7 +1301,7 @@ export default function DashboardLayout({
             </div>
           </div>
 
-          <nav className="flex-1 overflow-y-auto px-2.5 py-3">
+          <nav className="turobus-sidebar-scroll flex-1 overflow-y-auto px-2.5 py-3">
             <div className="space-y-1.5">
               {visibleMenuGroups.map((group) => {
                 const isOpen =
@@ -1310,9 +1509,33 @@ export default function DashboardLayout({
         />
       )}
 
-      <div className="lg:pl-[276px]">
+      <div className="lg:pl-[296px]">
         {children}
       </div>
+
+      <style jsx global>{`
+        .turobus-sidebar-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(249, 115, 22, 0.28) transparent;
+        }
+
+        .turobus-sidebar-scroll::-webkit-scrollbar {
+          width: 5px;
+        }
+
+        .turobus-sidebar-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .turobus-sidebar-scroll::-webkit-scrollbar-thumb {
+          background: rgba(249, 115, 22, 0.25);
+          border-radius: 999px;
+        }
+
+        .turobus-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(249, 115, 22, 0.42);
+        }
+      `}</style>
     </div>
   );
 }

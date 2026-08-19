@@ -1746,127 +1746,6 @@ export default function YachtOSPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-
-              <Link
-                href="/dashboard/yat-os/executive-center"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-orange-500/30 bg-orange-500/10 px-5 text-xs font-black text-orange-300 transition hover:bg-orange-500 hover:text-white"
-              >
-                <FaChartLine />
-                Yönetici & Karar Merkezi
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/sales-commission"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 text-xs font-black text-emerald-300 transition hover:bg-emerald-500 hover:text-white"
-              >
-                <FaCoins />
-                Prim & Komisyon Merkezi
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/sales-team"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-5 text-xs font-black text-cyan-300 transition hover:bg-cyan-500 hover:text-white"
-              >
-                <FaUsers />
-                Satış Ekibi & Hedefler
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/sales-performance"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-5 text-xs font-black text-blue-300 transition hover:bg-blue-500 hover:text-white"
-              >
-                <FaChartLine />
-                Satış Performans Merkezi
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/crm-automation"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-5 text-xs font-black text-red-300 transition hover:bg-red-500 hover:text-white"
-              >
-                <FaBell />
-                CRM Otomasyon & Alarm
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/crm-center"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-orange-500/30 bg-orange-500/10 px-5 text-xs font-black text-orange-300 transition hover:bg-orange-500 hover:text-white"
-              >
-                <FaUsers />
-                CRM & Lead Center
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/revenue-intelligence"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-violet-500/30 bg-violet-500/10 px-5 text-xs font-black text-violet-300 transition hover:bg-violet-500 hover:text-white"
-              >
-                <FaChartLine />
-                Revenue Intelligence
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/revenue-center"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 text-xs font-black text-emerald-300 transition hover:bg-emerald-500 hover:text-white"
-              >
-                <FaChartLine />
-                Revenue & Fiyat Merkezi
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/fleet-maintenance"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 text-xs font-black text-amber-300 transition hover:bg-amber-500 hover:text-white"
-              >
-                <FaShip />
-                Filo Bakım & Evrak
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/dispatch-center"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-5 text-xs font-black text-red-300 transition hover:bg-red-500 hover:text-white"
-              >
-                <FaExclamationTriangle />
-                Sefer Çıkış Kontrol
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/operation-center"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-5 text-xs font-black text-blue-300 transition hover:bg-blue-500 hover:text-white"
-              >
-                <FaTasks />
-                Operasyon Merkezi
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/finance-center"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 text-xs font-black text-emerald-300 transition hover:bg-emerald-500 hover:text-white"
-              >
-                <FaWallet />
-                Finans & Tahsilat
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/sales-center"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 text-xs font-black text-emerald-300 transition hover:bg-emerald-500 hover:text-white"
-              >
-                <FaCoins />
-                Satış & Teklif
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/control-tower"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-5 text-xs font-black text-red-300 transition hover:bg-red-500 hover:text-white"
-              >
-                <FaBell />
-                Control Tower
-              </Link>
-
-              <Link
-                href="/dashboard/yat-os/partner-center"
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-orange-500/30 bg-orange-500/10 px-5 text-xs font-black text-orange-300 transition hover:bg-orange-500 hover:text-white"
-              >
-                <FaUserTie />
-                Partner Control
-              </Link>
-
               <button
                 type="button"
                 onClick={() =>
@@ -1874,10 +1753,10 @@ export default function YachtOSPage() {
                     "task"
                   )
                 }
-                className="flex min-h-12 items-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-5 text-xs font-black"
+                className="flex min-h-12 items-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-5 text-xs font-black text-slate-200 transition hover:border-white/20 hover:bg-white/[.07]"
               >
                 <FaTasks />
-                Görev
+                Görev Oluştur
               </button>
 
               <button
@@ -1891,12 +1770,254 @@ export default function YachtOSPage() {
                   yachts.length ===
                   0
                 }
-                className="flex min-h-12 items-center gap-2 rounded-xl bg-orange-500 px-5 text-xs font-black disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex min-h-12 items-center gap-2 rounded-xl bg-orange-500 px-5 text-xs font-black text-white shadow-lg shadow-orange-500/10 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <FaPlus />
                 Yeni Rezervasyon
               </button>
             </div>
+          </div>
+        </section>
+
+
+        <section className="mt-5">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-[.22em] text-orange-400">
+                YAT OS ÇALIŞMA MERKEZLERİ
+              </div>
+
+              <h2 className="mt-2 text-xl font-black tracking-tight">
+                İş akışına göre gruplanmış yönetim
+              </h2>
+
+              <p className="mt-1 text-[10px] leading-5 text-slate-500">
+                Tüm gelişmiş modüller sol menüde de yer alır. Buradaki kartlar yalnızca ana çalışma merkezlerine hızlı erişim sağlar.
+              </p>
+            </div>
+
+            <Link
+              href="/dashboard/yat-os/executive-center"
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-orange-500/20 bg-orange-500/[.06] px-4 text-[10px] font-black text-orange-300 transition hover:bg-orange-500/10"
+            >
+              <FaChartLine />
+              Yönetici & Karar Merkezi
+            </Link>
+          </div>
+
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+
+            <article className="group rounded-[24px] border border-white/[.08] bg-[#07131f] p-5 transition hover:border-orange-500/25 hover:bg-[#091722]">
+              <div className="flex items-center justify-between">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/10 text-orange-300">
+                  <FaChartLine />
+                </div>
+
+                <span className="text-[9px] font-black uppercase tracking-[.14em] text-slate-600">
+                  Yönetim
+                </span>
+              </div>
+
+              <h3 className="mt-5 text-sm font-black">
+                Yönetim & Kontrol
+              </h3>
+
+              <p className="mt-2 min-h-10 text-[10px] leading-5 text-slate-500">
+                Kritik kararlar, alarm görünümü ve bütün Yat OS performansının üst seviye kontrolü.
+              </p>
+
+              <div className="mt-5 space-y-1.5 border-t border-white/[.06] pt-4">
+                <Link
+                  href="/dashboard/yat-os/executive-center"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Yönetici & Karar Merkezi
+                  <span>→</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/yat-os/control-tower"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Control Tower
+                  <span>→</span>
+                </Link>
+              </div>
+            </article>
+
+
+            <article className="group rounded-[24px] border border-white/[.08] bg-[#07131f] p-5 transition hover:border-orange-500/25 hover:bg-[#091722]">
+              <div className="flex items-center justify-between">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/10 text-orange-300">
+                  <FaUsers />
+                </div>
+
+                <span className="text-[9px] font-black uppercase tracking-[.14em] text-slate-600">
+                  Ticari
+                </span>
+              </div>
+
+              <h3 className="mt-5 text-sm font-black">
+                Satış & CRM
+              </h3>
+
+              <p className="mt-2 min-h-10 text-[10px] leading-5 text-slate-500">
+                Lead, teklif, satış ekibi, performans, komisyon ve müşteri takip süreçleri.
+              </p>
+
+              <div className="mt-5 space-y-1.5 border-t border-white/[.06] pt-4">
+                <Link
+                  href="/dashboard/yat-os/crm-center"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  CRM & Lead Center
+                  <span>→</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/yat-os/sales-center"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Satış & Teklif
+                  <span>→</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/yat-os/sales-performance"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Satış Performansı
+                  <span>→</span>
+                </Link>
+              </div>
+            </article>
+
+
+            <article className="group rounded-[24px] border border-white/[.08] bg-[#07131f] p-5 transition hover:border-orange-500/25 hover:bg-[#091722]">
+              <div className="flex items-center justify-between">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/10 text-orange-300">
+                  <FaTasks />
+                </div>
+
+                <span className="text-[9px] font-black uppercase tracking-[.14em] text-slate-600">
+                  Operasyon
+                </span>
+              </div>
+
+              <h3 className="mt-5 text-sm font-black">
+                Sefer & Operasyon
+              </h3>
+
+              <p className="mt-2 min-h-10 text-[10px] leading-5 text-slate-500">
+                Misafir kabulünden sefer çıkış güvenliğine kadar günlük operasyon yönetimi.
+              </p>
+
+              <div className="mt-5 space-y-1.5 border-t border-white/[.06] pt-4">
+                <Link
+                  href="/dashboard/yat-os/operation-center"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Operasyon Merkezi
+                  <span>→</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/yat-os/dispatch-center"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Sefer Çıkış Kontrol
+                  <span>→</span>
+                </Link>
+              </div>
+            </article>
+
+
+            <article className="group rounded-[24px] border border-white/[.08] bg-[#07131f] p-5 transition hover:border-orange-500/25 hover:bg-[#091722]">
+              <div className="flex items-center justify-between">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/10 text-orange-300">
+                  <FaWallet />
+                </div>
+
+                <span className="text-[9px] font-black uppercase tracking-[.14em] text-slate-600">
+                  Finans
+                </span>
+              </div>
+
+              <h3 className="mt-5 text-sm font-black">
+                Finans & Tahsilat
+              </h3>
+
+              <p className="mt-2 min-h-10 text-[10px] leading-5 text-slate-500">
+                Tahsilat, açık bakiye, ödeme riski, refund ve finans kontrol süreçleri.
+              </p>
+
+              <div className="mt-5 space-y-1.5 border-t border-white/[.06] pt-4">
+                <Link
+                  href="/dashboard/yat-os/finance-center"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Finans & Tahsilat
+                  <span>→</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/yat-os/finance-control-tower"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Finance Control Tower
+                  <span>→</span>
+                </Link>
+              </div>
+            </article>
+
+
+            <article className="group rounded-[24px] border border-white/[.08] bg-[#07131f] p-5 transition hover:border-orange-500/25 hover:bg-[#091722]">
+              <div className="flex items-center justify-between">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/10 text-orange-300">
+                  <FaShip />
+                </div>
+
+                <span className="text-[9px] font-black uppercase tracking-[.14em] text-slate-600">
+                  Varlık
+                </span>
+              </div>
+
+              <h3 className="mt-5 text-sm font-black">
+                Filo & Revenue
+              </h3>
+
+              <p className="mt-2 min-h-10 text-[10px] leading-5 text-slate-500">
+                Tekne bakım, evrak, doluluk ve profesyonel fiyat optimizasyon yönetimi.
+              </p>
+
+              <div className="mt-5 space-y-1.5 border-t border-white/[.06] pt-4">
+                <Link
+                  href="/dashboard/yat-os/fleet-maintenance"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Filo Bakım & Evrak
+                  <span>→</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/yat-os/revenue-center"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Revenue & Fiyat
+                  <span>→</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/yat-os/revenue-intelligence"
+                  className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-[10px] font-bold text-slate-400 transition hover:bg-white/[.04] hover:text-white"
+                >
+                  Revenue Intelligence
+                  <span>→</span>
+                </Link>
+              </div>
+            </article>
+
           </div>
         </section>
 
