@@ -390,3 +390,195 @@ export async function addCustomer360Note(
 
   return data;
 }
+
+
+export type Customer360MatchQueueRow = {
+  id: string;
+
+  company_id: string;
+
+  source_table: string;
+  entity_type: string;
+  source_id: string;
+
+  source_name: string | null;
+  source_phone: string | null;
+  source_email: string | null;
+
+  suggested_customer_id: string | null;
+
+  match_reason: string;
+
+  confidence: number;
+
+  status:
+    | "pending"
+    | "matched"
+    | "ignored"
+    | "conflict";
+
+  created_at: string;
+};
+
+
+export async function discoverCustomer360Sources() {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_discover_sources"
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function buildCustomer360MatchQueue(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_build_match_queue",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function loadCustomer360MatchQueue(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase
+      .from(
+        "customer_360_match_queue"
+      )
+      .select("*")
+      .eq(
+        "company_id",
+        companyId
+      )
+      .order(
+        "confidence",
+        {
+          ascending:
+            false,
+        }
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            false,
+        }
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return (
+    data ??
+    []
+  ) as Customer360MatchQueueRow[];
+}
+
+
+export async function applyCustomer360Match(
+  matchId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_apply_match",
+      {
+        p_match_id:
+          matchId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function applyCustomer360SafeMatches(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_apply_safe_matches",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function ignoreCustomer360Match(
+  matchId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_ignore_match",
+      {
+        p_match_id:
+          matchId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}

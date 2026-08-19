@@ -775,6 +775,31 @@ const menuGroups: MenuGroup[] = [
           "sales",
           "accounting",
         ],
+        children: [
+          {
+            href: "/dashboard/musteri-360",
+            label: "Müşteri Merkezi",
+            icon: FaUserCircle,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+              "accounting",
+            ],
+          },
+          {
+            href: "/dashboard/musteri-360/eslestirme",
+            label: "Eşleştirme Merkezi",
+            icon: FaUsers,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+            ],
+          },
+        ],
       },
       {
         href: "/dashboard/crm",

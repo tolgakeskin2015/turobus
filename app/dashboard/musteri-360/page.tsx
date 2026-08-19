@@ -504,18 +504,28 @@ export default function Customer360Page() {
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() =>
-                setModalOpen(
-                  true
-                )
-              }
-              className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 text-xs font-black text-white shadow-lg shadow-orange-500/10 transition hover:bg-orange-400"
-            >
-              <FaPlus />
-              Yeni Müşteri
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/dashboard/musteri-360/eslestirme"
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-5 text-xs font-black text-slate-200 transition hover:border-orange-500/20 hover:text-orange-300"
+              >
+                <FaUsers />
+                Eşleştirme Merkezi
+              </Link>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setModalOpen(
+                    true
+                  )
+                }
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 text-xs font-black text-white shadow-lg shadow-orange-500/10 transition hover:bg-orange-400"
+              >
+                <FaPlus />
+                Yeni Müşteri
+              </button>
+            </div>
           </div>
         </section>
 
