@@ -461,6 +461,24 @@ export async function buildCustomer360MatchQueue(
   }
 
 
+  const {
+    error:
+      unmatchedError,
+  } =
+    await supabase.rpc(
+      "customer_360_collect_unmatched_sources",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (unmatchedError) {
+    throw unmatchedError;
+  }
+
+
   return data;
 }
 
@@ -581,4 +599,126 @@ export async function ignoreCustomer360Match(
 
 
   return data;
+}
+
+
+export type Customer360AutoProfileAnalysis = {
+  ok: boolean;
+  unmatched: number;
+  safe_candidate_rows: number;
+  ambiguous_rows: number;
+  missing_name_rows: number;
+};
+
+
+export type Customer360DuplicateHealth = {
+  ok: boolean;
+  duplicate_phone_groups: number;
+  duplicate_email_groups: number;
+  conflict_queue: number;
+};
+
+
+export async function collectCustomer360UnmatchedSources(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_collect_unmatched_sources",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function analyzeCustomer360AutoProfiles(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_analyze_auto_profiles",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360AutoProfileAnalysis;
+}
+
+
+export async function createCustomer360SafeProfiles(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_create_safe_profiles",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok: boolean;
+    customers_created: number;
+  };
+}
+
+
+export async function loadCustomer360DuplicateHealth(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_duplicate_health",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360DuplicateHealth;
 }
