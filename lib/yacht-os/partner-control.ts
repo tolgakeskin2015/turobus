@@ -269,67 +269,46 @@ export async function createSettlement(
     note?: string;
   }
 ) {
-  const code =
-    `MUT-${Date.now()
-      .toString()
-      .slice(-8)}`;
-
   const {
     data,
     error,
   } =
-    await supabase
-      .from(
-        "yacht_os_settlements"
-      )
-      .insert({
-        company_id:
-          input.companyId,
-
-        created_by:
-          input.userId,
-
-        supplier_id:
+    await supabase.rpc(
+      "yacht_os_create_settlement_atomic",
+      {
+        p_supplier_id:
           input.supplierId,
 
-        settlement_code:
-          code,
-
-        period_start:
+        p_period_start:
           input.periodStart,
 
-        period_end:
+        p_period_end:
           input.periodEnd,
 
-        gross_sales:
-          input.grossSales,
-
-        supplier_payable:
-          input.supplierPayable,
-
-        platform_commission:
-          input.platformCommission,
-
-        due_date:
+        p_due_date:
           input.dueDate ??
           null,
 
-        note:
+        p_note:
           input.note ??
           null,
-
-        status:
-          "draft",
-      })
-      .select("*")
-      .single();
+      }
+    );
 
   if (error) {
     throw error;
   }
 
-  return data as
-    YachtSettlement;
+  return data as {
+    ok: boolean;
+    settlement_id: string;
+    settlement_code: string;
+    booking_count: number;
+    gross_sales: number;
+    supplier_payable: number;
+    platform_commission: number;
+    currency: string;
+  };
 }
 
 
@@ -338,46 +317,19 @@ export async function updateSettlementStatus(
   status:
     YachtSettlementStatus
 ) {
-  const patch:
-    Record<
-      string,
-      unknown
-    > = {
-      status,
-  };
-
-  if (
-    status ===
-    "approved"
-  ) {
-    patch.approved_at =
-      new Date()
-        .toISOString();
-  }
-
-  if (
-    status ===
-    "paid"
-  ) {
-    patch.paid_at =
-      new Date()
-        .toISOString();
-  }
-
   const {
     error,
   } =
-    await supabase
-      .from(
-        "yacht_os_settlements"
-      )
-      .update(
-        patch
-      )
-      .eq(
-        "id",
-        settlementId
-      );
+    await supabase.rpc(
+      "yacht_os_update_settlement_status_atomic",
+      {
+        p_settlement_id:
+          settlementId,
+
+        p_status:
+          status,
+      }
+    );
 
   if (error) {
     throw error;
@@ -394,112 +346,47 @@ export async function createSupplierPayment(
     amount: number;
     referenceNo?: string;
     note?: string;
+    paymentMethod?: string;
   }
 ) {
+  if (
+    !input.settlementId
+  ) {
+    throw new Error(
+      "Tedarikçi ödemesi için mutabakat zorunlu."
+    );
+  }
+
   const {
+    data,
     error,
   } =
-    await supabase
-      .from(
-        "yacht_os_supplier_payments"
-      )
-      .insert({
-        company_id:
-          input.companyId,
+    await supabase.rpc(
+      "yacht_os_record_supplier_payment_atomic",
+      {
+        p_settlement_id:
+          input.settlementId,
 
-        created_by:
-          input.userId,
-
-        supplier_id:
-          input.supplierId,
-
-        settlement_id:
-          input.settlementId ??
-          null,
-
-        amount:
+        p_amount:
           input.amount,
 
-        reference_no:
+        p_payment_method:
+          input.paymentMethod ??
+          "bank_transfer",
+
+        p_reference_no:
           input.referenceNo ??
           null,
 
-        note:
+        p_note:
           input.note ??
           null,
-      });
+      }
+    );
 
   if (error) {
     throw error;
   }
 
-  if (
-    input.settlementId
-  ) {
-    const {
-      data:
-        settlement,
-      error:
-        settlementError,
-    } =
-      await supabase
-        .from(
-          "yacht_os_settlements"
-        )
-        .select(
-          "paid_amount,supplier_payable"
-        )
-        .eq(
-          "id",
-          input.settlementId
-        )
-        .single();
-
-    if (
-      settlementError
-    ) {
-      throw settlementError;
-    }
-
-    const nextPaid =
-      Number(
-        settlement
-          .paid_amount ??
-        0
-      ) +
-      input.amount;
-
-    const payable =
-      Number(
-        settlement
-          .supplier_payable ??
-        0
-      );
-
-    await supabase
-      .from(
-        "yacht_os_settlements"
-      )
-      .update({
-        paid_amount:
-          nextPaid,
-
-        status:
-          nextPaid >=
-          payable
-            ? "paid"
-            : "partially_paid",
-
-        paid_at:
-          nextPaid >=
-          payable
-            ? new Date()
-                .toISOString()
-            : null,
-      })
-      .eq(
-        "id",
-        input.settlementId
-      );
-  }
+  return data;
 }
