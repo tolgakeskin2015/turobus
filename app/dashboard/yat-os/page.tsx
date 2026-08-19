@@ -1748,6 +1748,14 @@ export default function YachtOSPage() {
             <div className="flex flex-wrap gap-3">
 
               <Link
+                href="/dashboard/yat-os/crm-center"
+                className="flex min-h-12 items-center gap-2 rounded-xl border border-orange-500/30 bg-orange-500/10 px-5 text-xs font-black text-orange-300 transition hover:bg-orange-500 hover:text-white"
+              >
+                <FaUsers />
+                CRM & Lead Center
+              </Link>
+
+              <Link
                 href="/dashboard/yat-os/revenue-intelligence"
                 className="flex min-h-12 items-center gap-2 rounded-xl border border-violet-500/30 bg-violet-500/10 px-5 text-xs font-black text-violet-300 transition hover:bg-violet-500 hover:text-white"
               >
