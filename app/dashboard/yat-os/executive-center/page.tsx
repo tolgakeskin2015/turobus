@@ -42,6 +42,9 @@ import {
 } from "@/lib/supabase";
 
 
+import CopilotActionCenter from "./copilot-action-center";
+
+
 type ExecutiveData =
   Awaited<
     ReturnType<
@@ -1862,6 +1865,22 @@ export default function YachtExecutiveCenterPage() {
             )}
           </div>
         </section>
+
+
+        {data && (
+          <CopilotActionCenter
+            companyId={companyId}
+            leads={data.crm.leads}
+            events={data.crm.events}
+            onDone={() => {
+              if (companyId) {
+                void refresh(
+                  companyId
+                );
+              }
+            }}
+          />
+        )}
 
 
         <section className="mt-5 overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f]">
