@@ -116,7 +116,7 @@ export async function loadYachtDispatchCenter(
           "yacht_os_bookings"
         )
         .select(
-          "id,yacht_id,booking_code,guest_name,guest_phone,guest_count,start_date,end_date,start_time,end_time,status,operation_status,check_in_status,meeting_point,meeting_time,total_amount,paid_amount,payment_status,requires_full_payment_before_departure,departure_override_reason,departure_override_at,actual_departure_at,actual_return_at"
+          "id,yacht_id,booking_code,guest_name,guest_phone,guest_count,start_date,end_date,departure_time,return_time,status,operation_status,check_in_status,meeting_point,meeting_time,total_amount,paid_amount,payment_status,requires_full_payment_before_departure,departure_override_reason,departure_override_at,actual_departure_at,actual_return_at"
         )
         .eq(
           "company_id",
