@@ -1748,6 +1748,14 @@ export default function YachtOSPage() {
             <div className="flex flex-wrap gap-3">
 
               <Link
+                href="/dashboard/yat-os/fleet-maintenance"
+                className="flex min-h-12 items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 text-xs font-black text-amber-300 transition hover:bg-amber-500 hover:text-white"
+              >
+                <FaShip />
+                Filo Bakım & Evrak
+              </Link>
+
+              <Link
                 href="/dashboard/yat-os/dispatch-center"
                 className="flex min-h-12 items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-5 text-xs font-black text-red-300 transition hover:bg-red-500 hover:text-white"
               >
