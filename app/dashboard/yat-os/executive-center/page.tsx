@@ -19,6 +19,7 @@ import {
   FaFilter,
   FaFire,
   FaSearch,
+  FaRobot,
   FaShip,
   FaTasks,
   FaTimes,
@@ -35,6 +36,10 @@ import {
 import {
   loadYachtExecutiveCenter,
 } from "@/lib/yacht-os/executive-center";
+
+import {
+  supabase,
+} from "@/lib/supabase";
 
 
 type ExecutiveData =
@@ -390,6 +395,33 @@ export default function YachtExecutiveCenterPage() {
     useState("all");
 
 
+  const [
+    copilotQuestion,
+    setCopilotQuestion,
+  ] =
+    useState(
+      "Bugün yönetici olarak önce hangi 3 konuya müdahale etmeliyim?"
+    );
+
+  const [
+    copilotAnswer,
+    setCopilotAnswer,
+  ] =
+    useState("");
+
+  const [
+    copilotError,
+    setCopilotError,
+  ] =
+    useState("");
+
+  const [
+    copilotLoading,
+    setCopilotLoading,
+  ] =
+    useState(false);
+
+
   const refresh =
     useCallback(
       async (
@@ -477,6 +509,124 @@ export default function YachtExecutiveCenterPage() {
       refresh,
     ]
   );
+
+
+  async function askCopilot(
+    suggestedQuestion?:
+      string
+  ) {
+    const currentQuestion =
+      (
+        suggestedQuestion ??
+        copilotQuestion
+      ).trim();
+
+
+    if (
+      !companyId ||
+      !currentQuestion
+    ) {
+      return;
+    }
+
+
+    setCopilotLoading(
+      true
+    );
+
+    setCopilotError("");
+
+
+    try {
+      const {
+        data:
+          sessionResult,
+      } =
+        await supabase.auth.getSession();
+
+
+      const accessToken =
+        sessionResult
+          .session
+          ?.access_token;
+
+
+      if (!accessToken) {
+        throw new Error(
+          "Copilot için aktif oturum bulunamadı."
+        );
+      }
+
+
+      const response =
+        await fetch(
+          "/api/yacht-os/copilot",
+          {
+            method:
+              "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${accessToken}`,
+            },
+
+            body:
+              JSON.stringify({
+                companyId,
+
+                question:
+                  currentQuestion,
+              }),
+          }
+        );
+
+
+      const payload =
+        await response.json() as {
+          answer?: string;
+          error?: string;
+        };
+
+
+      if (
+        !response.ok
+      ) {
+        throw new Error(
+          payload.error ||
+          "Copilot yanıt üretemedi."
+        );
+      }
+
+
+      setCopilotQuestion(
+        currentQuestion
+      );
+
+      setCopilotAnswer(
+        payload.answer ||
+        ""
+      );
+
+    } catch (
+      currentError
+    ) {
+      setCopilotError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+    } finally {
+      setCopilotLoading(
+        false
+      );
+    }
+  }
 
 
   const metrics =
@@ -1575,6 +1725,142 @@ export default function YachtExecutiveCenterPage() {
             detail="Önceliklendirilmiş aksiyon"
             icon={<FaCheckCircle />}
           />
+        </section>
+
+
+        <section className="mt-5 overflow-hidden rounded-[28px] border border-violet-500/20 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,.16),transparent_35%),linear-gradient(145deg,#07131f,#040b12)]">
+          <div className="border-b border-white/10 p-5 lg:p-6">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+              <div>
+                <div className="flex items-center gap-3">
+                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-500/10 text-violet-300">
+                    <FaRobot />
+                  </div>
+
+                  <div>
+                    <div className="text-sm font-black">
+                      Yacht OS AI Copilot
+                    </div>
+
+                    <div className="mt-1 text-[10px] text-slate-500">
+                      Gerçek şirket verisini analiz eder · V1 salt-okunur · Kendiliğinden işlem yapmaz
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <span className="w-fit rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[9px] font-black text-emerald-300">
+                READ-ONLY CONTROL
+              </span>
+            </div>
+
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {[
+                "Bugün önce hangi 3 konuya müdahale etmeliyim?",
+                "Tahsilat açısından en büyük riskler neler?",
+                "Hangi lead'lere bugün dönmeliyiz?",
+                "Hangi teknelerde fiyat fırsatı var?",
+                "Yaklaşan operasyonlarda risk görüyor musun?",
+              ].map(
+                (
+                  prompt
+                ) => (
+                  <button
+                    key={
+                      prompt
+                    }
+                    type="button"
+                    disabled={
+                      copilotLoading
+                    }
+                    onClick={() => {
+                      setCopilotQuestion(
+                        prompt
+                      );
+
+                      void askCopilot(
+                        prompt
+                      );
+                    }}
+                    className="rounded-xl border border-white/10 bg-white/[.035] px-3 py-2 text-[9px] font-black text-slate-400 transition hover:border-violet-500/30 hover:text-violet-300 disabled:opacity-40"
+                  >
+                    {prompt}
+                  </button>
+                )
+              )}
+            </div>
+
+
+            <div className="mt-4 grid gap-3 xl:grid-cols-[1fr_auto]">
+              <textarea
+                value={
+                  copilotQuestion
+                }
+                onChange={(
+                  event
+                ) =>
+                  setCopilotQuestion(
+                    event.target.value
+                  )
+                }
+                maxLength={
+                  2000
+                }
+                rows={
+                  3
+                }
+                placeholder="Yat OS verilerine sor..."
+                className="w-full resize-none rounded-2xl border border-white/10 bg-[#030a11] px-4 py-3 text-xs font-bold leading-6 outline-none transition focus:border-violet-500/40"
+              />
+
+              <button
+                type="button"
+                disabled={
+                  copilotLoading ||
+                  !copilotQuestion.trim()
+                }
+                onClick={() =>
+                  void askCopilot()
+                }
+                className="min-h-14 rounded-2xl bg-violet-500 px-6 text-xs font-black text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-40 xl:min-w-[160px]"
+              >
+                {copilotLoading
+                  ? "Analiz Ediyor..."
+                  : "Copilot'a Sor"}
+              </button>
+            </div>
+
+
+            {copilotError && (
+              <div className="mt-4 flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/[.06] p-4">
+                <FaExclamationTriangle className="mt-0.5 shrink-0 text-red-400" />
+
+                <div className="text-[10px] font-bold leading-5 text-red-200">
+                  {copilotError}
+                </div>
+              </div>
+            )}
+
+
+            {copilotAnswer && (
+              <div className="mt-4 rounded-2xl border border-violet-500/20 bg-violet-500/[.05] p-5">
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[.16em] text-violet-300">
+                  <FaRobot />
+                  Copilot Analizi
+                </div>
+
+                <div className="mt-4 whitespace-pre-wrap text-xs font-medium leading-7 text-slate-300">
+                  {copilotAnswer}
+                </div>
+
+                <div className="mt-4 border-t border-white/10 pt-3 text-[9px] leading-5 text-slate-600">
+                  Bu ekran karar desteği verir. Rezervasyon, tahsilat, fiyat,
+                  operasyon veya CRM kaydını kendi başına değiştirmez.
+                </div>
+              </div>
+            )}
+          </div>
         </section>
 
 
