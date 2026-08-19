@@ -12,6 +12,7 @@ import Link from "next/link";
 import {
   FaArrowLeft,
   FaCashRegister,
+  FaChartLine,
   FaCheckCircle,
   FaCoins,
   FaCopy,
@@ -880,6 +881,16 @@ export default function YachtFinanceCenterPage() {
             <FaArrowLeft />
             YAT & TEKNE OS
           </Link>
+
+          <div className="mt-4">
+            <Link
+              href="/dashboard/yat-os/finance-control-tower"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/[.07] px-4 text-[9px] font-black text-red-300 transition hover:bg-red-500 hover:text-white"
+            >
+              <FaChartLine />
+              Finans Control Tower
+            </Link>
+          </div>
 
 
           <div className="mt-5 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
