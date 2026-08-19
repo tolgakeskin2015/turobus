@@ -1748,6 +1748,14 @@ export default function YachtOSPage() {
             <div className="flex flex-wrap gap-3">
 
               <Link
+                href="/dashboard/yat-os/dispatch-center"
+                className="flex min-h-12 items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-5 text-xs font-black text-red-300 transition hover:bg-red-500 hover:text-white"
+              >
+                <FaExclamationTriangle />
+                Sefer Çıkış Kontrol
+              </Link>
+
+              <Link
                 href="/dashboard/yat-os/operation-center"
                 className="flex min-h-12 items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-5 text-xs font-black text-blue-300 transition hover:bg-blue-500 hover:text-white"
               >
