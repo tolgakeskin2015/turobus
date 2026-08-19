@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import {
   useCallback,
   useEffect,
@@ -1744,6 +1746,15 @@ export default function YachtOSPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
+
+              <Link
+                href="/dashboard/yat-os/partner-center"
+                className="flex min-h-12 items-center gap-2 rounded-xl border border-orange-500/30 bg-orange-500/10 px-5 text-xs font-black text-orange-300 transition hover:bg-orange-500 hover:text-white"
+              >
+                <FaUserTie />
+                Partner Control
+              </Link>
+
               <button
                 type="button"
                 onClick={() =>
