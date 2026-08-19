@@ -1748,6 +1748,14 @@ export default function YachtOSPage() {
             <div className="flex flex-wrap gap-3">
 
               <Link
+                href="/dashboard/yat-os/sales-team"
+                className="flex min-h-12 items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-5 text-xs font-black text-cyan-300 transition hover:bg-cyan-500 hover:text-white"
+              >
+                <FaUsers />
+                Satış Ekibi & Hedefler
+              </Link>
+
+              <Link
                 href="/dashboard/yat-os/sales-performance"
                 className="flex min-h-12 items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-5 text-xs font-black text-blue-300 transition hover:bg-blue-500 hover:text-white"
               >
