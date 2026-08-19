@@ -722,3 +722,176 @@ export async function loadCustomer360DuplicateHealth(
   return data as
     Customer360DuplicateHealth;
 }
+
+
+export type Customer360LiveSyncHealth = {
+  ok: boolean;
+
+  enabled: boolean;
+
+  registered_sources: number;
+  installed_triggers: number;
+
+  matched_24h: number;
+  created_24h: number;
+  conflict_24h: number;
+  error_24h: number;
+};
+
+
+export type Customer360LiveSyncEvent = {
+  id: string;
+
+  company_id: string;
+
+  source_table: string;
+  source_id: string;
+
+  entity_type: string;
+
+  customer_id: string | null;
+
+  event_status:
+    | "matched"
+    | "created"
+    | "conflict"
+    | "skipped"
+    | "error";
+
+  event_reason: string;
+
+  source_name: string | null;
+  source_phone: string | null;
+  source_email: string | null;
+
+  metadata:
+    Record<
+      string,
+      unknown
+    >;
+
+  created_at: string;
+};
+
+
+export async function installCustomer360LiveSync(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_install_live_sync",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok: boolean;
+    enabled: boolean;
+    triggers_installed: number;
+  };
+}
+
+
+export async function disableCustomer360LiveSync(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_disable_live_sync",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok: boolean;
+    enabled: boolean;
+  };
+}
+
+
+export async function loadCustomer360LiveSyncHealth(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_live_sync_health",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360LiveSyncHealth;
+}
+
+
+export async function loadCustomer360LiveSyncEvents(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase
+      .from(
+        "customer_360_live_sync_events"
+      )
+      .select("*")
+      .eq(
+        "company_id",
+        companyId
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            false,
+        }
+      )
+      .limit(
+        100
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return (
+    data ??
+    []
+  ) as Customer360LiveSyncEvent[];
+}

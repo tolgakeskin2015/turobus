@@ -789,6 +789,16 @@ const menuGroups: MenuGroup[] = [
             ],
           },
           {
+            href: "/dashboard/musteri-360/canli-senkronizasyon",
+            label: "Canlı Senkronizasyon",
+            icon: FaUserCircle,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+          {
             href: "/dashboard/musteri-360/otomatik-profiller",
             label: "Otomatik Profiller",
             icon: FaUserCircle,

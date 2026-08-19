@@ -506,6 +506,14 @@ export default function Customer360Page() {
 
             <div className="flex flex-wrap gap-3">
               <Link
+                href="/dashboard/musteri-360/canli-senkronizasyon"
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-orange-500/20 bg-orange-500/[.06] px-5 text-xs font-black text-orange-300 transition hover:bg-orange-500/10"
+              >
+                <FaUserCircle />
+                Canlı Senkronizasyon
+              </Link>
+
+              <Link
                 href="/dashboard/musteri-360/otomatik-profiller"
                 className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[.06] px-5 text-xs font-black text-emerald-300 transition hover:bg-emerald-500/10"
               >
