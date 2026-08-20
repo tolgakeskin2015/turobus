@@ -1459,6 +1459,278 @@ export async function loadCustomer360FinanceHistory(
 
 
 
+
+export type Customer360CaseType =
+  | "request"
+  | "complaint";
+
+
+export type Customer360CasePriority =
+  | "low"
+  | "medium"
+  | "high"
+  | "critical";
+
+
+export type Customer360CaseStatus =
+  | "open"
+  | "in_progress"
+  | "resolved"
+  | "closed";
+
+
+export type Customer360CaseSlaState =
+  | "no_deadline"
+  | "on_track"
+  | "due_soon"
+  | "overdue"
+  | "completed";
+
+
+export type Customer360CaseRow = {
+  id: string;
+
+  case_type:
+    Customer360CaseType;
+
+  title:
+    string;
+
+  detail:
+    string | null;
+
+  priority:
+    Customer360CasePriority;
+
+  status:
+    Customer360CaseStatus;
+
+  assigned_to:
+    string | null;
+
+  due_at:
+    string | null;
+
+  resolution_note:
+    string | null;
+
+  resolved_by:
+    string | null;
+
+  resolved_at:
+    string | null;
+
+  closed_at:
+    string | null;
+
+  created_by:
+    string | null;
+
+  created_at:
+    string;
+
+  updated_at:
+    string;
+
+  sla_state:
+    Customer360CaseSlaState;
+};
+
+
+export type Customer360CaseSnapshot = {
+  customer: {
+    id: string;
+
+    customer_code:
+      string;
+
+    full_name:
+      string;
+  };
+
+  cases:
+    Customer360CaseRow[];
+};
+
+
+export async function loadCustomer360CaseSnapshot(
+  customerId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_case_snapshot",
+      {
+        p_customer_id:
+          customerId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360CaseSnapshot;
+}
+
+
+export async function addCustomer360Case(
+  input: {
+    customerId:
+      string;
+
+    caseType:
+      Customer360CaseType;
+
+    title:
+      string;
+
+    detail?:
+      string;
+
+    priority:
+      Customer360CasePriority;
+
+    dueAt?:
+      string;
+
+    takeOwnership?:
+      boolean;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_add_case",
+      {
+        p_customer_id:
+          input.customerId,
+
+        p_case_type:
+          input.caseType,
+
+        p_title:
+          input.title,
+
+        p_detail:
+          input.detail ||
+          null,
+
+        p_priority:
+          input.priority,
+
+        p_due_at:
+          input.dueAt ||
+          null,
+
+        p_take_ownership:
+          input.takeOwnership ??
+          true,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok:
+      boolean;
+
+    case_id:
+      string;
+  };
+}
+
+
+export async function updateCustomer360Case(
+  input: {
+    caseId:
+      string;
+
+    status?:
+      Customer360CaseStatus;
+
+    priority?:
+      Customer360CasePriority;
+
+    dueAt?:
+      string;
+
+    resolutionNote?:
+      string;
+
+    takeOwnership?:
+      boolean;
+
+    clearAssignment?:
+      boolean;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_update_case",
+      {
+        p_case_id:
+          input.caseId,
+
+        p_status:
+          input.status ||
+          null,
+
+        p_priority:
+          input.priority ||
+          null,
+
+        p_due_at:
+          input.dueAt ||
+          null,
+
+        p_resolution_note:
+          input.resolutionNote ??
+          null,
+
+        p_take_ownership:
+          input.takeOwnership ??
+          false,
+
+        p_clear_assignment:
+          input.clearAssignment ??
+          false,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok:
+      boolean;
+
+    case_id:
+      string;
+
+    status:
+      Customer360CaseStatus;
+  };
+}
+
+
 export type Customer360CommunicationChannel =
   | "whatsapp"
   | "sms"

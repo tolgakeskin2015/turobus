@@ -53,6 +53,8 @@ import CustomerFamilyGroupCenter from "../customer-family-group-center";
 
 import CustomerCommunicationCenter from "../customer-communication-center";
 
+import CustomerCaseCenter from "../customer-case-center";
+
 
 type Detail =
   Awaited<
@@ -938,53 +940,9 @@ export default function Customer360DetailPage() {
             />
 
 
-            <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
-              <div className="text-sm font-black">
-                Talepler & Şikâyetler
-              </div>
-
-              {detail.cases.length ===
-              0 ? (
-                <div className="mt-4 rounded-xl border border-dashed border-white/10 p-7 text-center text-[9px] text-slate-600">
-                  Açık talep veya şikâyet yok.
-                </div>
-              ) : (
-                <div className="mt-4 space-y-2">
-                  {detail.cases.map(
-                    (
-                      item
-                    ) => (
-                      <div
-                        key={
-                          item.id
-                        }
-                        className="rounded-xl border border-white/[.06] bg-black/20 p-4"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-[8px] font-black uppercase text-orange-300">
-                            {item.case_type}
-                          </span>
-
-                          <span className="text-[8px] font-black uppercase text-slate-600">
-                            {item.status}
-                          </span>
-                        </div>
-
-                        <div className="mt-2 text-xs font-black">
-                          {item.title}
-                        </div>
-
-                        {item.detail && (
-                          <div className="mt-2 text-[9px] leading-5 text-slate-500">
-                            {item.detail}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
-            </section>
+            <CustomerCaseCenter
+              customerId={customerId}
+            />
 
 
             <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
