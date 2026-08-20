@@ -49,6 +49,8 @@ import CustomerReservationHistory from "../customer-reservation-history";
 
 import CustomerFinanceHistory from "../customer-finance-history";
 
+import CustomerFamilyGroupCenter from "../customer-family-group-center";
+
 
 type Detail =
   Awaited<
@@ -745,60 +747,10 @@ export default function Customer360DetailPage() {
             </section>
 
 
-            <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-black">
-                    Yolcular & Aile
-                  </div>
-
-                  <div className="mt-1 text-[9px] text-slate-600">
-                    Ana müşteriyle seyahat eden kayıtlar
-                  </div>
-                </div>
-
-                <FaUsers className="text-orange-300" />
-              </div>
-
-              {detail.travelers.length ===
-              0 ? (
-                <div className="mt-5 rounded-2xl border border-dashed border-white/10 p-8 text-center text-[10px] text-slate-600">
-                  Henüz bağlı yolcu veya aile üyesi yok.
-                </div>
-              ) : (
-                <div className="mt-4 space-y-2">
-                  {detail.travelers.map(
-                    (
-                      traveler
-                    ) => (
-                      <div
-                        key={
-                          traveler.id
-                        }
-                        className="flex items-center justify-between rounded-xl border border-white/[.06] bg-black/20 p-4"
-                      >
-                        <div>
-                          <div className="text-xs font-black">
-                            {traveler.full_name}
-                          </div>
-
-                          <div className="mt-1 text-[9px] text-slate-600">
-                            {traveler.relationship_label ||
-                              "Yolcu"}
-                          </div>
-                        </div>
-
-                        <div className="text-right text-[9px] text-slate-500">
-                          {formatDate(
-                            traveler.birth_date
-                          )}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
-            </section>
+            <CustomerFamilyGroupCenter
+              companyId={companyId}
+              customerId={customerId}
+            />
 
 
             <CustomerQuoteHistory

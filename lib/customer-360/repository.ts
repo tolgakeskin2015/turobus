@@ -1456,3 +1456,575 @@ export async function loadCustomer360FinanceHistory(
     }
   );
 }
+
+
+export type Customer360FamilyTraveler = {
+  id: string;
+
+  full_name: string;
+
+  relationship_label:
+    string | null;
+
+  phone:
+    string | null;
+
+  email:
+    string | null;
+
+  birth_date:
+    string | null;
+
+  gender:
+    string | null;
+
+  nationality:
+    string | null;
+
+  identity_type:
+    string | null;
+
+  identity_number:
+    string | null;
+
+  is_primary:
+    boolean;
+
+  created_at:
+    string;
+};
+
+
+export type Customer360FamilyRelationship = {
+  id: string;
+
+  relation_type:
+    string;
+
+  note:
+    string | null;
+
+  direction:
+    "outbound" | "inbound";
+
+  other_customer_id:
+    string;
+
+  other_customer_code:
+    string;
+
+  other_customer_name:
+    string;
+
+  other_customer_phone:
+    string | null;
+
+  other_customer_email:
+    string | null;
+
+  other_customer_segment:
+    string;
+
+  created_at:
+    string;
+};
+
+
+export type Customer360GroupMember = {
+  membership_id: string;
+
+  customer_id: string;
+
+  customer_code: string;
+
+  full_name: string;
+
+  phone:
+    string | null;
+
+  email:
+    string | null;
+
+  segment:
+    string;
+
+  member_role:
+    string | null;
+};
+
+
+export type Customer360FamilyGroup = {
+  id: string;
+
+  name: string;
+
+  group_type:
+    | "travel"
+    | "family"
+    | "corporate"
+    | "event"
+    | "other";
+
+  note:
+    string | null;
+
+  member_role:
+    string | null;
+
+  member_count:
+    number;
+
+  members:
+    Customer360GroupMember[];
+
+  created_at:
+    string;
+};
+
+
+export type Customer360FamilyGroupSnapshot = {
+  customer: {
+    id: string;
+    customer_code: string;
+    full_name: string;
+  };
+
+  travelers:
+    Customer360FamilyTraveler[];
+
+  relationships:
+    Customer360FamilyRelationship[];
+
+  groups:
+    Customer360FamilyGroup[];
+};
+
+
+export async function loadCustomer360FamilyGroupSnapshot(
+  customerId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_family_group_snapshot",
+      {
+        p_customer_id:
+          customerId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360FamilyGroupSnapshot;
+}
+
+
+export async function addCustomer360Traveler(
+  input: {
+    customerId: string;
+
+    fullName: string;
+
+    relationshipLabel?: string;
+
+    phone?: string;
+
+    email?: string;
+
+    birthDate?: string;
+
+    nationality?: string;
+
+    identityType?:
+      | "tc"
+      | "passport"
+      | "other"
+      | "";
+
+    identityNumber?: string;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_add_traveler",
+      {
+        p_customer_id:
+          input.customerId,
+
+        p_full_name:
+          input.fullName,
+
+        p_relationship_label:
+          input.relationshipLabel ||
+          null,
+
+        p_phone:
+          input.phone ||
+          null,
+
+        p_email:
+          input.email ||
+          null,
+
+        p_birth_date:
+          input.birthDate ||
+          null,
+
+        p_nationality:
+          input.nationality ||
+          null,
+
+        p_identity_type:
+          input.identityType ||
+          null,
+
+        p_identity_number:
+          input.identityNumber ||
+          null,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok: boolean;
+    traveler_id: string;
+  };
+}
+
+
+export async function deleteCustomer360Traveler(
+  travelerId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_delete_traveler",
+      {
+        p_traveler_id:
+          travelerId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function searchCustomer360LinkCandidates(
+  companyId: string,
+  customerId: string,
+  query: string
+) {
+  let request =
+    supabase
+      .from(
+        "customer_360_customers"
+      )
+      .select(
+        `
+        id,
+        customer_code,
+        full_name,
+        phone,
+        email,
+        segment
+        `
+      )
+      .eq(
+        "company_id",
+        companyId
+      )
+      .neq(
+        "id",
+        customerId
+      )
+      .eq(
+        "status",
+        "active"
+      )
+      .order(
+        "full_name"
+      )
+      .limit(
+        20
+      );
+
+
+  const clean =
+    query.trim();
+
+
+  if (clean) {
+    request =
+      request.or(
+        `full_name.ilike.%${clean}%,phone.ilike.%${clean}%,email.ilike.%${clean}%,customer_code.ilike.%${clean}%`
+      );
+  }
+
+
+  const {
+    data,
+    error,
+  } =
+    await request;
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return (
+    data ??
+    []
+  ) as {
+    id: string;
+
+    customer_code: string;
+
+    full_name: string;
+
+    phone:
+      string | null;
+
+    email:
+      string | null;
+
+    segment:
+      string;
+  }[];
+}
+
+
+export async function addCustomer360Relationship(
+  input: {
+    customerId: string;
+
+    relatedCustomerId:
+      string;
+
+    relationType:
+      string;
+
+    note?: string;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_add_relationship",
+      {
+        p_customer_id:
+          input.customerId,
+
+        p_related_customer_id:
+          input.relatedCustomerId,
+
+        p_relation_type:
+          input.relationType,
+
+        p_note:
+          input.note ||
+          null,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function deleteCustomer360Relationship(
+  relationshipId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_delete_relationship",
+      {
+        p_relationship_id:
+          relationshipId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function createCustomer360Group(
+  input: {
+    customerId: string;
+
+    name: string;
+
+    groupType:
+      | "travel"
+      | "family"
+      | "corporate"
+      | "event"
+      | "other";
+
+    note?: string;
+
+    memberRole?: string;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_create_group",
+      {
+        p_customer_id:
+          input.customerId,
+
+        p_name:
+          input.name,
+
+        p_group_type:
+          input.groupType,
+
+        p_note:
+          input.note ||
+          null,
+
+        p_member_role:
+          input.memberRole ||
+          "primary",
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function addCustomer360GroupMember(
+  input: {
+    groupId: string;
+
+    customerId: string;
+
+    memberRole?: string;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_add_group_member",
+      {
+        p_group_id:
+          input.groupId,
+
+        p_customer_id:
+          input.customerId,
+
+        p_member_role:
+          input.memberRole ||
+          null,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function removeCustomer360GroupMember(
+  membershipId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_remove_group_member",
+      {
+        p_membership_id:
+          membershipId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
+
+
+export async function deleteCustomer360Group(
+  groupId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_delete_group",
+      {
+        p_group_id:
+          groupId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data;
+}
