@@ -49,6 +49,8 @@ import CustomerReservationHistory from "../customer-reservation-history";
 
 import CustomerFinanceHistory from "../customer-finance-history";
 
+import CustomerValueLoyaltyCenter from "../customer-value-loyalty-center";
+
 import CustomerFamilyGroupCenter from "../customer-family-group-center";
 
 import CustomerCommunicationCenter from "../customer-communication-center";
@@ -883,6 +885,12 @@ export default function Customer360DetailPage() {
 
 
             <CustomerFinanceHistory
+              companyId={companyId}
+              customerId={customerId}
+            />
+
+
+            <CustomerValueLoyaltyCenter
               companyId={companyId}
               customerId={customerId}
             />
