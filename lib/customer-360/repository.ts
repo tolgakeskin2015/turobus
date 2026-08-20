@@ -2675,3 +2675,87 @@ export async function deleteCustomer360Group(
 
   return data;
 }
+
+
+export type Customer360CommandCenterRow = {
+  customer_id:
+    string;
+
+  open_case_count:
+    number;
+
+  open_complaint_count:
+    number;
+
+  overdue_case_count:
+    number;
+
+  due_soon_case_count:
+    number;
+
+  message_count:
+    number;
+
+  inbound_message_count:
+    number;
+
+  outbound_message_count:
+    number;
+
+  last_message_at:
+    string | null;
+
+  booking_count:
+    number;
+
+  quote_count:
+    number;
+
+  trip_count:
+    number;
+
+  finance_event_count:
+    number;
+
+  last_booking_at:
+    string | null;
+
+  last_activity_at:
+    string | null;
+};
+
+
+export type Customer360CommandCenterSnapshot = {
+  generated_at:
+    string;
+
+  customers:
+    Customer360CommandCenterRow[];
+};
+
+
+export async function loadCustomer360CommandCenterSnapshot(
+  companyId:
+    string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_command_center_snapshot",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360CommandCenterSnapshot;
+}
