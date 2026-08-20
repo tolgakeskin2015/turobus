@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -10,13 +11,19 @@ import {
 
 import {
   FaBell,
+  FaBolt,
+  FaChartLine,
+  FaCheckCircle,
   FaChevronRight,
   FaClock,
   FaCommentDots,
   FaExclamationTriangle,
   FaFilter,
+  FaRedo,
   FaSearch,
   FaSuitcase,
+  FaSyncAlt,
+  FaTimes,
   FaUserCheck,
   FaUserClock,
   FaUsers,
@@ -57,97 +64,69 @@ type OperationalFilter =
 
 function segmentLabel(
   value:
-    Customer360Customer[
-      "segment"
-    ]
+    Customer360Customer["segment"]
 ) {
-  const labels = {
-    standard:
-      "Standart",
+  const labels:
+    Record<
+      Customer360Customer["segment"],
+      string
+    > = {
+      standard:
+        "Standart",
 
-    repeat:
-      "Tekrar Müşteri",
+      repeat:
+        "Tekrar Müşteri",
 
-    vip:
-      "VIP",
+      vip:
+        "VIP",
 
-    corporate:
-      "Kurumsal",
+      corporate:
+        "Kurumsal",
 
-    risk:
-      "Risk",
-  };
+      risk:
+        "Risk",
+    };
 
 
-  return labels[
-    value
-  ];
+  return labels[value];
 }
 
 
 function segmentTone(
   value:
-    Customer360Customer[
-      "segment"
-    ]
+    Customer360Customer["segment"]
 ) {
-  if (
-    value ===
-      "vip"
-  ) {
-    return "border-amber-500/20 bg-amber-500/[.07] text-amber-300";
+  if (value === "vip") {
+    return "border-amber-500/25 bg-amber-500/[.08] text-amber-300";
   }
 
-
-  if (
-    value ===
-      "repeat"
-  ) {
-    return "border-blue-500/20 bg-blue-500/[.06] text-blue-300";
+  if (value === "repeat") {
+    return "border-blue-500/25 bg-blue-500/[.08] text-blue-300";
   }
 
-
-  if (
-    value ===
-      "corporate"
-  ) {
-    return "border-violet-500/20 bg-violet-500/[.06] text-violet-300";
+  if (value === "corporate") {
+    return "border-violet-500/25 bg-violet-500/[.08] text-violet-300";
   }
 
-
-  if (
-    value ===
-      "risk"
-  ) {
-    return "border-red-500/20 bg-red-500/[.07] text-red-300";
+  if (value === "risk") {
+    return "border-red-500/25 bg-red-500/[.08] text-red-300";
   }
 
-
-  return "border-white/10 bg-white/[.03] text-slate-400";
+  return "border-white/10 bg-white/[.035] text-slate-400";
 }
 
 
 function statusLabel(
   value:
-    Customer360Customer[
-      "status"
-    ]
+    Customer360Customer["status"]
 ) {
-  if (
-    value ===
-      "active"
-  ) {
+  if (value === "active") {
     return "Aktif";
   }
 
-
-  if (
-    value ===
-      "blocked"
-  ) {
+  if (value === "blocked") {
     return "Blokeli";
   }
-
 
   return "Pasif";
 }
@@ -155,25 +134,15 @@ function statusLabel(
 
 function statusTone(
   value:
-    Customer360Customer[
-      "status"
-    ]
+    Customer360Customer["status"]
 ) {
-  if (
-    value ===
-      "active"
-  ) {
-    return "border-emerald-500/15 bg-emerald-500/[.05] text-emerald-300";
+  if (value === "active") {
+    return "border-emerald-500/20 bg-emerald-500/[.06] text-emerald-300";
   }
 
-
-  if (
-    value ===
-      "blocked"
-  ) {
-    return "border-red-500/15 bg-red-500/[.05] text-red-300";
+  if (value === "blocked") {
+    return "border-red-500/20 bg-red-500/[.06] text-red-300";
   }
-
 
   return "border-white/10 bg-white/[.03] text-slate-500";
 }
@@ -189,9 +158,7 @@ function formatDate(
 
 
   const date =
-    new Date(
-      value
-    );
+    new Date(value);
 
 
   if (
@@ -215,9 +182,48 @@ function formatDate(
       year:
         "numeric",
     }
-  ).format(
-    date
-  );
+  ).format(date);
+}
+
+
+function formatDateTime(
+  value:
+    string | null
+) {
+  if (!value) {
+    return "Henüz senkronize edilmedi";
+  }
+
+
+  const date =
+    new Date(value);
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "—";
+  }
+
+
+  return new Intl.DateTimeFormat(
+    "tr-TR",
+    {
+      day:
+        "2-digit",
+
+      month:
+        "short",
+
+      hour:
+        "2-digit",
+
+      minute:
+        "2-digit",
+    }
+  ).format(date);
 }
 
 
@@ -231,9 +237,7 @@ function daysSince(
 
 
   const date =
-    new Date(
-      value
-    );
+    new Date(value);
 
 
   if (
@@ -321,8 +325,15 @@ export default function CustomerCommandCenter({
   ] =
     useState<
       Customer360CommandCenterRow[]
-    >(
-      []
+    >([]);
+
+
+  const [
+    generatedAt,
+    setGeneratedAt,
+  ] =
+    useState<string | null>(
+      null
     );
 
 
@@ -330,9 +341,14 @@ export default function CustomerCommandCenter({
     loading,
     setLoading,
   ] =
-    useState(
-      true
-    );
+    useState(true);
+
+
+  const [
+    refreshing,
+    setRefreshing,
+  ] =
+    useState(false);
 
 
   const [
@@ -353,46 +369,41 @@ export default function CustomerCommandCenter({
     segment,
     setSegment,
   ] =
-    useState(
-      "all"
-    );
+    useState("all");
 
 
   const [
     status,
     setStatus,
   ] =
-    useState(
-      "all"
-    );
+    useState("all");
 
 
   const [
     operation,
     setOperation,
   ] =
-    useState<
-      OperationalFilter
-    >(
+    useState<OperationalFilter>(
       "all"
     );
 
 
-  useEffect(() => {
-    let active =
-      true;
-
-
-    void (
-      async () => {
+  const loadSnapshot =
+    useCallback(
+      async (
+        silent = false
+      ) => {
         if (!companyId) {
           return;
         }
 
 
-        setLoading(
-          true
-        );
+        if (silent) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+
 
         setError("");
 
@@ -404,24 +415,23 @@ export default function CustomerCommandCenter({
             );
 
 
-          if (!active) {
-            return;
-          }
-
-
           setMetrics(
-            result.customers ??
-            []
+            Array.isArray(
+              result?.customers
+            )
+              ? result.customers
+              : []
+          );
+
+
+          setGeneratedAt(
+            result?.generated_at ??
+            new Date().toISOString()
           );
 
         } catch (
           currentError
         ) {
-          if (!active) {
-            return;
-          }
-
-
           setError(
             currentError instanceof
               Error
@@ -432,23 +442,20 @@ export default function CustomerCommandCenter({
           );
 
         } finally {
-          if (active) {
-            setLoading(
-              false
-            );
-          }
+          setLoading(false);
+          setRefreshing(false);
         }
-      }
-    )();
+      },
+      [
+        companyId,
+      ]
+    );
 
 
-    return () => {
-      active =
-        false;
-    };
-
+  useEffect(() => {
+    void loadSnapshot();
   }, [
-    companyId,
+    loadSnapshot,
   ]);
 
 
@@ -498,102 +505,128 @@ export default function CustomerCommandCenter({
 
   const stats =
     useMemo(
-      () => ({
-        customers:
-          customers.length,
+      () => {
+        const noCommunication30 =
+          rows.filter(
+            ({
+              metric,
+            }) => {
+              const days =
+                daysSince(
+                  metric.last_message_at
+                );
 
-        active:
-          customers.filter(
-            (
-              customer
-            ) =>
-              customer.status ===
-              "active"
-          ).length,
 
-        vip:
-          customers.filter(
-            (
-              customer
-            ) =>
-              customer.segment ===
-              "vip"
-          ).length,
+              return (
+                days ===
+                  null ||
+                days >=
+                  30
+              );
+            }
+          ).length;
 
-        repeat:
-          customers.filter(
-            (
-              customer
-            ) =>
-              customer.segment ===
-              "repeat"
-          ).length,
 
-        risk:
-          customers.filter(
-            (
-              customer
-            ) =>
-              customer.segment ===
-              "risk"
-          ).length,
+        return {
+          customers:
+            customers.length,
 
-        openCases:
-          metrics.reduce(
-            (
-              total,
-              row
-            ) =>
-              total +
-              row.open_case_count,
-            0
-          ),
+          active:
+            customers.filter(
+              (
+                customer
+              ) =>
+                customer.status ===
+                "active"
+            ).length,
 
-        complaints:
-          metrics.reduce(
-            (
-              total,
-              row
-            ) =>
-              total +
-              row.open_complaint_count,
-            0
-          ),
+          vip:
+            customers.filter(
+              (
+                customer
+              ) =>
+                customer.segment ===
+                "vip"
+            ).length,
 
-        overdue:
-          metrics.reduce(
-            (
-              total,
-              row
-            ) =>
-              total +
-              row.overdue_case_count,
-            0
-          ),
+          repeat:
+            customers.filter(
+              (
+                customer
+              ) =>
+                customer.segment ===
+                "repeat"
+            ).length,
 
-        dueSoon:
-          metrics.reduce(
-            (
-              total,
-              row
-            ) =>
-              total +
-              row.due_soon_case_count,
-            0
-          ),
+          risk:
+            customers.filter(
+              (
+                customer
+              ) =>
+                customer.segment ===
+                "risk"
+            ).length,
 
-        bookedCustomers:
-          metrics.filter(
-            (
-              row
-            ) =>
-              row.booking_count >
+          openCases:
+            metrics.reduce(
+              (
+                total,
+                row
+              ) =>
+                total +
+                row.open_case_count,
               0
-          ).length,
-      }),
+            ),
+
+          complaints:
+            metrics.reduce(
+              (
+                total,
+                row
+              ) =>
+                total +
+                row.open_complaint_count,
+              0
+            ),
+
+          overdue:
+            metrics.reduce(
+              (
+                total,
+                row
+              ) =>
+                total +
+                row.overdue_case_count,
+              0
+            ),
+
+          dueSoon:
+            metrics.reduce(
+              (
+                total,
+                row
+              ) =>
+                total +
+                row.due_soon_case_count,
+              0
+            ),
+
+          bookedCustomers:
+            metrics.filter(
+              (
+                row
+              ) =>
+                row.booking_count >
+                0
+            ).length,
+
+          noCommunication30,
+        };
+      },
       [
         customers,
         metrics,
+        rows,
       ]
     );
 
@@ -733,9 +766,7 @@ export default function CustomerCommandCenter({
                   customer.segment,
                   customer.status,
                 ]
-                  .filter(
-                    Boolean
-                  )
+                  .filter(Boolean)
                   .join(" ")
                   .toLocaleLowerCase(
                     "tr-TR"
@@ -823,7 +854,6 @@ export default function CustomerCommandCenter({
                 aTime;
             }
           );
-
       },
       [
         rows,
@@ -835,103 +865,311 @@ export default function CustomerCommandCenter({
     );
 
 
+  const activeFilterCount =
+    [
+      search.trim()
+        ? 1
+        : 0,
+
+      segment !== "all"
+        ? 1
+        : 0,
+
+      status !== "all"
+        ? 1
+        : 0,
+
+      operation !== "all"
+        ? 1
+        : 0,
+    ].reduce(
+      (
+        total,
+        value
+      ) =>
+        total +
+        value,
+      0
+    );
+
+
+  function clearFilters() {
+    setSearch("");
+    setSegment("all");
+    setStatus("all");
+    setOperation("all");
+  }
+
+
+  const criticalCount =
+    stats.overdue +
+    stats.complaints;
+
+
   return (
-    <section className="mt-5 overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f]">
+    <section className="mt-5 overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.08),transparent_30%),linear-gradient(180deg,#081522_0%,#06111c_100%)] shadow-2xl shadow-black/20">
 
-      <div className="border-b border-white/[.07] p-5">
+      <div className="border-b border-white/[.07] p-5 lg:p-7">
 
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div className="flex flex-col gap-6 2xl:flex-row 2xl:items-start 2xl:justify-between">
 
-          <div>
+          <div className="max-w-3xl">
 
-            <div className="text-[8px] font-black uppercase tracking-[.18em] text-orange-300">
-              CUSTOMER 360 COMMAND CENTER
+            <div className="flex flex-wrap items-center gap-2">
+
+              <span className="rounded-full border border-orange-500/20 bg-orange-500/[.08] px-3 py-1.5 text-[8px] font-black uppercase tracking-[.18em] text-orange-300">
+                CUSTOMER 360 COMMAND CENTER
+              </span>
+
+
+              <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/15 bg-emerald-500/[.05] px-3 py-1.5 text-[8px] font-black text-emerald-300">
+                <FaCheckCircle />
+                Gerçek veri
+              </span>
+
             </div>
 
-            <h2 className="mt-2 text-lg font-black">
-              Müşteri Operasyon / Komuta Merkezi
+
+            <h2 className="mt-4 text-2xl font-black tracking-[-.035em] lg:text-3xl">
+              Müşteri Operasyon
+              <span className="text-orange-400">
+                {" "}
+                Komuta Merkezi
+              </span>
             </h2>
 
-            <p className="mt-2 max-w-3xl text-[9px] leading-5 text-slate-600">
-              Müşteri, rezervasyon, iletişim ve servis risklerini gerçek Customer 360 kayıtlarından tek operasyon tablosunda özetler.
+
+            <p className="mt-3 max-w-2xl text-[10px] leading-6 text-slate-500">
+              Müşteri riski, rezervasyon, iletişim ve servis olaylarını tek operasyon ekranında izleyin. Kritik kayıtlar otomatik olarak listenin üstüne taşınır.
             </p>
 
           </div>
 
 
-          <div className="flex items-center gap-2 text-[8px] font-black text-slate-500">
+          <div className="flex flex-wrap items-center gap-2">
 
-            <FaUserCheck className="text-emerald-300" />
+            <div className="rounded-xl border border-white/[.07] bg-black/20 px-4 py-3">
 
-            Şirket izolasyonlu gerçek veri
+              <div className="text-[7px] font-black uppercase tracking-[.12em] text-slate-600">
+                Son veri
+              </div>
+
+              <div className="mt-1 text-[9px] font-black text-slate-300">
+                {formatDateTime(
+                  generatedAt
+                )}
+              </div>
+
+            </div>
+
+
+            <button
+              type="button"
+              onClick={() =>
+                void loadSnapshot(
+                  true
+                )
+              }
+              disabled={
+                refreshing
+              }
+              className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-4 text-[9px] font-black text-slate-200 transition hover:border-orange-500/25 hover:text-orange-300 disabled:cursor-wait disabled:opacity-50"
+            >
+              <FaSyncAlt
+                className={
+                  refreshing
+                    ? "animate-spin"
+                    : ""
+                }
+              />
+
+              {refreshing
+                ? "Yenileniyor"
+                : "Veriyi Yenile"}
+            </button>
 
           </div>
 
         </div>
 
 
-        <div className="mt-5 grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 2xl:grid-cols-8">
 
           {[
-            [
-              "Müşteri",
-              stats.customers,
-            ],
+            {
+              label:
+                "Toplam Müşteri",
 
-            [
-              "Aktif",
-              stats.active,
-            ],
+              value:
+                stats.customers,
 
-            [
-              "VIP",
-              stats.vip,
-            ],
+              detail:
+                `${stats.active} aktif`,
 
-            [
-              "Tekrar",
-              stats.repeat,
-            ],
+              icon:
+                <FaUsers />,
 
-            [
-              "Risk",
-              stats.risk,
-            ],
+              tone:
+                "text-slate-300",
+            },
 
-            [
-              "Açık Kayıt",
-              stats.openCases,
-            ],
+            {
+              label:
+                "VIP",
 
-            [
-              "SLA Gecikmiş",
-              stats.overdue,
-            ],
+              value:
+                stats.vip,
 
-            [
-              "Rezervasyonlu",
-              stats.bookedCustomers,
-            ],
+              detail:
+                "Öncelikli müşteri",
+
+              icon:
+                <FaUserCheck />,
+
+              tone:
+                "text-amber-300",
+            },
+
+            {
+              label:
+                "Tekrar",
+
+              value:
+                stats.repeat,
+
+              detail:
+                "Tekrar müşteri",
+
+              icon:
+                <FaRedo />,
+
+              tone:
+                "text-blue-300",
+            },
+
+            {
+              label:
+                "Risk",
+
+              value:
+                stats.risk,
+
+              detail:
+                "Risk segmenti",
+
+              icon:
+                <FaExclamationTriangle />,
+
+              tone:
+                "text-red-300",
+            },
+
+            {
+              label:
+                "Açık Kayıt",
+
+              value:
+                stats.openCases,
+
+              detail:
+                `${stats.complaints} şikâyet`,
+
+              icon:
+                <FaBell />,
+
+              tone:
+                "text-orange-300",
+            },
+
+            {
+              label:
+                "SLA Gecikmiş",
+
+              value:
+                stats.overdue,
+
+              detail:
+                `${stats.dueSoon} yaklaşan`,
+
+              icon:
+                <FaClock />,
+
+              tone:
+                stats.overdue >
+                  0
+                  ? "text-red-300"
+                  : "text-emerald-300",
+            },
+
+            {
+              label:
+                "Rezervasyonlu",
+
+              value:
+                stats.bookedCustomers,
+
+              detail:
+                "Bağlı müşteri",
+
+              icon:
+                <FaSuitcase />,
+
+              tone:
+                "text-emerald-300",
+            },
+
+            {
+              label:
+                "30+ Gün Sessiz",
+
+              value:
+                stats.noCommunication30,
+
+              detail:
+                "İletişim takibi",
+
+              icon:
+                <FaUserClock />,
+
+              tone:
+                "text-violet-300",
+            },
           ].map(
-            ([
-              label,
-              value,
-            ]) => (
+            (
+              item
+            ) => (
               <article
                 key={
-                  String(
-                    label
-                  )
+                  item.label
                 }
-                className="rounded-xl border border-white/[.07] bg-black/20 p-4"
+                className="group rounded-2xl border border-white/[.07] bg-black/20 p-4 transition hover:-translate-y-0.5 hover:border-white/[.12] hover:bg-white/[.025]"
               >
 
-                <div className="text-[7px] font-black uppercase tracking-[.11em] text-slate-600">
-                  {label}
-                </div>
+                <div className="flex items-start justify-between gap-3">
 
-                <div className="mt-2 text-xl font-black">
-                  {value}
+                  <div>
+
+                    <div className="text-[7px] font-black uppercase tracking-[.11em] text-slate-600">
+                      {item.label}
+                    </div>
+
+                    <div className="mt-2 text-2xl font-black">
+                      {item.value}
+                    </div>
+
+                    <div className="mt-1 text-[7px] font-bold text-slate-600">
+                      {item.detail}
+                    </div>
+
+                  </div>
+
+
+                  <div
+                    className={`grid h-9 w-9 place-items-center rounded-xl border border-white/[.06] bg-white/[.025] ${item.tone}`}
+                  >
+                    {item.icon}
+                  </div>
+
                 </div>
 
               </article>
@@ -941,69 +1179,189 @@ export default function CustomerCommandCenter({
         </div>
 
 
-        {(stats.overdue >
-          0 ||
-          stats.dueSoon >
-          0 ||
-          stats.complaints >
-          0) && (
-          <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-5 grid gap-3 xl:grid-cols-[1.3fr_.7fr]">
 
-            {stats.overdue >
-              0 && (
-              <button
-                type="button"
-                onClick={() =>
-                  setOperation(
-                    "overdue"
-                  )
-                }
-                className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/[.06] px-3 py-2 text-[8px] font-black text-red-300"
-              >
-                <FaBell />
-                {stats.overdue} SLA gecikmiş
-              </button>
-            )}
+          <div
+            className={`rounded-2xl border p-4 ${
+              criticalCount >
+              0
+                ? "border-red-500/15 bg-red-500/[.035]"
+                : "border-emerald-500/15 bg-emerald-500/[.035]"
+            }`}
+          >
 
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 
-            {stats.dueSoon >
-              0 && (
-              <button
-                type="button"
-                onClick={() =>
-                  setOperation(
-                    "due_soon"
-                  )
-                }
-                className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/[.06] px-3 py-2 text-[8px] font-black text-amber-300"
-              >
-                <FaClock />
-                {stats.dueSoon} kayıt 24 saat içinde
-              </button>
-            )}
+              <div className="flex items-start gap-3">
+
+                <div
+                  className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
+                    criticalCount >
+                    0
+                      ? "bg-red-500/10 text-red-300"
+                      : "bg-emerald-500/10 text-emerald-300"
+                  }`}
+                >
+                  {criticalCount >
+                  0
+                    ? <FaBolt />
+                    : <FaCheckCircle />}
+                </div>
 
 
-            {stats.complaints >
-              0 && (
-              <button
-                type="button"
-                onClick={() =>
-                  setOperation(
-                    "complaints"
-                  )
-                }
-                className="flex items-center gap-2 rounded-xl border border-orange-500/20 bg-orange-500/[.06] px-3 py-2 text-[8px] font-black text-orange-300"
-              >
-                <FaExclamationTriangle />
-                {stats.complaints} açık şikâyet
-              </button>
-            )}
+                <div>
+
+                  <div className="text-[10px] font-black">
+                    {criticalCount >
+                    0
+                      ? "Operasyon müdahalesi gereken kayıtlar var"
+                      : "Kritik operasyon alarmı bulunmuyor"}
+                  </div>
+
+                  <div className="mt-1 text-[8px] leading-5 text-slate-500">
+                    {criticalCount >
+                    0
+                      ? `${stats.overdue} SLA gecikmiş · ${stats.complaints} açık şikâyet`
+                      : "SLA ve şikâyet tarafında kritik kayıt görünmüyor."}
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              {criticalCount >
+                0 && (
+                <div className="flex flex-wrap gap-2">
+
+                  {stats.overdue >
+                    0 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOperation(
+                          "overdue"
+                        )
+                      }
+                      className="rounded-xl border border-red-500/20 bg-red-500/[.06] px-3 py-2 text-[8px] font-black text-red-300"
+                    >
+                      Gecikenleri Göster
+                    </button>
+                  )}
+
+
+                  {stats.complaints >
+                    0 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOperation(
+                          "complaints"
+                        )
+                      }
+                      className="rounded-xl border border-orange-500/20 bg-orange-500/[.06] px-3 py-2 text-[8px] font-black text-orange-300"
+                    >
+                      Şikâyetleri Göster
+                    </button>
+                  )}
+
+                </div>
+              )}
+
+            </div>
 
           </div>
-        )}
 
 
-        <div className="mt-5 grid gap-3 xl:grid-cols-[1fr_180px_160px_220px]">
+          <div className="rounded-2xl border border-white/[.07] bg-black/20 p-4">
+
+            <div className="flex items-center gap-2 text-[9px] font-black">
+              <FaChartLine className="text-orange-300" />
+              Operasyon Özeti
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-2">
+
+              <div className="rounded-xl bg-white/[.025] p-3">
+                <div className="text-[7px] text-slate-600">
+                  Yaklaşan
+                </div>
+                <div className="mt-1 text-base font-black text-amber-300">
+                  {stats.dueSoon}
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-white/[.025] p-3">
+                <div className="text-[7px] text-slate-600">
+                  Açık kayıt
+                </div>
+                <div className="mt-1 text-base font-black">
+                  {stats.openCases}
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-white/[.025] p-3">
+                <div className="text-[7px] text-slate-600">
+                  Sessiz
+                </div>
+                <div className="mt-1 text-base font-black text-violet-300">
+                  {stats.noCommunication30}
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {error && (
+        <div className="border-b border-red-500/15 bg-red-500/[.045] px-5 py-4 lg:px-7">
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+            <div className="flex items-start gap-3">
+
+              <FaExclamationTriangle className="mt-0.5 shrink-0 text-red-300" />
+
+              <div>
+
+                <div className="text-[9px] font-black text-red-200">
+                  Operasyon özeti yüklenemedi
+                </div>
+
+                <div className="mt-1 max-w-3xl text-[8px] leading-5 text-red-200/60">
+                  {error}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <button
+              type="button"
+              onClick={() =>
+                void loadSnapshot()
+              }
+              className="flex min-h-9 items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/[.06] px-3 text-[8px] font-black text-red-200"
+            >
+              <FaRedo />
+              Tekrar Dene
+            </button>
+
+          </div>
+
+        </div>
+      )}
+
+
+      <div className="border-b border-white/[.07] bg-black/10 p-4 lg:p-5">
+
+        <div className="grid gap-3 2xl:grid-cols-[1fr_180px_160px_230px_auto]">
 
           <div className="relative">
 
@@ -1020,8 +1378,8 @@ export default function CustomerCommandCenter({
                   event.target.value
                 )
               }
-              placeholder="Müşteri, kod, telefon, e-posta, şehir veya kaynak ara..."
-              className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-10 pr-4 text-[10px] outline-none focus:border-orange-500/40"
+              placeholder="Müşteri, telefon, e-posta, şehir, kod veya kaynak ara..."
+              className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-10 pr-4 text-[10px] font-bold outline-none transition focus:border-orange-500/35"
             />
 
           </div>
@@ -1038,7 +1396,7 @@ export default function CustomerCommandCenter({
                 event.target.value
               )
             }
-            className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[9px]"
+            className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[9px] font-bold outline-none"
           >
             <option value="all">
               Tüm Segmentler
@@ -1077,7 +1435,7 @@ export default function CustomerCommandCenter({
                 event.target.value
               )
             }
-            className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[9px]"
+            className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[9px] font-bold outline-none"
           >
             <option value="all">
               Tüm Durumlar
@@ -1113,7 +1471,7 @@ export default function CustomerCommandCenter({
                     OperationalFilter
                 )
               }
-              className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-10 pr-3 text-[9px]"
+              className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-10 pr-3 text-[9px] font-bold outline-none"
             >
               <option value="all">
                 Tüm Operasyonlar
@@ -1150,56 +1508,121 @@ export default function CustomerCommandCenter({
 
           </div>
 
+
+          <button
+            type="button"
+            onClick={
+              clearFilters
+            }
+            disabled={
+              activeFilterCount ===
+              0
+            }
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[.03] px-4 text-[8px] font-black text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <FaTimes />
+            Filtreleri Temizle
+            {activeFilterCount >
+              0 && (
+              <span className="rounded-full bg-orange-500 px-1.5 py-0.5 text-[7px] text-white">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+        </div>
+
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+
+          <div className="text-[8px] font-bold text-slate-600">
+            {filtered.length} / {customers.length} müşteri gösteriliyor
+          </div>
+
+
+          {operation !==
+            "all" && (
+            <div className="rounded-lg border border-orange-500/15 bg-orange-500/[.04] px-2.5 py-1.5 text-[7px] font-black text-orange-300">
+              Operasyon filtresi aktif
+            </div>
+          )}
+
         </div>
 
       </div>
 
 
-      {error && (
-        <div className="border-b border-red-500/10 bg-red-500/[.05] px-5 py-4 text-[9px] font-bold text-red-300">
-          {error}
-        </div>
-      )}
-
-
       {loading ? (
-        <div className="p-12 text-center text-[9px] text-slate-600">
-          Operasyon özeti yükleniyor...
+        <div className="grid min-h-[360px] place-items-center">
+
+          <div className="text-center">
+
+            <FaSyncAlt className="mx-auto animate-spin text-2xl text-orange-300" />
+
+            <div className="mt-4 text-[10px] font-black">
+              Komuta merkezi hazırlanıyor
+            </div>
+
+            <div className="mt-2 text-[8px] text-slate-600">
+              Gerçek müşteri operasyon verileri yükleniyor...
+            </div>
+
+          </div>
+
         </div>
       ) : filtered.length ===
         0 ? (
-        <div className="p-12 text-center">
+        <div className="grid min-h-[320px] place-items-center p-8">
 
-          <FaUsers className="mx-auto text-4xl text-slate-800" />
+          <div className="max-w-sm text-center">
 
-          <div className="mt-4 text-xs font-black">
-            Filtreye uygun müşteri bulunamadı
-          </div>
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-white/[.07] bg-white/[.025]">
+              <FaUsers className="text-xl text-slate-700" />
+            </div>
 
-          <div className="mt-2 text-[9px] text-slate-600">
-            Gerçek müşteri ve operasyon kayıtları üzerinden filtre uygulanır.
+            <div className="mt-4 text-xs font-black">
+              Filtreye uygun müşteri bulunamadı
+            </div>
+
+            <div className="mt-2 text-[9px] leading-5 text-slate-600">
+              Arama veya filtreleri temizleyerek tüm müşteri operasyonlarını tekrar görüntüleyebilirsiniz.
+            </div>
+
+            {activeFilterCount >
+              0 && (
+              <button
+                type="button"
+                onClick={
+                  clearFilters
+                }
+                className="mt-4 rounded-xl bg-orange-500 px-4 py-2.5 text-[8px] font-black text-white"
+              >
+                Tüm Müşterileri Göster
+              </button>
+            )}
+
           </div>
 
         </div>
       ) : (
-        <div className="max-h-[780px] overflow-auto">
+        <div className="max-h-[760px] overflow-auto">
 
-          <table className="min-w-[1500px] w-full">
+          <table className="min-w-[1460px] w-full">
 
-            <thead className="sticky top-0 z-20 bg-[#091725]">
+            <thead className="sticky top-0 z-20 bg-[#0a1826]/95 backdrop-blur-xl">
 
-              <tr className="border-b border-white/[.07] text-left text-[7px] font-black uppercase tracking-[.12em] text-slate-600">
+              <tr className="border-b border-white/[.08] text-left text-[7px] font-black uppercase tracking-[.12em] text-slate-600">
 
-                <th className="px-5 py-4">
+                <th className="sticky left-0 z-30 bg-[#0a1826] px-5 py-4">
                   Müşteri
                 </th>
 
                 <th className="px-5 py-4">
-                  Segment / Durum
+                  Segment
                 </th>
 
                 <th className="px-5 py-4">
-                  Servis
+                  Operasyon
                 </th>
 
                 <th className="px-5 py-4">
@@ -1215,7 +1638,7 @@ export default function CustomerCommandCenter({
                 </th>
 
                 <th className="px-5 py-4">
-                  Teklif / Seyahat
+                  Ticari Geçmiş
                 </th>
 
                 <th className="px-5 py-4">
@@ -1223,7 +1646,7 @@ export default function CustomerCommandCenter({
                 </th>
 
                 <th className="px-5 py-4 text-right">
-                  Hızlı İşlem
+                  İşlem
                 </th>
 
               </tr>
@@ -1244,28 +1667,64 @@ export default function CustomerCommandCenter({
                     );
 
 
+                  const isCritical =
+                    metric.overdue_case_count >
+                      0 ||
+                    metric.open_complaint_count >
+                      0;
+
+
                   return (
                     <tr
                       key={
                         customer.id
                       }
-                      className="border-b border-white/[.045] align-top transition hover:bg-white/[.025]"
+                      className={`border-b border-white/[.045] align-top transition ${
+                        isCritical
+                          ? "bg-red-500/[.018] hover:bg-red-500/[.035]"
+                          : "hover:bg-white/[.025]"
+                      }`}
                     >
 
-                      <td className="px-5 py-4">
+                      <td className="sticky left-0 z-10 bg-[#07131f] px-5 py-4">
 
-                        <div className="text-[11px] font-black text-slate-100">
-                          {customer.full_name}
-                        </div>
+                        <div className="flex items-start gap-3">
 
-                        <div className="mt-1 font-mono text-[7px] font-bold text-slate-600">
-                          {customer.customer_code}
-                        </div>
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[.07] bg-gradient-to-br from-orange-500/10 to-white/[.02] text-[11px] font-black text-orange-300">
+                            {customer.full_name
+                              .trim()
+                              .split(/\s+/)
+                              .slice(0, 2)
+                              .map(
+                                (
+                                  part
+                                ) =>
+                                  part[0]
+                              )
+                              .join("")
+                              .toUpperCase() ||
+                              "M"}
+                          </div>
 
-                        <div className="mt-2 text-[8px] text-slate-500">
-                          {customer.phone ||
-                            customer.email ||
-                            "İletişim bilgisi yok"}
+
+                          <div className="min-w-0">
+
+                            <div className="max-w-[240px] truncate text-[11px] font-black text-slate-100">
+                              {customer.full_name}
+                            </div>
+
+                            <div className="mt-1 font-mono text-[7px] font-bold text-slate-600">
+                              {customer.customer_code}
+                            </div>
+
+                            <div className="mt-1 max-w-[230px] truncate text-[8px] text-slate-500">
+                              {customer.phone ||
+                                customer.email ||
+                                "İletişim bilgisi yok"}
+                            </div>
+
+                          </div>
+
                         </div>
 
                       </td>
@@ -1273,7 +1732,7 @@ export default function CustomerCommandCenter({
 
                       <td className="px-5 py-4">
 
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-col items-start gap-2">
 
                           <span
                             className={`rounded-full border px-2.5 py-1 text-[7px] font-black ${segmentTone(
@@ -1303,17 +1762,18 @@ export default function CustomerCommandCenter({
 
                       <td className="px-5 py-4">
 
-                        <div className="text-[10px] font-black">
+                        <div className="text-[11px] font-black">
                           {metric.open_case_count}
                         </div>
 
-                        <div className="mt-1 text-[7px] text-slate-600">
+                        <div className="mt-1 text-[7px] font-bold text-slate-600">
                           açık kayıt
                         </div>
 
+
                         {metric.open_complaint_count >
                           0 && (
-                          <div className="mt-2 inline-flex items-center gap-1 rounded-lg border border-orange-500/15 bg-orange-500/[.04] px-2 py-1 text-[7px] font-black text-orange-300">
+                          <div className="mt-2 inline-flex items-center gap-1 rounded-lg border border-orange-500/15 bg-orange-500/[.05] px-2 py-1 text-[7px] font-black text-orange-300">
                             <FaExclamationTriangle />
                             {metric.open_complaint_count} şikâyet
                           </div>
@@ -1326,20 +1786,21 @@ export default function CustomerCommandCenter({
 
                         {metric.overdue_case_count >
                           0 ? (
-                          <div className="inline-flex items-center gap-1 rounded-lg border border-red-500/20 bg-red-500/[.06] px-2.5 py-1.5 text-[7px] font-black text-red-300">
+                          <div className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/[.07] px-2.5 py-1.5 text-[7px] font-black text-red-300">
                             <FaBell />
                             {metric.overdue_case_count} gecikmiş
                           </div>
                         ) : metric.due_soon_case_count >
                           0 ? (
-                          <div className="inline-flex items-center gap-1 rounded-lg border border-amber-500/20 bg-amber-500/[.06] px-2.5 py-1.5 text-[7px] font-black text-amber-300">
+                          <div className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/[.07] px-2.5 py-1.5 text-[7px] font-black text-amber-300">
                             <FaClock />
-                            {metric.due_soon_case_count} yakın
+                            {metric.due_soon_case_count} yaklaşan
                           </div>
                         ) : (
-                          <span className="text-[8px] text-slate-700">
+                          <div className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/10 bg-emerald-500/[.035] px-2.5 py-1.5 text-[7px] font-black text-emerald-300/70">
+                            <FaCheckCircle />
                             Normal
-                          </span>
+                          </div>
                         )}
 
                       </td>
@@ -1372,16 +1833,19 @@ export default function CustomerCommandCenter({
                           {metric.inbound_message_count} gelen · {metric.outbound_message_count} giden
                         </div>
 
-                        {(communicationDays ===
-                          null ||
+
+                        {(
+                          communicationDays ===
+                            null ||
                           communicationDays >=
-                            30) && (
-                          <div className="mt-2 inline-flex items-center gap-1 rounded-lg border border-amber-500/10 bg-amber-500/[.035] px-2 py-1 text-[7px] font-black text-amber-300/80">
+                            30
+                        ) && (
+                          <div className="mt-2 inline-flex items-center gap-1 rounded-lg border border-violet-500/15 bg-violet-500/[.045] px-2 py-1 text-[7px] font-black text-violet-300">
                             <FaUserClock />
                             {communicationDays ===
                             null
                               ? "İletişim yok"
-                              : `${communicationDays} gün`}
+                              : `${communicationDays} gün sessiz`}
                           </div>
                         )}
 
@@ -1395,32 +1859,40 @@ export default function CustomerCommandCenter({
                         </div>
 
                         <div className="mt-1 text-[7px] text-slate-600">
-                          {metric.trip_count} seyahat · {metric.finance_event_count} finans olayı
+                          {metric.trip_count} seyahat
+                        </div>
+
+                        <div className="mt-1 text-[7px] text-slate-600">
+                          {metric.finance_event_count} finans olayı
                         </div>
 
                       </td>
 
 
-                      <td className="px-5 py-4 text-[8px] text-slate-500">
-                        {formatDate(
-                          metric.last_activity_at
-                        )}
+                      <td className="px-5 py-4">
+
+                        <div className="text-[8px] font-black text-slate-400">
+                          {formatDate(
+                            metric.last_activity_at
+                          )}
+                        </div>
+
+                        <div className="mt-1 text-[7px] text-slate-700">
+                          Son müşteri aktivitesi
+                        </div>
+
                       </td>
 
 
                       <td className="px-5 py-4 text-right">
 
-                        <div className="flex justify-end gap-2">
-
-                          <Link
-                            href={`/dashboard/musteri-360/${customer.id}`}
-                            className="inline-flex h-9 items-center gap-2 rounded-lg border border-orange-500/15 bg-orange-500/[.04] px-3 text-[8px] font-black text-orange-300 transition hover:bg-orange-500/[.08]"
-                          >
-                            360 Profil
-                            <FaChevronRight />
-                          </Link>
-
-                        </div>
+                        <Link
+                          href={`/dashboard/musteri-360/${customer.id}`}
+                          className="inline-flex h-9 items-center gap-2 rounded-xl border border-orange-500/20 bg-orange-500/[.055] px-3 text-[8px] font-black text-orange-300 transition hover:bg-orange-500/[.1]"
+                        >
+                          360 Profil
+                          <FaChevronRight />
+                        </Link>
 
                       </td>
 
@@ -1437,10 +1909,20 @@ export default function CustomerCommandCenter({
       )}
 
 
-      <div className="border-t border-white/[.06] bg-black/10 px-5 py-4">
+      <div className="border-t border-white/[.06] bg-black/15 px-5 py-4 lg:px-7">
 
-        <div className="text-[8px] leading-5 text-slate-600">
-          Operasyon önceliği; gecikmiş SLA, açık şikâyet ve yaklaşan çözüm sürelerini üstte göstermek için yalnızca görünüm sıralamasında kullanılır. Müşteri segmenti veya gerçek veriler otomatik değiştirilmez.
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+
+          <div className="text-[8px] leading-5 text-slate-600">
+            Komuta merkezi yalnızca gerçek Customer 360 verilerini özetler. Görsel öncelik sırası segment veya operasyon verisini değiştirmez.
+          </div>
+
+
+          <div className="flex items-center gap-2 text-[7px] font-black text-slate-700">
+            <FaCheckCircle />
+            Read-only operasyon görünümü
+          </div>
+
         </div>
 
       </div>
