@@ -2759,3 +2759,111 @@ export async function loadCustomer360CommandCenterSnapshot(
   return data as
     Customer360CommandCenterSnapshot;
 }
+
+
+export type Customer360MergePreview = {
+  target_customer: {
+    id: string;
+    customer_code: string;
+    full_name: string;
+    phone: string | null;
+    email: string | null;
+    segment: string;
+    status: string;
+  };
+
+  source_customer: {
+    id: string;
+    customer_code: string;
+    full_name: string;
+    phone: string | null;
+    email: string | null;
+    segment: string;
+    status: string;
+  };
+
+  travelers: number;
+  notes: number;
+  preferences: number;
+  cases: number;
+  messages: number;
+  entity_links: number;
+  group_memberships: number;
+  relationships: number;
+
+  phone_conflict: boolean;
+  email_conflict: boolean;
+  identity_conflict: boolean;
+};
+
+
+export async function loadCustomer360MergePreview(
+  companyId: string,
+  targetCustomerId: string,
+  sourceCustomerId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_merge_preview",
+      {
+        p_company_id:
+          companyId,
+
+        p_target_customer_id:
+          targetCustomerId,
+
+        p_source_customer_id:
+          sourceCustomerId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360MergePreview;
+}
+
+
+export async function mergeCustomer360Profiles(
+  companyId: string,
+  targetCustomerId: string,
+  sourceCustomerId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_merge_customers",
+      {
+        p_company_id:
+          companyId,
+
+        p_target_customer_id:
+          targetCustomerId,
+
+        p_source_customer_id:
+          sourceCustomerId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    success: boolean;
+    target_customer_id: string;
+    removed_customer_id: string;
+    summary: Record<string, number>;
+  };
+}
