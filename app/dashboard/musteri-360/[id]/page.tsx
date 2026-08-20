@@ -116,7 +116,7 @@ function money(
   value:
     number,
   currency =
-    "TRY"
+    "BELİRSİZ"
 ) {
   try {
     return new Intl.NumberFormat(
@@ -355,7 +355,7 @@ export default function Customer360DetailPage() {
             entity.currency
               ?.trim()
               .toUpperCase() ||
-            "TRY";
+            "BELİRSİZ";
 
 
           totals.set(

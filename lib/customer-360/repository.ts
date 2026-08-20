@@ -3244,6 +3244,13 @@ export async function loadCustomer360MessagePage(
             false,
         }
       )
+      .order(
+        "id",
+        {
+          ascending:
+            false,
+        }
+      )
       .range(
         from,
         to
