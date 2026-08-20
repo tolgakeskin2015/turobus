@@ -24,14 +24,13 @@ import {
 
 import {
   addCustomer360Message,
-  loadCustomer360MessageSnapshot,
+  loadCustomer360MessagePage,
 } from "@/lib/customer-360/repository";
 
 import type {
   Customer360CommunicationChannel,
   Customer360CommunicationDirection,
   Customer360CommunicationRow,
-  Customer360MessageSnapshot,
 } from "@/lib/customer-360/repository";
 
 
@@ -212,13 +211,40 @@ export default function CustomerCommunicationCenter({
   customerId,
 }: Props) {
   const [
-    snapshot,
-    setSnapshot,
+    messages,
+    setMessages,
   ] =
     useState<
-      Customer360MessageSnapshot | null
+      Customer360CommunicationRow[]
     >(
-      null
+      []
+    );
+
+
+  const [
+    totalMessages,
+    setTotalMessages,
+  ] =
+    useState(
+      0
+    );
+
+
+  const [
+    hasMore,
+    setHasMore,
+  ] =
+    useState(
+      false
+    );
+
+
+  const [
+    loadingMore,
+    setLoadingMore,
+  ] =
+    useState(
+      false
     );
 
 
@@ -353,13 +379,22 @@ export default function CustomerCommunicationCenter({
     useCallback(
       async () => {
         const result =
-          await loadCustomer360MessageSnapshot(
+          await loadCustomer360MessagePage(
             customerId,
-            500
+            0,
+            100
           );
 
-        setSnapshot(
-          result
+        setMessages(
+          result.messages
+        );
+
+        setTotalMessages(
+          result.total
+        );
+
+        setHasMore(
+          result.has_more
         );
       },
       [
@@ -402,8 +437,7 @@ export default function CustomerCommunicationCenter({
     useMemo(
       () => {
         const rows =
-          snapshot?.messages ??
-          [];
+          messages;
 
 
         const needle =
@@ -466,7 +500,7 @@ export default function CustomerCommunicationCenter({
 
       },
       [
-        snapshot,
+        messages,
         search,
         channelFilter,
         directionFilter,
@@ -478,8 +512,7 @@ export default function CustomerCommunicationCenter({
     useMemo(
       () => {
         const rows =
-          snapshot?.messages ??
-          [];
+          messages;
 
 
         const inbound =
@@ -547,7 +580,7 @@ export default function CustomerCommunicationCenter({
 
         return {
           total:
-            rows.length,
+            totalMessages,
 
           inbound,
 
@@ -559,9 +592,99 @@ export default function CustomerCommunicationCenter({
         };
       },
       [
-        snapshot,
+        messages,
+        totalMessages,
       ]
     );
+
+
+  async function loadMoreMessages() {
+    if (
+      loadingMore ||
+      !hasMore
+    ) {
+      return;
+    }
+
+
+    setLoadingMore(
+      true
+    );
+
+    setError(
+      ""
+    );
+
+
+    try {
+      const result =
+        await loadCustomer360MessagePage(
+          customerId,
+          messages.length,
+          100
+        );
+
+
+      setMessages(
+        (
+          current
+        ) => {
+          const existingIds =
+            new Set(
+              current.map(
+                (
+                  row
+                ) =>
+                  row.id
+              )
+            );
+
+
+          const additions =
+            result.messages.filter(
+              (
+                row
+              ) =>
+                !existingIds.has(
+                  row.id
+                )
+            );
+
+
+          return [
+            ...current,
+            ...additions,
+          ];
+        }
+      );
+
+
+      setTotalMessages(
+        result.total
+      );
+
+      setHasMore(
+        result.has_more
+      );
+
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+
+    } finally {
+      setLoadingMore(
+        false
+      );
+    }
+  }
 
 
   async function saveMessage() {
@@ -943,6 +1066,21 @@ export default function CustomerCommunicationCenter({
 
             <div className="mx-auto max-w-5xl space-y-3">
 
+        <div className="border-b border-white/[.06] bg-black/10 px-5 py-3 lg:px-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-[8px] font-bold text-slate-600">
+              Yüklenen mesaj: {messages.length} / {totalMessages}
+            </div>
+
+            {hasMore && (
+              <div className="text-[7px] font-black text-orange-300">
+                Daha eski kayıtlar mevcut
+              </div>
+            )}
+          </div>
+        </div>
+
+
               {filtered.map(
                 (
                   message
@@ -1193,6 +1331,28 @@ export default function CustomerCommunicationCenter({
         )}
 
       </section>
+
+
+      {hasMore && (
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={() =>
+              void loadMoreMessages()
+            }
+            disabled={
+              loadingMore
+            }
+            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-orange-500/20 bg-orange-500/[.06] px-5 text-[9px] font-black text-orange-300 transition hover:bg-orange-500/[.1] disabled:cursor-wait disabled:opacity-50"
+          >
+            <FaClock />
+
+            {loadingMore
+              ? "Eski mesajlar yükleniyor..."
+              : `Daha Eski Mesajları Yükle (${messages.length}/${totalMessages})`}
+          </button>
+        </div>
+      )}
 
 
       {modalOpen && (

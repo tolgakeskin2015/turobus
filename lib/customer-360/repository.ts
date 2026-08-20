@@ -3093,3 +3093,152 @@ export async function revealCustomer360Identity(
     identity_number: string;
   };
 }
+
+export type Customer360MessagePage = {
+  messages:
+    Customer360CommunicationRow[];
+
+  total:
+    number;
+
+  offset:
+    number;
+
+  limit:
+    number;
+
+  has_more:
+    boolean;
+};
+
+
+export async function loadCustomer360MessagePage(
+  customerId:
+    string,
+  offset =
+    0,
+  limit =
+    100
+) {
+  const safeOffset =
+    Math.max(
+      0,
+      Math.floor(
+        Number(
+          offset
+        ) ||
+        0
+      )
+    );
+
+
+  const safeLimit =
+    Math.min(
+      100,
+      Math.max(
+        1,
+        Math.floor(
+          Number(
+            limit
+          ) ||
+          100
+        )
+      )
+    );
+
+
+  const from =
+    safeOffset;
+
+  const to =
+    safeOffset +
+    safeLimit -
+    1;
+
+
+  const {
+    data,
+    error,
+    count,
+  } =
+    await supabase
+      .from(
+        "customer_360_messages"
+      )
+      .select(
+        [
+          "id",
+          "company_id",
+          "customer_id",
+          "channel",
+          "direction",
+          "subject",
+          "body",
+          "external_id",
+          "sent_at",
+          "created_by",
+          "created_at",
+        ].join(","),
+        {
+          count:
+            "exact",
+        }
+      )
+      .eq(
+        "customer_id",
+        customerId
+      )
+      .order(
+        "sent_at",
+        {
+          ascending:
+            false,
+        }
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            false,
+        }
+      )
+      .range(
+        from,
+        to
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  const messages =
+    (
+      data ??
+      []
+    ) as unknown as
+      Customer360CommunicationRow[];
+
+
+  const total =
+    Number(
+      count ??
+      messages.length
+    );
+
+
+  return {
+    messages,
+    total,
+    offset:
+      safeOffset,
+    limit:
+      safeLimit,
+    has_more:
+      safeOffset +
+        messages.length <
+      total,
+  } satisfies
+    Customer360MessagePage;
+}
