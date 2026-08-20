@@ -470,15 +470,104 @@ function timelineClass(
 
 
 function entityHref(
-  entityType:
-    string
+  entity:
+    Customer360EntityLink
 ) {
-  if (
+  const entityType =
+    entity.entity_type
+      .trim()
+      .toLowerCase();
+
+
+  const provenance =
+    [
+      entity.entity_key,
+      entity.title,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+
+  const hasAny = (
+    values:
+      string[]
+  ) =>
+    values.some(
+      (
+        value
+      ) =>
+        provenance.includes(
+          value
+        )
+    );
+
+
+  const isPackage =
+    hasAny(
+      [
+        "package_",
+        "package-",
+        "package ",
+        "package_quotes",
+        "package_bookings",
+        "package_payments",
+        "package_refunds",
+        "package_vouchers",
+      ]
+    );
+
+
+  const isYacht =
     entityType ===
-      "quote"
-  ) {
-    return "/dashboard/package-os/quotes";
-  }
+      "yacht_booking" ||
+    hasAny(
+      [
+        "yacht_",
+        "yacht-",
+        "yacht ",
+        "yat_",
+        "yat-",
+        "yat ",
+      ]
+    );
+
+
+  const isHotel =
+    entityType ===
+      "hotel_booking" ||
+    hasAny(
+      [
+        "hotel_",
+        "hotel-",
+        "hotel ",
+      ]
+    );
+
+
+  const isActivity =
+    entityType ===
+      "activity_booking" ||
+    hasAny(
+      [
+        "activity_",
+        "activity-",
+        "activity ",
+        "aktivite_",
+        "aktivite-",
+        "aktivite ",
+      ]
+    );
+
+
+  const isVilla =
+    hasAny(
+      [
+        "villa_",
+        "villa-",
+        "villa ",
+      ]
+    );
 
 
   if (
@@ -486,30 +575,6 @@ function entityHref(
       "package_booking"
   ) {
     return "/dashboard/package-os/bookings";
-  }
-
-
-  if (
-    entityType ===
-      "payment"
-  ) {
-    return "/dashboard/package-os/payments";
-  }
-
-
-  if (
-    entityType ===
-      "refund"
-  ) {
-    return "/dashboard/package-os/finance";
-  }
-
-
-  if (
-    entityType ===
-      "voucher"
-  ) {
-    return "/dashboard/package-os/vouchers";
   }
 
 
@@ -534,6 +599,130 @@ function entityHref(
       "activity_booking"
   ) {
     return "/dashboard/activity-os";
+  }
+
+
+  if (
+    entityType ===
+      "quote"
+  ) {
+    if (isPackage) {
+      return "/dashboard/package-os/quotes";
+    }
+
+    if (isYacht) {
+      return "/dashboard/yat-os";
+    }
+
+    if (isVilla) {
+      return "/dashboard/villa-os";
+    }
+
+    if (isActivity) {
+      return "/dashboard/activity-os";
+    }
+
+    return null;
+  }
+
+
+  if (
+    entityType ===
+      "payment"
+  ) {
+    if (isPackage) {
+      return "/dashboard/package-os/payments";
+    }
+
+    if (isYacht) {
+      return "/dashboard/yat-os/finance-center";
+    }
+
+    if (isVilla) {
+      return "/dashboard/villa-os/finance-center";
+    }
+
+    if (isActivity) {
+      return "/dashboard/activity-payment-center";
+    }
+
+    return null;
+  }
+
+
+  if (
+    entityType ===
+      "refund"
+  ) {
+    if (isPackage) {
+      return "/dashboard/package-os/finance";
+    }
+
+    if (isYacht) {
+      return "/dashboard/yat-os/finance-center";
+    }
+
+    if (isVilla) {
+      return "/dashboard/villa-os/finance-center";
+    }
+
+    if (isActivity) {
+      return "/dashboard/activity-payment-center";
+    }
+
+    return null;
+  }
+
+
+  if (
+    entityType ===
+      "voucher"
+  ) {
+    if (isPackage) {
+      return "/dashboard/package-os/vouchers";
+    }
+
+    if (isYacht) {
+      return "/dashboard/yat-os";
+    }
+
+    if (isVilla) {
+      return "/dashboard/villa-os";
+    }
+
+    if (isActivity) {
+      return "/dashboard/activity-os";
+    }
+
+    return null;
+  }
+
+
+  if (
+    entityType ===
+      "booking"
+  ) {
+    if (isPackage) {
+      return "/dashboard/package-os/bookings";
+    }
+
+    if (isYacht) {
+      return "/dashboard/yat-os";
+    }
+
+    if (isHotel) {
+      return "/dashboard/hotel/rezervasyonlar";
+    }
+
+    if (isVilla) {
+      return "/dashboard/villa-os";
+    }
+
+    if (isActivity) {
+      return "/dashboard/activity-os";
+    }
+
+    return null;
   }
 
 
@@ -850,7 +1039,7 @@ export default function CustomerUnifiedTimeline({
 
               href:
                 entityHref(
-                  entity.entity_type
+                  entity
                 ),
             }
           );
