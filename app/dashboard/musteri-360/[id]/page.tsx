@@ -43,6 +43,9 @@ import {
 } from "@/lib/customer-360/repository";
 
 
+import CustomerQuoteHistory from "../customer-quote-history";
+
+
 type Detail =
   Awaited<
     ReturnType<
@@ -792,6 +795,12 @@ export default function Customer360DetailPage() {
                 </div>
               )}
             </section>
+
+
+            <CustomerQuoteHistory
+              companyId={companyId}
+              customerId={customerId}
+            />
 
 
             <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">

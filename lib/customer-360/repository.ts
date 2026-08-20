@@ -895,3 +895,230 @@ export async function loadCustomer360LiveSyncEvents(
     []
   ) as Customer360LiveSyncEvent[];
 }
+
+
+export type Customer360QuoteHistoryRow = {
+  id: string;
+
+  quote_code: string;
+
+  package_type: string | null;
+  destination: string | null;
+
+  check_in: string | null;
+  check_out: string | null;
+
+  adults: number | null;
+  children: number | null;
+  nights: number | null;
+
+  total_cost: number | null;
+  gross_profit: number | null;
+  sale_price: number | null;
+  margin_percent: number | null;
+
+  status: string;
+
+  public_token: string | null;
+
+  valid_until: string | null;
+  created_at: string;
+};
+
+
+export async function loadCustomer360QuoteHistory(
+  companyId: string,
+  customerId: string
+) {
+  const {
+    data:
+      links,
+    error:
+      linkError,
+  } =
+    await supabase
+      .from(
+        "customer_360_entity_links"
+      )
+      .select(
+        `
+        entity_key,
+        metadata
+        `
+      )
+      .eq(
+        "company_id",
+        companyId
+      )
+      .eq(
+        "customer_id",
+        customerId
+      )
+      .eq(
+        "entity_type",
+        "quote"
+      );
+
+
+  if (linkError) {
+    throw linkError;
+  }
+
+
+  const ids =
+    Array.from(
+      new Set(
+        (
+          links ??
+          []
+        )
+          .map(
+            (
+              link:
+                {
+                  entity_key:
+                    string | null;
+
+                  metadata:
+                    Record<
+                      string,
+                      unknown
+                    > | null;
+                }
+            ) => {
+              const metadata =
+                link.metadata ??
+                {};
+
+
+              const sourceTable =
+                typeof metadata.source_table ===
+                  "string"
+                  ? metadata.source_table
+                  : (
+                      link.entity_key
+                        ?.split(
+                          ":"
+                        )[0] ??
+                      ""
+                    );
+
+
+              if (
+                sourceTable !==
+                "package_quotes"
+              ) {
+                return null;
+              }
+
+
+              const metadataId =
+                typeof metadata.source_id ===
+                  "string"
+                  ? metadata.source_id
+                  : null;
+
+
+              if (
+                metadataId
+              ) {
+                return metadataId;
+              }
+
+
+              const prefix =
+                "package_quotes:";
+
+
+              if (
+                link.entity_key
+                  ?.startsWith(
+                    prefix
+                  )
+              ) {
+                return link.entity_key.slice(
+                  prefix.length
+                );
+              }
+
+
+              return null;
+            }
+          )
+          .filter(
+            (
+              value
+            ):
+              value is string =>
+                Boolean(
+                  value
+                )
+          )
+      )
+    );
+
+
+  if (
+    ids.length ===
+    0
+  ) {
+    return [];
+  }
+
+
+  const {
+    data,
+    error,
+  } =
+    await supabase
+      .from(
+        "package_quotes"
+      )
+      .select(
+        `
+        id,
+        quote_code,
+        package_type,
+        destination,
+        check_in,
+        check_out,
+        adults,
+        children,
+        nights,
+        total_cost,
+        gross_profit,
+        sale_price,
+        margin_percent,
+        status,
+        public_token,
+        valid_until,
+        created_at
+        `
+      )
+      .eq(
+        "company_id",
+        companyId
+      )
+      .in(
+        "id",
+        ids
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            false,
+        }
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return (
+    data ??
+    []
+  ) as Customer360QuoteHistoryRow[];
+}
