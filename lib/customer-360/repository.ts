@@ -1460,6 +1460,218 @@ export async function loadCustomer360FinanceHistory(
 
 
 
+
+export type Customer360Segment =
+  | "standard"
+  | "repeat"
+  | "vip"
+  | "corporate"
+  | "risk";
+
+
+export type Customer360PreferenceRow = {
+  id: string;
+
+  category:
+    string;
+
+  preference_key:
+    string;
+
+  preference_value:
+    Record<string, unknown>;
+
+  created_by:
+    string | null;
+
+  created_at:
+    string;
+
+  updated_at:
+    string;
+};
+
+
+export type Customer360PreferenceSnapshot = {
+  customer: {
+    id:
+      string;
+
+    customer_code:
+      string;
+
+    full_name:
+      string;
+
+    segment:
+      Customer360Segment;
+
+    preferred_language:
+      string | null;
+
+    marketing_consent:
+      boolean;
+
+    kvkk_consent:
+      boolean;
+  };
+
+  preferences:
+    Customer360PreferenceRow[];
+};
+
+
+export async function loadCustomer360PreferenceSnapshot(
+  customerId:
+    string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_preference_snapshot",
+      {
+        p_customer_id:
+          customerId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360PreferenceSnapshot;
+}
+
+
+export async function upsertCustomer360Preference(
+  input: {
+    customerId:
+      string;
+
+    category:
+      string;
+
+    preferenceKey:
+      string;
+
+    preferenceValue:
+      Record<string, unknown>;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_upsert_preference",
+      {
+        p_customer_id:
+          input.customerId,
+
+        p_category:
+          input.category,
+
+        p_preference_key:
+          input.preferenceKey,
+
+        p_preference_value:
+          input.preferenceValue,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok:
+      boolean;
+
+    preference_id:
+      string;
+  };
+}
+
+
+export async function deleteCustomer360Preference(
+  preferenceId:
+    string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_delete_preference",
+      {
+        p_preference_id:
+          preferenceId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok:
+      boolean;
+
+    preference_id:
+      string;
+  };
+}
+
+
+export async function setCustomer360Segment(
+  customerId:
+    string,
+  segment:
+    Customer360Segment
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_set_segment",
+      {
+        p_customer_id:
+          customerId,
+
+        p_segment:
+          segment,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok:
+      boolean;
+
+    customer_id:
+      string;
+
+    segment:
+      Customer360Segment;
+  };
+}
+
+
 export type Customer360CaseType =
   | "request"
   | "complaint";

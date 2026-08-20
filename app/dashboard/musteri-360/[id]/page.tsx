@@ -55,6 +55,8 @@ import CustomerCommunicationCenter from "../customer-communication-center";
 
 import CustomerCaseCenter from "../customer-case-center";
 
+import CustomerPreferenceCenter from "../customer-preference-center";
+
 
 type Detail =
   Awaited<
@@ -945,43 +947,9 @@ export default function Customer360DetailPage() {
             />
 
 
-            <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
-              <div className="flex items-center gap-2">
-                <FaIdCard className="text-orange-300" />
-
-                <div className="text-sm font-black">
-                  Tercihler & Segment
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-white/[.06] bg-black/20 p-4">
-                  <div className="text-[8px] font-black uppercase text-slate-600">
-                    Segment
-                  </div>
-
-                  <div className="mt-2 text-[10px] font-black uppercase">
-                    {customer.segment}
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-white/[.06] bg-black/20 p-4">
-                  <div className="text-[8px] font-black uppercase text-slate-600">
-                    KVKK
-                  </div>
-
-                  <div className="mt-2 text-[10px] font-black">
-                    {customer.kvkk_consent
-                      ? "Onaylı"
-                      : "Onay yok"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-3 rounded-xl border border-white/[.06] bg-black/20 p-4 text-[9px] leading-5 text-slate-500">
-                Tercih motoru için veri tabanı hazır. Otel tipi, oda tercihi, koltuk, yemek, aktivite, destinasyon, iletişim kanalı ve özel istekler sonraki bağlantı aşamasında burada toplanacak.
-              </div>
-            </section>
+            <CustomerPreferenceCenter
+              customerId={customerId}
+            />
 
           </div>
         </div>
