@@ -25,6 +25,7 @@ import {
 import {
   addCustomer360Message,
   loadCustomer360MessagePage,
+  queueCustomer360WhatsAppMessage,
 } from "@/lib/customer-360/repository";
 
 import type {

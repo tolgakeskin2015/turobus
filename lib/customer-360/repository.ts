@@ -1984,6 +1984,39 @@ export type Customer360CommunicationRow = {
 
   created_by:
     string | null;
+  delivery_status?:
+    | "recorded"
+    | "queued"
+    | "processing"
+    | "sent"
+    | "delivered"
+    | "read"
+    | "failed";
+
+  provider_name?:
+    string | null;
+
+  provider_message_id?:
+    string | null;
+
+  provider_error?:
+    string | null;
+
+  queued_at?:
+    string | null;
+
+  provider_sent_at?:
+    string | null;
+
+  delivered_at?:
+    string | null;
+
+  read_at?:
+    string | null;
+
+  failed_at?:
+    string | null;
+
 };
 
 
@@ -3178,6 +3211,15 @@ export async function loadCustomer360MessagePage(
           "sent_at",
           "created_by",
           "created_at",
+          "delivery_status",
+          "provider_name",
+          "provider_message_id",
+          "provider_error",
+          "queued_at",
+          "provider_sent_at",
+          "delivered_at",
+          "read_at",
+          "failed_at",
         ].join(","),
         {
           count:
@@ -3241,4 +3283,84 @@ export async function loadCustomer360MessagePage(
       total,
   } satisfies
     Customer360MessagePage;
+}
+
+
+export async function queueCustomer360WhatsAppMessage(
+  input: {
+    companyId: string;
+    customerId: string;
+    body: string;
+    subject?: string;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_queue_whatsapp_message",
+      {
+        p_company_id:
+          input.companyId,
+
+        p_customer_id:
+          input.customerId,
+
+        p_body:
+          input.body,
+
+        p_subject:
+          input.subject ||
+          null,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    success: boolean;
+    message_id: string;
+    outbox_id: string;
+    delivery_status:
+      "queued";
+  };
+}
+
+
+export async function retryCustomer360WhatsAppMessage(
+  companyId: string,
+  messageId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_retry_whatsapp_message",
+      {
+        p_company_id:
+          companyId,
+
+        p_message_id:
+          messageId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    success: boolean;
+    message_id: string;
+    delivery_status:
+      "queued";
+  };
 }
