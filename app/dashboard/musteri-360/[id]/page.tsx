@@ -105,26 +105,41 @@ function formatDate(
 }
 
 
+
 function money(
   value:
-    number
+    number,
+  currency =
+    "TRY"
 ) {
-  return new Intl.NumberFormat(
-    "tr-TR",
-    {
-      style:
-        "currency",
+  try {
+    return new Intl.NumberFormat(
+      "tr-TR",
+      {
+        style:
+          "currency",
 
-      currency:
-        "TRY",
+        currency,
 
-      maximumFractionDigits:
-        0,
-    }
-  ).format(
-    value
-  );
+        maximumFractionDigits:
+          0,
+      }
+    ).format(
+      Number(
+        value
+      )
+    );
+
+  } catch {
+    return `${Number(
+      value
+    ).toLocaleString(
+      "tr-TR"
+    )} ${currency}`;
+  }
 }
+
+
 
 
 export default function Customer360DetailPage() {
@@ -305,21 +320,119 @@ export default function Customer360DetailPage() {
     );
 
 
-  const totalLinkedAmount =
-    (
-      detail?.entities ??
-      []
-    ).reduce(
-      (
-        total,
-        entity
-      ) =>
-        total +
-        Number(
-          entity.amount ??
-            0
-        ),
-      0
+  const linkedAmountByCurrency =
+    useMemo(
+      () => {
+        const totals =
+          new Map<
+            string,
+            number
+          >();
+
+
+        for (
+          const entity of
+          detail?.entities ??
+          []
+        ) {
+          if (
+            entity.amount ===
+              null ||
+            entity.amount ===
+              undefined
+          ) {
+            continue;
+          }
+
+
+          const currency =
+            entity.currency
+              ?.trim()
+              .toUpperCase() ||
+            "TRY";
+
+
+          totals.set(
+            currency,
+            (
+              totals.get(
+                currency
+              ) ??
+              0
+            ) +
+            Number(
+              entity.amount
+            )
+          );
+        }
+
+
+        return totals;
+
+      },
+      [
+        detail,
+      ]
+    );
+
+
+  const linkedAmountSummary =
+    useMemo(
+      () => {
+        if (
+          linkedAmountByCurrency.size ===
+          0
+        ) {
+          return "—";
+        }
+
+
+        return Array.from(
+          linkedAmountByCurrency.entries()
+        )
+          .sort(
+            (
+              a,
+              b
+            ) =>
+              a[0].localeCompare(
+                b[0]
+              )
+          )
+          .map(
+            ([
+              currency,
+              amount,
+            ]) => {
+              try {
+                return new Intl.NumberFormat(
+                  "tr-TR",
+                  {
+                    style:
+                      "currency",
+
+                    currency,
+
+                    maximumFractionDigits:
+                      0,
+                  }
+                ).format(
+                  amount
+                );
+
+              } catch {
+                return `${amount.toLocaleString(
+                  "tr-TR"
+                )} ${currency}`;
+              }
+            }
+          )
+          .join(" · ");
+
+      },
+      [
+        linkedAmountByCurrency,
+      ]
     );
 
 
@@ -631,9 +744,7 @@ export default function Customer360DetailPage() {
                 "Bağlı Hacim",
 
               value:
-                money(
-                  totalLinkedAmount
-                ),
+                linkedAmountSummary,
 
               icon:
                 <FaFileInvoiceDollar />,

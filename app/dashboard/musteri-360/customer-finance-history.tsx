@@ -137,6 +137,93 @@ function money(
 }
 
 
+function normalizedCurrency(
+  value:
+    string | null | undefined
+) {
+  const current =
+    value
+      ?.trim()
+      .toUpperCase();
+
+  return current ||
+    "TRY";
+}
+
+
+function addCurrencyAmount(
+  totals:
+    Map<string, number>,
+  currency:
+    string | null | undefined,
+  amount:
+    number | null | undefined,
+  multiplier =
+    1
+) {
+  const key =
+    normalizedCurrency(
+      currency
+    );
+
+  totals.set(
+    key,
+    (
+      totals.get(
+        key
+      ) ??
+      0
+    ) +
+    (
+      Number(
+        amount ??
+        0
+      ) *
+      multiplier
+    )
+  );
+}
+
+
+function currencySummary(
+  totals:
+    Map<string, number>
+) {
+  if (
+    totals.size ===
+    0
+  ) {
+    return "—";
+  }
+
+
+  return Array.from(
+    totals.entries()
+  )
+    .sort(
+      (
+        a,
+        b
+      ) =>
+        a[0].localeCompare(
+          b[0]
+        )
+    )
+    .map(
+      ([
+        currency,
+        amount,
+      ]) =>
+        money(
+          amount,
+          currency
+        )
+    )
+    .join(" · ");
+}
+
+
+
 function typeClass(
   type:
     string
@@ -409,44 +496,94 @@ export default function CustomerFinanceHistory({
           );
 
 
-        const paid =
-          payments.reduce(
-            (
-              total,
-              row
-            ) =>
-              total +
-              Number(
-                row.amount ??
-                  0
-              ),
-            0
-          );
+        const paidByCurrency =
+          new Map<
+            string,
+            number
+          >();
 
 
-        const refunded =
-          refunds.reduce(
-            (
-              total,
-              row
-            ) =>
-              total +
-              Number(
-                row.amount ??
-                  0
-              ),
-            0
+        const refundedByCurrency =
+          new Map<
+            string,
+            number
+          >();
+
+
+        const netByCurrency =
+          new Map<
+            string,
+            number
+          >();
+
+
+        for (
+          const row of
+          payments
+        ) {
+          addCurrencyAmount(
+            paidByCurrency,
+            row.currency,
+            row.amount
           );
+
+          addCurrencyAmount(
+            netByCurrency,
+            row.currency,
+            row.amount
+          );
+        }
+
+
+        for (
+          const row of
+          refunds
+        ) {
+          addCurrencyAmount(
+            refundedByCurrency,
+            row.currency,
+            row.amount
+          );
+
+          addCurrencyAmount(
+            netByCurrency,
+            row.currency,
+            row.amount,
+            -1
+          );
+        }
 
 
         return {
-          paid,
+          paid:
+            currencySummary(
+              paidByCurrency
+            ),
 
-          refunded,
+          refunded:
+            currencySummary(
+              refundedByCurrency
+            ),
 
           net:
-            paid -
-            refunded,
+            currencySummary(
+              netByCurrency
+            ),
+
+          currencies:
+            new Set(
+              [
+                ...payments,
+                ...refunds,
+              ].map(
+                (
+                  row
+                ) =>
+                  normalizedCurrency(
+                    row.currency
+                  )
+              )
+            ).size,
 
           vouchers:
             vouchers.length,
@@ -461,7 +598,6 @@ export default function CustomerFinanceHistory({
         rows,
       ]
     );
-
 
   return (
     <section className="overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f]">
@@ -498,10 +634,7 @@ export default function CustomerFinanceHistory({
               </div>
 
               <div className="mt-1 text-sm font-black text-emerald-300">
-                {money(
-                  stats.paid,
-                  "TRY"
-                )}
+                {stats.paid}
               </div>
             </div>
 
@@ -512,10 +645,7 @@ export default function CustomerFinanceHistory({
               </div>
 
               <div className="mt-1 text-sm font-black text-red-300">
-                {money(
-                  stats.refunded,
-                  "TRY"
-                )}
+                {stats.refunded}
               </div>
             </div>
 
@@ -526,10 +656,7 @@ export default function CustomerFinanceHistory({
               </div>
 
               <div className="mt-1 text-sm font-black text-orange-300">
-                {money(
-                  stats.net,
-                  "TRY"
-                )}
+                {stats.net}
               </div>
             </div>
 
@@ -547,11 +674,14 @@ export default function CustomerFinanceHistory({
 
             <div className="rounded-xl border border-white/[.07] bg-black/20 px-4 py-3">
               <div className="text-[7px] font-black uppercase tracking-[.12em] text-slate-600">
-                Finans İşlemi
+                Finans / Para Birimi
               </div>
 
               <div className="mt-1 text-lg font-black">
                 {stats.transactions}
+                <span className="ml-2 text-[8px] font-black text-slate-600">
+                  {stats.currencies} para birimi
+                </span>
               </div>
             </div>
 
