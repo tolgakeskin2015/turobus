@@ -509,6 +509,14 @@ export default function Customer360Page() {
 
             <div className="flex flex-wrap gap-3">
               <Link
+                href="/dashboard/musteri-360/gizlilik-guvenlik"
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[.06] px-5 text-xs font-black text-emerald-300 transition hover:bg-emerald-500/10"
+              >
+                <FaIdCard />
+                KVKK & Güvenlik
+              </Link>
+
+              <Link
                 href="/dashboard/musteri-360/birlestirme"
                 className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-violet-500/20 bg-violet-500/[.06] px-5 text-xs font-black text-violet-300 transition hover:bg-violet-500/10"
               >

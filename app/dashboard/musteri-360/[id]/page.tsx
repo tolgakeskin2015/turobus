@@ -61,6 +61,8 @@ import CustomerCaseCenter from "../customer-case-center";
 
 import CustomerPreferenceCenter from "../customer-preference-center";
 
+import CustomerPrivacySecurityCenter from "../customer-privacy-security-center";
+
 
 type Detail =
   Awaited<
@@ -824,7 +826,7 @@ export default function Customer360DetailPage() {
                   ],
 
                   [
-                    "Kimlik / Pasaport",
+                    "Kimlik / Pasaport (Maskeli)",
                     customer.identity_number,
                   ],
 
@@ -866,6 +868,21 @@ export default function Customer360DetailPage() {
                 )}
               </div>
             </section>
+
+
+            <CustomerPrivacySecurityCenter
+              companyId={companyId}
+              customerId={customerId}
+              identityType={customer.identity_type}
+              maskedIdentity={customer.identity_number}
+              kvkkConsent={customer.kvkk_consent}
+              marketingConsent={customer.marketing_consent}
+              onChanged={async () => {
+                await refresh(
+                  companyId
+                );
+              }}
+            />
 
 
             <CustomerFamilyGroupCenter

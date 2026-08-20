@@ -2867,3 +2867,229 @@ export async function mergeCustomer360Profiles(
     summary: Record<string, number>;
   };
 }
+
+
+export type Customer360ConsentHistoryRow = {
+  id: string;
+  consent_type:
+    | "kvkk"
+    | "marketing";
+  granted: boolean;
+  event_type:
+    | "snapshot"
+    | "change";
+  source_channel: string;
+  statement_version: string | null;
+  note: string | null;
+  recorded_by: string | null;
+  created_at: string;
+};
+
+
+export type Customer360IdentityAccessRow = {
+  id: string;
+  subject_type:
+    | "customer"
+    | "traveler";
+  subject_id: string;
+  reason: string;
+  performed_by: string | null;
+  created_at: string;
+};
+
+
+export type Customer360PrivacyDetailSnapshot = {
+  can_reveal_identity: boolean;
+  consent_history:
+    Customer360ConsentHistoryRow[];
+  identity_access_log:
+    Customer360IdentityAccessRow[];
+};
+
+
+export type Customer360PrivacyCenterRow = {
+  id: string;
+  customer_code: string;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+  kvkk_consent: boolean;
+  marketing_consent: boolean;
+  identity_type: string | null;
+  identity_masked: string | null;
+  status: string;
+  segment: string;
+};
+
+
+export type Customer360PrivacyCenterSnapshot = {
+  generated_at: string;
+  total_customers: number;
+  kvkk_granted: number;
+  marketing_granted: number;
+  protected_identity_count: number;
+  customers:
+    Customer360PrivacyCenterRow[];
+};
+
+
+export async function loadCustomer360PrivacyDetail(
+  companyId: string,
+  customerId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_privacy_detail_snapshot",
+      {
+        p_company_id:
+          companyId,
+
+        p_customer_id:
+          customerId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360PrivacyDetailSnapshot;
+}
+
+
+export async function loadCustomer360PrivacyCenter(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_privacy_center_snapshot",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360PrivacyCenterSnapshot;
+}
+
+
+export async function setCustomer360Consent(
+  input: {
+    companyId: string;
+    customerId: string;
+    consentType:
+      | "kvkk"
+      | "marketing";
+    granted: boolean;
+    sourceChannel: string;
+    statementVersion?: string;
+    note?: string;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_set_consent",
+      {
+        p_company_id:
+          input.companyId,
+
+        p_customer_id:
+          input.customerId,
+
+        p_consent_type:
+          input.consentType,
+
+        p_granted:
+          input.granted,
+
+        p_source_channel:
+          input.sourceChannel,
+
+        p_statement_version:
+          input.statementVersion ||
+          null,
+
+        p_note:
+          input.note ||
+          null,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    success: boolean;
+    customer_id: string;
+    consent_type: string;
+    granted: boolean;
+  };
+}
+
+
+export async function revealCustomer360Identity(
+  input: {
+    companyId: string;
+    subjectType:
+      | "customer"
+      | "traveler";
+    subjectId: string;
+    reason: string;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_reveal_identity",
+      {
+        p_company_id:
+          input.companyId,
+
+        p_subject_type:
+          input.subjectType,
+
+        p_subject_id:
+          input.subjectId,
+
+        p_reason:
+          input.reason,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    subject_type: string;
+    subject_id: string;
+    identity_type: string | null;
+    identity_number: string;
+  };
+}
