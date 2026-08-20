@@ -10,15 +10,18 @@ import {
 import {
   FaArrowDown,
   FaArrowUp,
+  FaCheckCircle,
   FaClock,
   FaCommentDots,
   FaEnvelope,
   FaInstagram,
   FaPhone,
   FaPlus,
+  FaRedo,
   FaSearch,
   FaSms,
   FaTimes,
+  FaTimesCircle,
   FaWhatsapp,
 } from "react-icons/fa";
 
@@ -26,6 +29,7 @@ import {
   addCustomer360Message,
   loadCustomer360MessagePage,
   queueCustomer360WhatsAppMessage,
+  retryCustomer360WhatsAppMessage,
 } from "@/lib/customer-360/repository";
 
 import type {
@@ -37,6 +41,7 @@ import type {
 
 type Props = {
   customerId: string;
+  companyId: string;
 };
 
 
@@ -208,8 +213,108 @@ function channelClass(
 }
 
 
+function deliveryLabel(
+  value:
+    Customer360CommunicationRow["delivery_status"]
+) {
+  const status =
+    value ||
+    "recorded";
+
+
+  const labels:
+    Record<
+      string,
+      string
+    > = {
+      recorded:
+        "Kayıt",
+
+      queued:
+        "Kuyrukta",
+
+      processing:
+        "İşleniyor",
+
+      sent:
+        "Gönderildi",
+
+      delivered:
+        "Teslim Edildi",
+
+      read:
+        "Okundu",
+
+      failed:
+        "Hata",
+    };
+
+
+  return (
+    labels[status] ||
+    status
+  );
+}
+
+
+function deliveryClass(
+  value:
+    Customer360CommunicationRow["delivery_status"]
+) {
+  const status =
+    value ||
+    "recorded";
+
+
+  if (
+    status ===
+      "read"
+  ) {
+    return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+  }
+
+
+  if (
+    status ===
+      "delivered"
+  ) {
+    return "border-cyan-500/20 bg-cyan-500/10 text-cyan-300";
+  }
+
+
+  if (
+    status ===
+      "sent"
+  ) {
+    return "border-blue-500/20 bg-blue-500/10 text-blue-300";
+  }
+
+
+  if (
+    status ===
+      "queued" ||
+    status ===
+      "processing"
+  ) {
+    return "border-amber-500/20 bg-amber-500/10 text-amber-300";
+  }
+
+
+  if (
+    status ===
+      "failed"
+  ) {
+    return "border-red-500/20 bg-red-500/10 text-red-300";
+  }
+
+
+  return "border-white/10 bg-white/[.03] text-slate-500";
+}
+
+
 export default function CustomerCommunicationCenter({
   customerId,
+  companyId,
 }: Props) {
   const [
     messages,
@@ -307,6 +412,24 @@ export default function CustomerCommunicationCenter({
     useState<
       "all" |
       Customer360CommunicationDirection
+    >(
+      "all"
+    );
+
+
+  const [
+    deliveryFilter,
+    setDeliveryFilter,
+  ] =
+    useState<
+      | "all"
+      | "recorded"
+      | "queued"
+      | "processing"
+      | "sent"
+      | "delivered"
+      | "read"
+      | "failed"
     >(
       "all"
     );
@@ -473,6 +596,19 @@ export default function CustomerCommunicationCenter({
             }
 
 
+            if (
+              deliveryFilter !==
+                "all" &&
+              (
+                row.delivery_status ||
+                "recorded"
+              ) !==
+                deliveryFilter
+            ) {
+              return false;
+            }
+
+
             if (!needle) {
               return true;
             }
@@ -505,6 +641,7 @@ export default function CustomerCommunicationCenter({
         search,
         channelFilter,
         directionFilter,
+        deliveryFilter,
       ]
     );
 
@@ -688,6 +825,66 @@ export default function CustomerCommunicationCenter({
   }
 
 
+  async function retryMessage(
+    messageId:
+      string
+  ) {
+    if (!companyId) {
+      setError(
+        "Aktif firma bulunamadı."
+      );
+
+      return;
+    }
+
+
+    setBusy(
+      true
+    );
+
+    setError(
+      ""
+    );
+
+    setNotice(
+      ""
+    );
+
+
+    try {
+      await retryCustomer360WhatsAppMessage(
+        companyId,
+        messageId
+      );
+
+
+      await refresh();
+
+
+      setNotice(
+        "WhatsApp mesajı yeniden gönderim kuyruğuna alındı."
+      );
+
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+
+    } finally {
+      setBusy(
+        false
+      );
+    }
+  }
+
+
   async function saveMessage() {
     if (
       !formSubject.trim() &&
@@ -710,26 +907,54 @@ export default function CustomerCommunicationCenter({
 
 
     try {
-      await addCustomer360Message(
-        {
-          customerId,
-
-          channel:
-            formChannel,
-
-          direction:
-            formDirection,
-
-          subject:
-            formSubject.trim(),
-
-          body:
-            formBody.trim(),
-
-          externalId:
-            formExternalId.trim(),
+      if (
+        formChannel ===
+          "whatsapp" &&
+        formDirection ===
+          "outbound"
+      ) {
+        if (!companyId) {
+          throw new Error(
+            "Aktif firma bulunamadı."
+          );
         }
-      );
+
+
+        await queueCustomer360WhatsAppMessage(
+          {
+            companyId,
+            customerId,
+
+            subject:
+              formSubject.trim(),
+
+            body:
+              formBody.trim(),
+          }
+        );
+
+      } else {
+        await addCustomer360Message(
+          {
+            customerId,
+
+            channel:
+              formChannel,
+
+            direction:
+              formDirection,
+
+            subject:
+              formSubject.trim(),
+
+            body:
+              formBody.trim(),
+
+            externalId:
+              formExternalId.trim(),
+          }
+        );
+      }
 
 
       await refresh();
@@ -744,7 +969,12 @@ export default function CustomerCommunicationCenter({
       );
 
       setNotice(
-        "İletişim kaydı Customer 360 geçmişine eklendi."
+        formChannel ===
+          "whatsapp" &&
+        formDirection ===
+          "outbound"
+          ? "WhatsApp mesajı gerçek provider kuyruğuna alındı."
+          : "İletişim kaydı Customer 360 geçmişine eklendi."
       );
 
     } catch (
@@ -798,7 +1028,7 @@ export default function CustomerCommunicationCenter({
 
 
               <p className="mt-2 max-w-3xl text-[9px] leading-5 text-slate-600">
-                WhatsApp, SMS, e-posta, telefon, Instagram ve sistem iletişimlerinin merkezi müşteri geçmişi. Bu ekran iletişim kaydını tutar; doğrulanmamış bir sağlayıcı üzerinden otomatik mesaj göndermez.
+                WhatsApp, SMS, e-posta, telefon, Instagram ve sistem iletişimlerinin merkezi müşteri geçmişi. Outbound WhatsApp gerçek provider kuyruğuna gider; SMS ve e-posta doğrulanmış provider entegrasyonu olmadan yalnızca kayıt olarak tutulur.
               </p>
 
             </div>
@@ -886,7 +1116,7 @@ export default function CustomerCommunicationCenter({
           </div>
 
 
-          <div className="mt-5 grid gap-3 xl:grid-cols-[1fr_180px_180px_auto]">
+          <div className="mt-5 grid gap-3 xl:grid-cols-[1fr_170px_170px_170px_auto]">
 
             <div className="relative">
 
@@ -984,6 +1214,61 @@ export default function CustomerCommunicationCenter({
 
               <option value="outbound">
                 Giden
+              </option>
+            </select>
+
+
+            <select
+              value={
+                deliveryFilter
+              }
+              onChange={(
+                event
+              ) =>
+                setDeliveryFilter(
+                  event.target.value as
+                    | "all"
+                    | "recorded"
+                    | "queued"
+                    | "processing"
+                    | "sent"
+                    | "delivered"
+                    | "read"
+                    | "failed"
+                )
+              }
+              className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[9px]"
+            >
+              <option value="all">
+                Tüm Teslimatlar
+              </option>
+
+              <option value="queued">
+                Kuyrukta
+              </option>
+
+              <option value="processing">
+                İşleniyor
+              </option>
+
+              <option value="sent">
+                Gönderildi
+              </option>
+
+              <option value="delivered">
+                Teslim Edildi
+              </option>
+
+              <option value="read">
+                Okundu
+              </option>
+
+              <option value="failed">
+                Hata
+              </option>
+
+              <option value="recorded">
+                Sadece Kayıt
               </option>
             </select>
 
@@ -1143,6 +1428,49 @@ export default function CustomerCommunicationCenter({
                                 : "GİDEN"}
                             </span>
 
+                            {/* TIMELINE_DELIVERY_STATUS */}
+                            {message.direction ===
+                              "outbound" && (
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[7px] font-black ${deliveryClass(
+                                  message.delivery_status
+                                )}`}
+                              >
+                                {message.delivery_status ===
+                                  "failed"
+                                  ? <FaTimesCircle />
+                                  : <FaCheckCircle />}
+
+                                {deliveryLabel(
+                                  message.delivery_status
+                                )}
+                              </span>
+                            )}
+
+
+                            {message.channel ===
+                              "whatsapp" &&
+                              message.direction ===
+                                "outbound" &&
+                              message.delivery_status ===
+                                "failed" && (
+                              <button
+                                type="button"
+                                disabled={
+                                  busy
+                                }
+                                onClick={() =>
+                                  void retryMessage(
+                                    message.id
+                                  )
+                                }
+                                className="inline-flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/[.06] px-2 py-1 text-[7px] font-black text-red-300 disabled:opacity-40"
+                              >
+                                <FaRedo />
+                                Yeniden Gönder
+                              </button>
+                            )}
+
                           </div>
 
 
@@ -1156,6 +1484,12 @@ export default function CustomerCommunicationCenter({
                           {message.body && (
                             <div className="mt-2 whitespace-pre-wrap text-[10px] leading-5 text-slate-400">
                               {message.body}
+                            </div>
+                          )}
+
+                          {message.provider_error && (
+                            <div className="mt-2 rounded-lg border border-red-500/15 bg-red-500/[.04] px-3 py-2 text-[7px] font-bold text-red-300">
+                              Provider hatası: {message.provider_error}
                             </div>
                           )}
 
@@ -1207,6 +1541,10 @@ export default function CustomerCommunicationCenter({
 
                   <th className="px-5 py-4">
                     Yön
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Teslimat
                   </th>
 
                   <th className="px-5 py-4">
@@ -1284,6 +1622,60 @@ export default function CustomerCommunicationCenter({
                             ? "GELEN"
                             : "GİDEN"}
                         </span>
+
+                      </td>
+
+
+                      {/* TABLE_DELIVERY_STATUS */}
+                      <td className="px-5 py-4">
+
+                        {message.direction ===
+                        "outbound" ? (
+                          <div className="flex flex-wrap items-center gap-2">
+
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[7px] font-black ${deliveryClass(
+                                message.delivery_status
+                              )}`}
+                            >
+                              {message.delivery_status ===
+                                "failed"
+                                ? <FaTimesCircle />
+                                : <FaCheckCircle />}
+
+                              {deliveryLabel(
+                                message.delivery_status
+                              )}
+                            </span>
+
+
+                            {message.channel ===
+                              "whatsapp" &&
+                              message.delivery_status ===
+                                "failed" && (
+                              <button
+                                type="button"
+                                disabled={
+                                  busy
+                                }
+                                onClick={() =>
+                                  void retryMessage(
+                                    message.id
+                                  )
+                                }
+                                className="inline-flex items-center gap-1 rounded-lg border border-red-500/20 bg-red-500/[.05] px-2 py-1 text-[7px] font-black text-red-300 disabled:opacity-40"
+                              >
+                                <FaRedo />
+                                Retry
+                              </button>
+                            )}
+
+                          </div>
+                        ) : (
+                          <span className="text-[8px] text-slate-700">
+                            —
+                          </span>
+                        )}
 
                       </td>
 

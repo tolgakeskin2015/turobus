@@ -1086,6 +1086,7 @@ export default function Customer360DetailPage() {
 
             <CustomerCommunicationCenter
               customerId={customerId}
+              companyId={companyId}
             />
 
 

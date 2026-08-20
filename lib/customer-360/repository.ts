@@ -3364,3 +3364,72 @@ export async function retryCustomer360WhatsAppMessage(
       "queued";
   };
 }
+
+
+export type Customer360WhatsAppHealthSnapshot = {
+  generated_at: string;
+
+  total_whatsapp: number;
+
+  queued: number;
+
+  processing: number;
+
+  sent: number;
+
+  delivered: number;
+
+  read: number;
+
+  failed: number;
+
+  provider_linked: number;
+
+  last_provider_activity_at:
+    string | null;
+
+  outbox: {
+    queued: number;
+    processing: number;
+    sent: number;
+    failed: number;
+    retryable_failed: number;
+    max_attempt_failed: number;
+  };
+
+  recent_failed:
+    Array<{
+      message_id: string;
+      customer_id: string;
+      subject: string | null;
+      body: string | null;
+      provider_error: string | null;
+      failed_at: string | null;
+    }>;
+};
+
+
+export async function loadCustomer360WhatsAppHealth(
+  companyId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_whatsapp_health_snapshot",
+      {
+        p_company_id:
+          companyId,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360WhatsAppHealthSnapshot;
+}

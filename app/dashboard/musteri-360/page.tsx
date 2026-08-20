@@ -12,6 +12,7 @@ import {
 import {
   FaBirthdayCake,
   FaChevronRight,
+  FaCommentDots,
   FaEnvelope,
   FaExclamationTriangle,
   FaFilter,
@@ -508,6 +509,14 @@ export default function Customer360Page() {
             </div>
 
             <div className="flex flex-wrap gap-3">
+              <Link
+                href="/dashboard/musteri-360/provider-saglik"
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[.06] px-5 text-xs font-black text-emerald-300 transition hover:bg-emerald-500/10"
+              >
+                <FaCommentDots />
+                Provider Sağlığı
+              </Link>
+
               <Link
                 href="/dashboard/musteri-360/gizlilik-guvenlik"
                 className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[.06] px-5 text-xs font-black text-emerald-300 transition hover:bg-emerald-500/10"
