@@ -1287,3 +1287,172 @@ export async function loadCustomer360ReservationHistory(
     }
   );
 }
+
+
+export type Customer360FinanceHistoryRow = {
+  id: string;
+
+  entity_type:
+    | "payment"
+    | "refund"
+    | "voucher";
+
+  entity_id:
+    string | null;
+
+  entity_key:
+    string | null;
+
+  title:
+    string | null;
+
+  amount:
+    number | null;
+
+  currency:
+    string | null;
+
+  occurred_at:
+    string | null;
+
+  source_table:
+    string | null;
+
+  source_id:
+    string | null;
+
+  metadata:
+    Record<
+      string,
+      unknown
+    > | null;
+};
+
+
+export async function loadCustomer360FinanceHistory(
+  companyId: string,
+  customerId: string
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase
+      .from(
+        "customer_360_entity_links"
+      )
+      .select(
+        `
+        id,
+        entity_type,
+        entity_id,
+        entity_key,
+        title,
+        amount,
+        currency,
+        occurred_at,
+        metadata
+        `
+      )
+      .eq(
+        "company_id",
+        companyId
+      )
+      .eq(
+        "customer_id",
+        customerId
+      )
+      .in(
+        "entity_type",
+        [
+          "payment",
+          "refund",
+          "voucher",
+        ]
+      )
+      .order(
+        "occurred_at",
+        {
+          ascending:
+            false,
+        }
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return (
+    data ??
+    []
+  ).map(
+    (
+      row
+    ) => {
+      const metadata =
+        (
+          row.metadata ??
+          {}
+        ) as Record<
+          string,
+          unknown
+        >;
+
+
+      const keyParts =
+        (
+          row.entity_key ??
+          ""
+        ).split(
+          ":"
+        );
+
+
+      const sourceTable =
+        typeof metadata.source_table ===
+          "string"
+          ? metadata.source_table
+          : keyParts.length >
+              1
+            ? keyParts[0]
+            : null;
+
+
+      const sourceId =
+        typeof metadata.source_id ===
+          "string"
+          ? metadata.source_id
+          : keyParts.length >
+              1
+            ? keyParts
+                .slice(
+                  1
+                )
+                .join(
+                  ":"
+                )
+            : row.entity_id;
+
+
+      return {
+        ...row,
+
+        entity_type:
+          row.entity_type as
+            | "payment"
+            | "refund"
+            | "voucher",
+
+        source_table:
+          sourceTable,
+
+        source_id:
+          sourceId,
+
+        metadata,
+      } as Customer360FinanceHistoryRow;
+    }
+  );
+}
