@@ -51,6 +51,8 @@ import CustomerFinanceHistory from "../customer-finance-history";
 
 import CustomerValueLoyaltyCenter from "../customer-value-loyalty-center";
 
+import CustomerUnifiedTimeline from "../customer-unified-timeline";
+
 import CustomerFamilyGroupCenter from "../customer-family-group-center";
 
 import CustomerCommunicationCenter from "../customer-communication-center";
@@ -893,6 +895,15 @@ export default function Customer360DetailPage() {
             <CustomerValueLoyaltyCenter
               companyId={companyId}
               customerId={customerId}
+            />
+
+
+            <CustomerUnifiedTimeline
+              customer={customer}
+              notes={detail.notes}
+              cases={detail.cases}
+              messages={detail.messages}
+              entities={detail.entities}
             />
 
 
