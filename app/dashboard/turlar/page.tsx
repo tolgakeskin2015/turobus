@@ -1,18 +1,54 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { getCurrentMembership } from "@/lib/current-user";
+
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   FaArrowLeft,
+  FaBus,
+  FaCalendarAlt,
   FaEdit,
   FaEye,
+  FaFilter,
   FaMapMarkerAlt,
+  FaPlane,
   FaPlus,
   FaSearch,
-  FaStar,
+  FaUsers,
 } from "react-icons/fa";
+
+import {
+  supabase,
+} from "@/lib/supabase";
+
+import {
+  getCurrentMembership,
+} from "@/lib/current-user";
+
+
+type TransportMode =
+  | "air"
+  | "bus"
+  | "other";
+
+
+type OperationStatus =
+  | "draft"
+  | "sales"
+  | "confirmed"
+  | "preparing"
+  | "ready"
+  | "active"
+  | "returning"
+  | "completed"
+  | "cancelled";
+
 
 type Tour = {
   id: string;
@@ -24,339 +60,1257 @@ type Tour = {
   duration: string | null;
   adult_price: number;
   old_price: number;
-  cover_image: string | null;
   agency_name: string | null;
-  rating: number;
-  review_count: number;
-  featured: boolean;
-  bestseller: boolean;
-  early_booking: boolean;
   status: string;
   created_at: string;
+
+  transport_mode:
+    TransportMode;
+
+  departure_city:
+    string | null;
+
+  arrival_city:
+    string | null;
+
+  capacity:
+    number | null;
+
+  operation_status:
+    OperationStatus;
+
+  departure_date:
+    string | null;
+
+  return_date:
+    string | null;
 };
 
-function statusLabel(status: string) {
-  if (status === "active") return "Aktif";
-  if (status === "draft") return "Taslak";
-  if (status === "passive") return "Pasif";
-  return status;
+
+function transportLabel(
+  value:
+    TransportMode
+) {
+  if (
+    value ===
+    "air"
+  ) {
+    return "Uçaklı";
+  }
+
+  if (
+    value ===
+    "bus"
+  ) {
+    return "Otobüslü";
+  }
+
+  return "Belirlenmedi";
 }
 
+
+function operationLabel(
+  value:
+    OperationStatus
+) {
+  const labels:
+    Record<
+      OperationStatus,
+      string
+    > = {
+      draft:
+        "Taslak",
+
+      sales:
+        "Satışta",
+
+      confirmed:
+        "Kesinleşti",
+
+      preparing:
+        "Hazırlanıyor",
+
+      ready:
+        "Çıkışa Hazır",
+
+      active:
+        "Tur Devam Ediyor",
+
+      returning:
+        "Dönüş",
+
+      completed:
+        "Tamamlandı",
+
+      cancelled:
+        "İptal",
+    };
+
+  return labels[value];
+}
+
+
+function operationClass(
+  value:
+    OperationStatus
+) {
+  if (
+    value ===
+    "active"
+  ) {
+    return "border-blue-500/20 bg-blue-500/10 text-blue-300";
+  }
+
+  if (
+    value ===
+      "ready" ||
+    value ===
+      "completed"
+  ) {
+    return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+  }
+
+  if (
+    value ===
+      "preparing" ||
+    value ===
+      "confirmed"
+  ) {
+    return "border-amber-500/20 bg-amber-500/10 text-amber-300";
+  }
+
+  if (
+    value ===
+    "cancelled"
+  ) {
+    return "border-red-500/20 bg-red-500/10 text-red-300";
+  }
+
+  return "border-white/10 bg-white/[.04] text-slate-400";
+}
+
+
+function formatDate(
+  value:
+    string | null
+) {
+  if (!value) {
+    return "—";
+  }
+
+  const date =
+    new Date(
+      value
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "tr-TR",
+    {
+      day:
+        "2-digit",
+
+      month:
+        "short",
+
+      year:
+        "numeric",
+    }
+  ).format(
+    date
+  );
+}
+
+
+function money(
+  value:
+    number
+) {
+  return new Intl.NumberFormat(
+    "tr-TR",
+    {
+      style:
+        "currency",
+
+      currency:
+        "TRY",
+
+      maximumFractionDigits:
+        0,
+    }
+  ).format(
+    Number(
+      value ||
+      0
+    )
+  );
+}
+
+
 export default function DashboardToursPage() {
-  const [tours, setTours] = useState<Tour[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
+  const [
+    tours,
+    setTours,
+  ] =
+    useState<Tour[]>(
+      []
+    );
+
+  const [
+    companyId,
+    setCompanyId,
+  ] =
+    useState("");
+
+  const [
+    loading,
+    setLoading,
+  ] =
+    useState(true);
+
+  const [
+    busyId,
+    setBusyId,
+  ] =
+    useState("");
+
+  const [
+    error,
+    setError,
+  ] =
+    useState("");
+
+  const [
+    search,
+    setSearch,
+  ] =
+    useState("");
+
+  const [
+    transport,
+    setTransport,
+  ] =
+    useState<
+      | "all"
+      | TransportMode
+    >(
+      "all"
+    );
+
+  const [
+    operation,
+    setOperation,
+  ] =
+    useState<
+      | "all"
+      | OperationStatus
+    >(
+      "all"
+    );
+
+
+  const loadTours =
+    useCallback(
+      async (
+        currentCompanyId:
+          string
+      ) => {
+        const {
+          data,
+          error:
+            loadError,
+        } =
+          await supabase
+            .from(
+              "tours"
+            )
+            .select(
+              [
+                "id",
+                "slug",
+                "title",
+                "city",
+                "district",
+                "category",
+                "duration",
+                "adult_price",
+                "old_price",
+                "agency_name",
+                "status",
+                "created_at",
+                "transport_mode",
+                "departure_city",
+                "arrival_city",
+                "capacity",
+                "operation_status",
+                "departure_date",
+                "return_date",
+              ].join(
+                ","
+              )
+            )
+            .eq(
+              "company_id",
+              currentCompanyId
+            )
+            .order(
+              "departure_date",
+              {
+                ascending:
+                  true,
+
+                nullsFirst:
+                  false,
+              }
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  false,
+              }
+            );
+
+        if (
+          loadError
+        ) {
+          throw loadError;
+        }
+
+        setTours(
+          (
+            data ??
+            []
+          ) as unknown as
+            Tour[]
+        );
+      },
+      []
+    );
+
 
   useEffect(() => {
-    async function loadTours() {
-      setLoading(true);
-      setErrorMessage("");
+    void (
+      async () => {
+        setLoading(
+          true
+        );
 
-      const {
-        data: userData,
-        error: userError,
-      } = await supabase.auth.getUser();
+        setError(
+          ""
+        );
 
-      if (userError || !userData.user) {
-        setErrorMessage("Oturum bulunamadı.");
-        setLoading(false);
-        return;
+        try {
+          const {
+            data:
+              userData,
+
+            error:
+              userError,
+          } =
+            await supabase
+              .auth
+              .getUser();
+
+          if (
+            userError ||
+            !userData.user
+          ) {
+            throw new Error(
+              "Oturum bulunamadı."
+            );
+          }
+
+          const membership =
+            await getCurrentMembership(
+              userData.user.id
+            );
+
+          if (
+            !membership
+          ) {
+            throw new Error(
+              "Firma üyeliği bulunamadı."
+            );
+          }
+
+          setCompanyId(
+            membership.company_id
+          );
+
+          await loadTours(
+            membership.company_id
+          );
+
+        } catch (
+          currentError
+        ) {
+          setError(
+            currentError instanceof
+              Error
+              ? currentError.message
+              : String(
+                  currentError
+                )
+          );
+
+        } finally {
+          setLoading(
+            false
+          );
+        }
       }
+    )();
+  }, [
+    loadTours,
+  ]);
 
-      const membership = await getCurrentMembership(
-        userData.user.id
-      );
 
-      if (!membership) {
-        setErrorMessage("Firma üyeliği bulunamadı.");
-        setLoading(false);
-        return;
-      }
+  async function updateTransport(
+    tourId:
+      string,
 
-      const { data, error } = await supabase
-        .from("tours")
-        .select("*")
-        .eq("company_id", membership.company_id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error(error);
-        setErrorMessage("Turlar yüklenemedi.");
-        setLoading(false);
-        return;
-      }
-
-      setTours((data ?? []) as Tour[]);
-      setLoading(false);
+    value:
+      TransportMode
+  ) {
+    if (
+      !companyId
+    ) {
+      return;
     }
 
-    loadTours();
-  }, []);
+    setBusyId(
+      tourId
+    );
 
-  const filteredTours = useMemo(() => {
-    return tours.filter((tour) => {
-      const query = search.toLocaleLowerCase("tr-TR");
+    setError(
+      ""
+    );
 
-      const matchesSearch =
-        tour.title.toLocaleLowerCase("tr-TR").includes(query) ||
-        tour.city.toLocaleLowerCase("tr-TR").includes(query) ||
-        (tour.agency_name ?? "")
-          .toLocaleLowerCase("tr-TR")
-          .includes(query);
+    try {
+      const {
+        error:
+          updateError,
+      } =
+        await supabase
+          .from(
+            "tours"
+          )
+          .update(
+            {
+              transport_mode:
+                value,
+            }
+          )
+          .eq(
+            "id",
+            tourId
+          )
+          .eq(
+            "company_id",
+            companyId
+          );
 
-      const matchesStatus =
-        status === "all" || tour.status === status;
+      if (
+        updateError
+      ) {
+        throw updateError;
+      }
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [search, status, tours]);
+      setTours(
+        current =>
+          current.map(
+            tour =>
+              tour.id ===
+              tourId
+                ? {
+                    ...tour,
+                    transport_mode:
+                      value,
+                  }
+                : tour
+          )
+      );
 
-  const activeCount = tours.filter(
-    (tour) => tour.status === "active"
-  ).length;
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
 
-  const draftCount = tours.filter(
-    (tour) => tour.status === "draft"
-  ).length;
+    } finally {
+      setBusyId(
+        ""
+      );
+    }
+  }
 
-  const featuredCount = tours.filter(
-    (tour) => tour.featured
-  ).length;
+
+  const filtered =
+    useMemo(
+      () => {
+        const needle =
+          search
+            .trim()
+            .toLocaleLowerCase(
+              "tr-TR"
+            );
+
+        return tours.filter(
+          tour => {
+            if (
+              transport !==
+                "all" &&
+              tour.transport_mode !==
+                transport
+            ) {
+              return false;
+            }
+
+            if (
+              operation !==
+                "all" &&
+              tour.operation_status !==
+                operation
+            ) {
+              return false;
+            }
+
+            if (
+              !needle
+            ) {
+              return true;
+            }
+
+            return [
+              tour.title,
+              tour.city,
+              tour.district,
+              tour.category,
+              tour.agency_name,
+              tour.departure_city,
+              tour.arrival_city,
+            ]
+              .filter(
+                Boolean
+              )
+              .join(
+                " "
+              )
+              .toLocaleLowerCase(
+                "tr-TR"
+              )
+              .includes(
+                needle
+              );
+          }
+        );
+      },
+      [
+        tours,
+        search,
+        transport,
+        operation,
+      ]
+    );
+
+
+  const airCount =
+    tours.filter(
+      tour =>
+        tour.transport_mode ===
+        "air"
+    ).length;
+
+
+  const busCount =
+    tours.filter(
+      tour =>
+        tour.transport_mode ===
+        "bus"
+    ).length;
+
+
+  const activeCount =
+    tours.filter(
+      tour =>
+        [
+          "confirmed",
+          "preparing",
+          "ready",
+          "active",
+          "returning",
+        ].includes(
+          tour.operation_status
+        )
+    ).length;
+
+
+  const capacityTotal =
+    tours.reduce(
+      (
+        total,
+        tour
+      ) =>
+        total +
+        Number(
+          tour.capacity ??
+          0
+        ),
+      0
+    );
+
+
+  if (
+    loading
+  ) {
+    return (
+      <main className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+        Tur operasyon sistemi yükleniyor...
+      </main>
+    );
+  }
+
 
   return (
-    <main className="min-h-screen bg-slate-950 px-5 py-10 text-white lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-orange-400">
-              Tur yönetimi
-            </p>
+    <main className="min-h-screen bg-[#030a11] text-white">
 
-            <h1 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">
-              Turlarım
-            </h1>
+      <div className="mx-auto max-w-[1650px] px-5 py-7 lg:px-8">
 
-            <p className="mt-4 text-slate-400">
-              Supabase’e kaydedilen tüm tur ve deneyimleri yönet.
-            </p>
+        <section className="overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.14),transparent_34%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
+
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+
+            <div>
+
+              <div className="flex flex-wrap gap-2">
+
+                <span className="rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1.5 text-[8px] font-black uppercase tracking-[.2em] text-orange-300">
+                  TUROBUS TOUR OS
+                </span>
+
+                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/[.06] px-3 py-1.5 text-[8px] font-black text-emerald-300">
+                  ● Gerçek tur verisi
+                </span>
+
+              </div>
+
+
+              <h1 className="mt-5 text-3xl font-black tracking-[-.04em] lg:text-5xl">
+                Tur
+                <span className="text-orange-400">
+                  {" "}
+                  Yönetim Merkezi
+                </span>
+              </h1>
+
+
+              <p className="mt-3 max-w-3xl text-xs leading-6 text-slate-400">
+                Uçaklı ve otobüslü turları satıştan operasyona kadar tek profesyonel tabloda yönetin.
+              </p>
+
+            </div>
+
+
+            <div className="flex flex-wrap gap-2">
+
+              <Link
+                href="/dashboard/operasyon"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[.03] px-4 text-[9px] font-black text-slate-300"
+              >
+                <FaArrowLeft />
+                Operasyon Merkezi
+              </Link>
+
+
+              <Link
+                href="/dashboard/tur-ekle"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-orange-500 px-5 text-[9px] font-black text-white"
+              >
+                <FaPlus />
+                Yeni Tur
+              </Link>
+
+            </div>
+
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/dashboard"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 text-sm font-black transition hover:border-orange-500/30"
-            >
-              <FaArrowLeft />
-              Dashboard
-            </Link>
+        </section>
 
-            <Link
-              href="/dashboard/tur-ekle"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 text-sm font-black transition hover:bg-orange-600"
-            >
-              <FaPlus />
-              Yeni Tur Ekle
-            </Link>
+
+        {error && (
+          <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/[.05] px-5 py-4 text-[9px] font-bold text-red-300">
+            {error}
           </div>
+        )}
+
+
+        <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+
+          {[
+            {
+              title:
+                "Toplam Tur",
+
+              value:
+                tours.length,
+
+              detail:
+                "Sistemdeki tur",
+
+              icon:
+                <FaMapMarkerAlt />,
+            },
+
+            {
+              title:
+                "Uçaklı Tur",
+
+              value:
+                airCount,
+
+              detail:
+                "Havayolu operasyonu",
+
+              icon:
+                <FaPlane />,
+            },
+
+            {
+              title:
+                "Otobüslü Tur",
+
+              value:
+                busCount,
+
+              detail:
+                "Karayolu operasyonu",
+
+              icon:
+                <FaBus />,
+            },
+
+            {
+              title:
+                "Aktif Operasyon",
+
+              value:
+                activeCount,
+
+              detail:
+                "Hazırlık / aktif",
+
+              icon:
+                <FaCalendarAlt />,
+            },
+
+            {
+              title:
+                "Tanımlı Kapasite",
+
+              value:
+                capacityTotal,
+
+              detail:
+                "Toplam kontenjan",
+
+              icon:
+                <FaUsers />,
+            },
+          ].map(
+            item => (
+              <article
+                key={
+                  item.title
+                }
+                className="rounded-[22px] border border-white/10 bg-[#07131f] p-5"
+              >
+
+                <div className="flex items-start justify-between gap-3">
+
+                  <div>
+
+                    <div className="text-[8px] font-black uppercase tracking-[.14em] text-slate-600">
+                      {item.title}
+                    </div>
+
+                    <div className="mt-3 text-3xl font-black">
+                      {item.value}
+                    </div>
+
+                    <div className="mt-2 text-[8px] text-slate-600">
+                      {item.detail}
+                    </div>
+
+                  </div>
+
+
+                  <div className="grid h-10 w-10 place-items-center rounded-xl border border-orange-500/15 bg-orange-500/[.06] text-orange-300">
+                    {item.icon}
+                  </div>
+
+                </div>
+
+              </article>
+            )
+          )}
+
+        </section>
+
+
+        <section className="mt-5 overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f]">
+
+          <div className="border-b border-white/[.07] p-4 lg:p-5">
+
+            <div className="grid gap-3 xl:grid-cols-[1fr_190px_210px_auto]">
+
+              <div className="relative">
+
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
+
+                <input
+                  value={
+                    search
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setSearch(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Tur, şehir, rota veya acente ara..."
+                  className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-10 pr-4 text-[9px] font-bold outline-none focus:border-orange-500/30"
+                />
+
+              </div>
+
+
+              <select
+                value={
+                  transport
+                }
+                onChange={(
+                  event
+                ) =>
+                  setTransport(
+                    event.target.value as
+                      | "all"
+                      | TransportMode
+                  )
+                }
+                className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[9px] font-bold outline-none"
+              >
+                <option value="all">
+                  Tüm Ulaşım Tipleri
+                </option>
+
+                <option value="air">
+                  ✈ Uçaklı Turlar
+                </option>
+
+                <option value="bus">
+                  🚌 Otobüslü Turlar
+                </option>
+
+                <option value="other">
+                  Belirlenmemiş
+                </option>
+              </select>
+
+
+              <select
+                value={
+                  operation
+                }
+                onChange={(
+                  event
+                ) =>
+                  setOperation(
+                    event.target.value as
+                      | "all"
+                      | OperationStatus
+                  )
+                }
+                className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[9px] font-bold outline-none"
+              >
+                <option value="all">
+                  Tüm Operasyon Durumları
+                </option>
+
+                <option value="draft">
+                  Taslak
+                </option>
+
+                <option value="sales">
+                  Satışta
+                </option>
+
+                <option value="confirmed">
+                  Kesinleşti
+                </option>
+
+                <option value="preparing">
+                  Hazırlanıyor
+                </option>
+
+                <option value="ready">
+                  Çıkışa Hazır
+                </option>
+
+                <option value="active">
+                  Tur Devam Ediyor
+                </option>
+
+                <option value="returning">
+                  Dönüş
+                </option>
+
+                <option value="completed">
+                  Tamamlandı
+                </option>
+
+                <option value="cancelled">
+                  İptal
+                </option>
+              </select>
+
+
+              <div className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[.025] px-4 text-[8px] font-black text-slate-500">
+                <FaFilter />
+                {filtered.length} kayıt
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div className="overflow-auto">
+
+            <table className="min-w-[1450px] w-full">
+
+              <thead className="sticky top-0 z-10 bg-[#081522]">
+
+                <tr className="border-b border-white/[.07] text-left text-[7px] font-black uppercase tracking-[.11em] text-slate-600">
+
+                  <th className="px-5 py-4">
+                    Tur
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Ulaşım
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Tarih
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Rota
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Süre
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Kapasite
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Satış Fiyatı
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Operasyon
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Acente
+                  </th>
+
+                  <th className="px-5 py-4 text-right">
+                    İşlem
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                {filtered.length ===
+                0 ? (
+                  <tr>
+
+                    <td
+                      colSpan={10}
+                      className="px-5 py-14 text-center"
+                    >
+
+                      <div className="text-sm font-black">
+                        Tur kaydı bulunamadı
+                      </div>
+
+                      <div className="mt-2 text-[9px] text-slate-600">
+                        Filtreleri değiştirin veya yeni tur oluşturun.
+                      </div>
+
+                    </td>
+
+                  </tr>
+                ) : (
+                  filtered.map(
+                    tour => (
+                      <tr
+                        key={
+                          tour.id
+                        }
+                        className="border-b border-white/[.045] transition hover:bg-white/[.02]"
+                      >
+
+                        <td className="px-5 py-4">
+
+                          <div className="max-w-[260px]">
+
+                            <div className="text-[10px] font-black">
+                              {tour.title}
+                            </div>
+
+                            <div className="mt-1 text-[7px] text-slate-600">
+                              {tour.category ||
+                                "Kategori yok"}
+                            </div>
+
+                          </div>
+
+                        </td>
+
+
+                        <td className="px-5 py-4">
+
+                          <select
+                            disabled={
+                              busyId ===
+                              tour.id
+                            }
+                            value={
+                              tour.transport_mode
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              void updateTransport(
+                                tour.id,
+                                event.target.value as
+                                  TransportMode
+                              )
+                            }
+                            className={`h-9 rounded-xl border px-3 text-[8px] font-black outline-none ${
+                              tour.transport_mode ===
+                                "air"
+                                ? "border-blue-500/20 bg-blue-500/[.06] text-blue-300"
+                                : tour.transport_mode ===
+                                    "bus"
+                                  ? "border-orange-500/20 bg-orange-500/[.06] text-orange-300"
+                                  : "border-white/10 bg-[#030a11] text-slate-500"
+                            }`}
+                          >
+                            <option value="other">
+                              Belirlenmedi
+                            </option>
+
+                            <option value="air">
+                              ✈ Uçaklı
+                            </option>
+
+                            <option value="bus">
+                              🚌 Otobüslü
+                            </option>
+                          </select>
+
+                        </td>
+
+
+                        <td className="px-5 py-4">
+
+                          <div className="text-[9px] font-black">
+                            {formatDate(
+                              tour.departure_date
+                            )}
+                          </div>
+
+                          {tour.return_date && (
+                            <div className="mt-1 text-[7px] text-slate-600">
+                              Dönüş{" "}
+                              {formatDate(
+                                tour.return_date
+                              )}
+                            </div>
+                          )}
+
+                        </td>
+
+
+                        <td className="px-5 py-4">
+
+                          <div className="flex items-center gap-2 text-[8px] font-bold">
+
+                            {tour.transport_mode ===
+                            "air"
+                              ? <FaPlane className="text-blue-300" />
+                              : tour.transport_mode ===
+                                  "bus"
+                                ? <FaBus className="text-orange-300" />
+                                : <FaMapMarkerAlt className="text-slate-600" />}
+
+                            <span>
+                              {tour.departure_city ||
+                                tour.city ||
+                                "—"}
+                              {" → "}
+                              {tour.arrival_city ||
+                                tour.city ||
+                                "—"}
+                            </span>
+
+                          </div>
+
+                        </td>
+
+
+                        <td className="px-5 py-4 text-[8px] font-bold text-slate-400">
+                          {tour.duration ||
+                            "—"}
+                        </td>
+
+
+                        <td className="px-5 py-4">
+
+                          <div className="flex items-center gap-2 text-[9px] font-black">
+
+                            <FaUsers className="text-slate-600" />
+
+                            {tour.capacity ??
+                              "—"}
+
+                          </div>
+
+                        </td>
+
+
+                        <td className="px-5 py-4">
+
+                          <div className="text-[9px] font-black text-orange-300">
+                            {money(
+                              tour.adult_price
+                            )}
+                          </div>
+
+                          <div className="mt-1 text-[7px] text-slate-600">
+                            kişi başı
+                          </div>
+
+                        </td>
+
+
+                        <td className="px-5 py-4">
+
+                          <span
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-[7px] font-black ${operationClass(
+                              tour.operation_status
+                            )}`}
+                          >
+                            {operationLabel(
+                              tour.operation_status
+                            )}
+                          </span>
+
+                        </td>
+
+
+                        <td className="px-5 py-4 text-[8px] text-slate-500">
+                          {tour.agency_name ||
+                            "—"}
+                        </td>
+
+
+                        <td className="px-5 py-4">
+
+                          <div className="flex justify-end gap-2">
+
+                            <Link
+                              href={`/turlar/${tour.slug}`}
+                              title="Tur önizleme"
+                              className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[.03] text-slate-400 transition hover:text-white"
+                            >
+                              <FaEye />
+                            </Link>
+
+
+                            <Link
+                              href={`/dashboard/turlar/${tour.id}/takvim`}
+                              title="Tur takvimi"
+                              className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[.03] text-slate-400 transition hover:text-emerald-300"
+                            >
+                              <FaCalendarAlt />
+                            </Link>
+
+
+                            <Link
+                              href={`/dashboard/turlar/${tour.id}/duzenle`}
+                              title="Turu düzenle"
+                              className="grid h-9 w-9 place-items-center rounded-xl border border-orange-500/20 bg-orange-500/[.06] text-orange-300"
+                            >
+                              <FaEdit />
+                            </Link>
+
+                          </div>
+
+                        </td>
+
+                      </tr>
+                    )
+                  )
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+
+        <div className="mt-4 text-[8px] leading-5 text-slate-700">
+          {transportLabel(
+            transport ===
+              "all"
+              ? "other"
+              : transport
+          )}
+          {" · "}
+          Mevcut tur kayıtları korunur. Ulaşım tipi tanımlanmamış eski turlar otomatik olarak silinmez veya değiştirilmez.
         </div>
 
-        <section className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            ["Toplam Tur", tours.length],
-            ["Aktif Tur", activeCount],
-            ["Taslak", draftCount],
-            ["Öne Çıkan", featuredCount],
-          ].map(([label, value]) => (
-            <article
-              key={String(label)}
-              className="rounded-3xl border border-white/10 bg-slate-900 p-6"
-            >
-              <p className="text-sm font-bold text-slate-500">
-                {label}
-              </p>
-
-              <p className="mt-3 text-4xl font-black">
-                {value}
-              </p>
-            </article>
-          ))}
-        </section>
-
-        <section className="mt-8 rounded-[30px] border border-white/10 bg-slate-900 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row">
-            <label className="flex min-h-14 flex-1 items-center gap-3 rounded-2xl bg-white px-5">
-              <FaSearch className="text-orange-500" />
-
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Tur, şehir veya acente ara"
-                className="w-full bg-transparent text-sm font-bold text-slate-950 outline-none"
-              />
-            </label>
-
-            <select
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-              className="min-h-14 rounded-2xl bg-white px-5 text-sm font-bold text-slate-950 outline-none"
-            >
-              <option value="all">Tüm durumlar</option>
-              <option value="active">Aktif</option>
-              <option value="draft">Taslak</option>
-              <option value="passive">Pasif</option>
-            </select>
-          </div>
-        </section>
-
-        {loading && (
-          <div className="mt-8 rounded-3xl border border-white/10 bg-slate-900 p-10 text-center text-slate-400">
-            Turlar yükleniyor...
-          </div>
-        )}
-
-        {errorMessage && (
-          <div className="mt-8 rounded-3xl border border-red-500/20 bg-red-500/10 p-6 text-red-400">
-            {errorMessage}
-          </div>
-        )}
-
-        {!loading && !errorMessage && (
-          <section className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filteredTours.map((tour) => (
-              <article
-                key={tour.id}
-                className="overflow-hidden rounded-[30px] border border-white/10 bg-slate-900 transition hover:-translate-y-1 hover:border-orange-500/30"
-              >
-                <div className="relative h-52 overflow-hidden bg-slate-800">
-                  {tour.cover_image ? (
-                    <img
-                      src={tour.cover_image}
-                      alt={tour.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-sm font-bold text-slate-500">
-                      Kapak görseli eklenmedi
-                    </div>
-                  )}
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-
-                  <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                    <span
-                      className={`rounded-full px-3 py-1.5 text-xs font-black ${
-                        tour.status === "active"
-                          ? "bg-emerald-500 text-white"
-                          : tour.status === "draft"
-                            ? "bg-amber-500 text-slate-950"
-                            : "bg-slate-600 text-white"
-                      }`}
-                    >
-                      {statusLabel(tour.status)}
-                    </span>
-
-                    {tour.bestseller && (
-                      <span className="rounded-full bg-orange-500 px-3 py-1.5 text-xs font-black">
-                        Çok Satan
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 text-sm text-slate-400">
-                      <FaMapMarkerAlt className="text-orange-400" />
-                      {tour.city}
-                      {tour.district ? `, ${tour.district}` : ""}
-                    </div>
-
-                    <div className="flex items-center gap-1 text-sm font-black">
-                      <FaStar className="text-yellow-400" />
-                      {tour.rating ?? 5}
-                    </div>
-                  </div>
-
-                  <h2 className="mt-4 text-2xl font-black">
-                    {tour.title}
-                  </h2>
-
-                  <p className="mt-2 text-sm text-slate-500">
-                    {tour.category || "Kategori belirtilmedi"}
-                    {tour.duration ? ` • ${tour.duration}` : ""}
-                  </p>
-
-                  <div className="mt-6 flex items-end justify-between gap-4 border-t border-white/10 pt-5">
-                    <div>
-                      {tour.old_price > 0 && (
-                        <p className="text-sm text-slate-500 line-through">
-                          {tour.old_price.toLocaleString("tr-TR")} TL
-                        </p>
-                      )}
-
-                      <p className="text-3xl font-black text-orange-500">
-                        {tour.adult_price.toLocaleString("tr-TR")} TL
-                      </p>
-
-                      <p className="mt-1 text-xs text-slate-500">
-                        kişi başı
-                      </p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/turlar/${tour.slug}`}
-                        aria-label="Turu görüntüle"
-                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] transition hover:bg-orange-500"
-                      >
-                        <FaEye />
-                      </Link>
-
-                      <Link
-                        href={`/dashboard/turlar/${tour.id}/takvim`}
-                        aria-label="Tur takvimini yönet"
-                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] transition hover:bg-emerald-500"
-                      >
-                        📅
-                      </Link>
-
-                      <Link
-                        href={`/dashboard/turlar/${tour.id}/duzenle`}
-                        aria-label="Turu düzenle"
-                        className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500 transition hover:bg-orange-600"
-                      >
-                        <FaEdit />
-                      </Link>
-                    </div>
-                  </div>
-
-                  {tour.agency_name && (
-                    <p className="mt-5 text-xs text-slate-500">
-                      Acente: {tour.agency_name}
-                    </p>
-                  )}
-                </div>
-              </article>
-            ))}
-          </section>
-        )}
-
-        {!loading &&
-          !errorMessage &&
-          filteredTours.length === 0 && (
-            <div className="mt-8 rounded-3xl border border-white/10 bg-slate-900 p-12 text-center">
-              <h2 className="text-2xl font-black">
-                Tur bulunamadı
-              </h2>
-
-              <p className="mt-3 text-slate-400">
-                Filtreleri değiştir veya yeni bir tur ekle.
-              </p>
-            </div>
-          )}
       </div>
+
     </main>
   );
 }
