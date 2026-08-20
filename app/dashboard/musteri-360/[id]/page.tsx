@@ -51,6 +51,8 @@ import CustomerFinanceHistory from "../customer-finance-history";
 
 import CustomerFamilyGroupCenter from "../customer-family-group-center";
 
+import CustomerCommunicationCenter from "../customer-communication-center";
+
 
 type Detail =
   Awaited<
@@ -931,60 +933,9 @@ export default function Customer360DetailPage() {
             </section>
 
 
-            <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
-              <div className="flex items-center gap-2">
-                <FaCommentDots className="text-orange-300" />
-
-                <div className="text-sm font-black">
-                  Mesaj Geçmişi
-                </div>
-              </div>
-
-              {detail.messages.length ===
-              0 ? (
-                <div className="mt-4 rounded-xl border border-dashed border-white/10 p-7 text-center text-[9px] leading-5 text-slate-600">
-                  Henüz WhatsApp, SMS, e-posta veya telefon kaydı bağlanmadı.
-                </div>
-              ) : (
-                <div className="mt-4 space-y-2">
-                  {detail.messages
-                    .slice(
-                      0,
-                      10
-                    )
-                    .map(
-                      (
-                        message
-                      ) => (
-                        <div
-                          key={
-                            message.id
-                          }
-                          className="rounded-xl border border-white/[.06] bg-black/20 p-4"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-[8px] font-black uppercase text-orange-300">
-                              {message.channel}
-                            </span>
-
-                            <span className="text-[8px] text-slate-700">
-                              {formatDate(
-                                message.sent_at
-                              )}
-                            </span>
-                          </div>
-
-                          <div className="mt-2 text-[10px] leading-5 text-slate-300">
-                            {message.body ||
-                              message.subject ||
-                              "Mesaj"}
-                          </div>
-                        </div>
-                      )
-                    )}
-                </div>
-              )}
-            </section>
+            <CustomerCommunicationCenter
+              customerId={customerId}
+            />
 
 
             <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">

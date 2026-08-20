@@ -1458,6 +1458,169 @@ export async function loadCustomer360FinanceHistory(
 }
 
 
+
+export type Customer360CommunicationChannel =
+  | "whatsapp"
+  | "sms"
+  | "email"
+  | "phone"
+  | "instagram"
+  | "system"
+  | "other";
+
+
+export type Customer360CommunicationDirection =
+  | "inbound"
+  | "outbound";
+
+
+export type Customer360CommunicationRow = {
+  id: string;
+
+  channel:
+    Customer360CommunicationChannel;
+
+  direction:
+    Customer360CommunicationDirection;
+
+  subject:
+    string | null;
+
+  body:
+    string | null;
+
+  external_id:
+    string | null;
+
+  sent_at:
+    string;
+
+  created_at:
+    string;
+
+  created_by:
+    string | null;
+};
+
+
+export type Customer360MessageSnapshot = {
+  customer: {
+    id: string;
+
+    customer_code:
+      string;
+
+    full_name:
+      string;
+
+    phone:
+      string | null;
+
+    email:
+      string | null;
+  };
+
+  messages:
+    Customer360CommunicationRow[];
+};
+
+
+export async function loadCustomer360MessageSnapshot(
+  customerId: string,
+  limit = 500
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_message_snapshot",
+      {
+        p_customer_id:
+          customerId,
+
+        p_limit:
+          limit,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as
+    Customer360MessageSnapshot;
+}
+
+
+export async function addCustomer360Message(
+  input: {
+    customerId: string;
+
+    channel:
+      Customer360CommunicationChannel;
+
+    direction:
+      Customer360CommunicationDirection;
+
+    subject?: string;
+
+    body?: string;
+
+    externalId?: string;
+
+    sentAt?: string;
+  }
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "customer_360_add_message",
+      {
+        p_customer_id:
+          input.customerId,
+
+        p_channel:
+          input.channel,
+
+        p_direction:
+          input.direction,
+
+        p_subject:
+          input.subject ||
+          null,
+
+        p_body:
+          input.body ||
+          null,
+
+        p_external_id:
+          input.externalId ||
+          null,
+
+        p_sent_at:
+          input.sentAt ||
+          null,
+      }
+    );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return data as {
+    ok: boolean;
+    message_id: string;
+  };
+}
+
+
 export type Customer360FamilyTraveler = {
   id: string;
 

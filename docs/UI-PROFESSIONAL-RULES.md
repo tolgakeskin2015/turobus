@@ -69,3 +69,14 @@ Kullanıcı ekranı açtığında:
 "Bu işletmenin operasyon sistemi"
 
 hissi oluşmalıdır.
+
+
+## Hız + Stabilite + Profesyonel Görsel Standardı
+
+- Geliştirme hızlı ilerler fakat çalışan sistem hiçbir aşamada riske atılmaz.
+- Her yeni modül migration gerekiyorsa migration → TypeScript → diff check → build → fonksiyon/route kontrolü → commit → push sırasını geçmeden tamamlanmış sayılmaz.
+- Yönetim ekranları basit kart/listeler olarak bırakılmaz; Travel ERP / CRM seviyesinde profesyonel KPI, arama, çoklu filtre, durum badge, sticky/geniş tablo, hızlı işlem ve gerektiğinde detay drawer/tab kullanılır.
+- Otel, yat, villa, aktivite ve ürün gibi görsel anlam taşıyan modüllerde yalnızca gerçek/veritabanından gelen görseller kullanılmalıdır.
+- Müşteri, finans, güvenlik ve yönetim ekranlarına dekoratif veya sahte görseller eklenmez.
+- Sahte canlı veri üretilmez. Gerçek API/provider yoksa yalnızca entegrasyon hazırlığı veya manuel operasyon kaydı yapılır.
+- Tekrar çalıştırılan geliştirme scriptleri mümkün olduğunca idempotent olmalı; repository gibi merkezi dosyalara kör `cat >>` ile duplicate kod eklenmemelidir.
