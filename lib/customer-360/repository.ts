@@ -1122,3 +1122,168 @@ export async function loadCustomer360QuoteHistory(
     []
   ) as Customer360QuoteHistoryRow[];
 }
+
+
+export type Customer360ReservationHistoryRow = {
+  id: string;
+
+  entity_type: string;
+
+  entity_id: string | null;
+  entity_key: string | null;
+
+  title: string | null;
+
+  amount: number | null;
+  currency: string | null;
+
+  occurred_at: string | null;
+
+  source_table: string | null;
+  source_id: string | null;
+
+  metadata:
+    Record<
+      string,
+      unknown
+    > | null;
+};
+
+
+export async function loadCustomer360ReservationHistory(
+  companyId: string,
+  customerId: string
+) {
+  const reservationTypes =
+    [
+      "booking",
+      "package_booking",
+      "yacht_booking",
+      "hotel_booking",
+      "activity_booking",
+      "tour_booking",
+      "trip",
+    ];
+
+
+  const {
+    data,
+    error,
+  } =
+    await supabase
+      .from(
+        "customer_360_entity_links"
+      )
+      .select(
+        `
+        id,
+        entity_type,
+        entity_id,
+        entity_key,
+        title,
+        amount,
+        currency,
+        occurred_at,
+        metadata
+        `
+      )
+      .eq(
+        "company_id",
+        companyId
+      )
+      .eq(
+        "customer_id",
+        customerId
+      )
+      .in(
+        "entity_type",
+        reservationTypes
+      )
+      .order(
+        "occurred_at",
+        {
+          ascending:
+            false,
+        }
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return (
+    data ??
+    []
+  ).map(
+    (
+      row
+    ) => {
+      const metadata =
+        (
+          row.metadata ??
+          {}
+        ) as Record<
+          string,
+          unknown
+        >;
+
+
+      const entityKey =
+        row.entity_key ??
+        null;
+
+
+      const keyParts =
+        entityKey
+          ?.split(
+            ":"
+          ) ??
+        [];
+
+
+      const metadataSourceTable =
+        typeof metadata.source_table ===
+          "string"
+          ? metadata.source_table
+          : null;
+
+
+      const metadataSourceId =
+        typeof metadata.source_id ===
+          "string"
+          ? metadata.source_id
+          : null;
+
+
+      return {
+        ...row,
+
+        source_table:
+          metadataSourceTable ??
+          (
+            keyParts.length >
+            1
+              ? keyParts[0]
+              : null
+          ),
+
+        source_id:
+          metadataSourceId ??
+          (
+            keyParts.length >
+            1
+              ? keyParts
+                  .slice(
+                    1
+                  )
+                  .join(
+                    ":"
+                  )
+              : row.entity_id
+          ),
+      } as Customer360ReservationHistoryRow;
+    }
+  );
+}

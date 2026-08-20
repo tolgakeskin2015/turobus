@@ -45,6 +45,8 @@ import {
 
 import CustomerQuoteHistory from "../customer-quote-history";
 
+import CustomerReservationHistory from "../customer-reservation-history";
+
 
 type Detail =
   Awaited<
@@ -798,6 +800,12 @@ export default function Customer360DetailPage() {
 
 
             <CustomerQuoteHistory
+              companyId={companyId}
+              customerId={customerId}
+            />
+
+
+            <CustomerReservationHistory
               companyId={companyId}
               customerId={customerId}
             />
