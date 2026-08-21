@@ -1,0 +1,819 @@
+/* ============================================================
+   TUROBUS TOUR OS
+   PROFESSIONAL ENTERPRISE UI SYSTEM
+
+   Scope:
+   - /dashboard/turlar/*
+   - /dashboard/tur-os/*
+
+   IMPORTANT:
+   This stylesheet does not alter business logic.
+   ============================================================ */
+
+
+.tour-os-scope {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba(249, 115, 22, .105),
+      transparent 24rem
+    ),
+    radial-gradient(
+      circle at 95% 8%,
+      rgba(14, 165, 233, .06),
+      transparent 28rem
+    ),
+    linear-gradient(
+      180deg,
+      #02070c 0%,
+      #030a11 34%,
+      #02060b 100%
+    );
+
+  color: #f8fafc;
+}
+
+
+.tour-os-ambient {
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(80px);
+  opacity: .34;
+}
+
+
+.tour-os-ambient-one {
+  top: 6rem;
+  right: 8%;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 999px;
+  background: rgba(249, 115, 22, .12);
+}
+
+
+.tour-os-ambient-two {
+  top: 44rem;
+  left: 8%;
+  width: 18rem;
+  height: 18rem;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, .07);
+}
+
+
+/* ------------------------------------------------------------
+   TOP COMMAND CENTER
+   ------------------------------------------------------------ */
+
+.tour-os-command-bar {
+  position: sticky;
+  z-index: 45;
+  top: 0;
+
+  border-bottom: 1px solid rgba(255,255,255,.07);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(2, 8, 14, .98),
+      rgba(3, 10, 17, .94)
+    );
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  box-shadow:
+    0 14px 45px rgba(0,0,0,.28);
+}
+
+
+.tour-os-command-inner {
+  min-height: 66px;
+  max-width: 1800px;
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  padding:
+    10px
+    28px;
+}
+
+
+.tour-os-command-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  min-width: 230px;
+}
+
+
+.tour-os-command-icon {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(249,115,22,.26);
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(249,115,22,.18),
+      rgba(249,115,22,.04)
+    );
+
+  color: #fb923c;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.05),
+    0 9px 26px rgba(249,115,22,.08);
+}
+
+
+.tour-os-command-eyebrow {
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .2em;
+  color: #64748b;
+}
+
+
+.tour-os-command-title {
+  margin-top: 3px;
+
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+  color: #f8fafc;
+}
+
+
+.tour-os-command-context {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  min-width: 140px;
+
+  border-left:
+    1px solid
+    rgba(255,255,255,.07);
+
+  padding-left: 18px;
+
+  font-size: 8px;
+  font-weight: 900;
+  color: #94a3b8;
+}
+
+
+.tour-os-live-dot {
+  display: inline-block;
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 999px;
+
+  background: #22c55e;
+
+  box-shadow:
+    0 0 0 5px
+    rgba(34,197,94,.08);
+}
+
+
+.tour-os-command-actions {
+  margin-left: auto;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+.tour-os-command-action,
+.tour-os-command-alert {
+  min-height: 36px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  border-radius: 11px;
+
+  background:
+    rgba(255,255,255,.025);
+
+  color: #94a3b8;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  transition:
+    border-color .16s ease,
+    background .16s ease,
+    color .16s ease,
+    transform .16s ease;
+}
+
+
+.tour-os-command-action {
+  padding:
+    0
+    13px;
+}
+
+
+.tour-os-command-alert {
+  width: 36px;
+}
+
+
+.tour-os-command-action:hover,
+.tour-os-command-alert:hover {
+  border-color:
+    rgba(249,115,22,.25);
+
+  background:
+    rgba(249,115,22,.07);
+
+  color: #fdba74;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* ------------------------------------------------------------
+   MODULE NAVIGATION
+   ------------------------------------------------------------ */
+
+.tour-os-module-nav {
+  overflow-x: auto;
+
+  border-top:
+    1px solid
+    rgba(255,255,255,.035);
+
+  scrollbar-width: none;
+}
+
+
+.tour-os-module-nav::-webkit-scrollbar {
+  display: none;
+}
+
+
+.tour-os-module-track {
+  width: max-content;
+  min-width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+
+  max-width: 1800px;
+  margin: 0 auto;
+
+  padding:
+    8px
+    28px;
+}
+
+
+.tour-os-module-link {
+  height: 34px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  white-space: nowrap;
+
+  border:
+    1px solid
+    transparent;
+
+  border-radius: 9px;
+
+  padding:
+    0
+    11px;
+
+  color: #64748b;
+
+  font-size: 7px;
+  font-weight: 900;
+
+  transition:
+    color .15s ease,
+    background .15s ease,
+    border-color .15s ease;
+}
+
+
+.tour-os-module-icon {
+  color: #475569;
+}
+
+
+.tour-os-module-link:hover {
+  border-color:
+    rgba(255,255,255,.07);
+
+  background:
+    rgba(255,255,255,.025);
+
+  color: #cbd5e1;
+}
+
+
+.tour-os-module-link-active {
+  border-color:
+    rgba(249,115,22,.22);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(249,115,22,.12),
+      rgba(249,115,22,.045)
+    );
+
+  color: #fdba74;
+}
+
+
+.tour-os-module-link-active
+.tour-os-module-icon {
+  color: #fb923c;
+}
+
+
+/* ------------------------------------------------------------
+   PAGE STAGE
+   ------------------------------------------------------------ */
+
+.tour-os-page-stage {
+  position: relative;
+  z-index: 1;
+
+  min-height:
+    calc(100vh - 110px);
+}
+
+
+.tour-os-scope main {
+  background:
+    transparent
+    !important;
+}
+
+
+.tour-os-scope main > div {
+  width: 100%;
+}
+
+
+/* ------------------------------------------------------------
+   ENTERPRISE CARDS
+   ------------------------------------------------------------ */
+
+.tour-os-scope section,
+.tour-os-scope article,
+.tour-os-scope aside {
+  transition:
+    border-color .16s ease,
+    box-shadow .16s ease;
+}
+
+
+.tour-os-scope
+section[class*="rounded"],
+.tour-os-scope
+article[class*="rounded"],
+.tour-os-scope
+aside[class*="rounded"] {
+
+  box-shadow:
+    inset 0 1px
+    rgba(255,255,255,.018),
+    0 16px 45px
+    rgba(0,0,0,.075);
+}
+
+
+.tour-os-scope
+section[class*="border-white"],
+.tour-os-scope
+article[class*="border-white"],
+.tour-os-scope
+aside[class*="border-white"] {
+
+  border-color:
+    rgba(148,163,184,.10)
+    !important;
+}
+
+
+/* ------------------------------------------------------------
+   KPI CARDS
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+.grid
+> article[class*="rounded"] {
+
+  position: relative;
+  overflow: hidden;
+}
+
+
+.tour-os-scope
+.grid
+> article[class*="rounded"]::after {
+
+  content: "";
+
+  position: absolute;
+  pointer-events: none;
+
+  top: 0;
+  right: 0;
+
+  width: 58px;
+  height: 58px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(255,255,255,.035),
+      transparent 70%
+    );
+}
+
+
+/* ------------------------------------------------------------
+   TABLE SYSTEM
+   ------------------------------------------------------------ */
+
+.tour-os-scope table {
+  border-collapse: separate;
+  border-spacing: 0;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+.tour-os-scope thead {
+  position: sticky;
+  z-index: 9;
+  top: 0;
+
+  background:
+    rgba(6, 17, 28, .98)
+    !important;
+
+  backdrop-filter: blur(12px);
+}
+
+
+.tour-os-scope th {
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.075);
+
+  letter-spacing: .07em;
+
+  color:
+    #64748b
+    !important;
+}
+
+
+.tour-os-scope tbody tr {
+  transition:
+    background .12s ease,
+    transform .12s ease;
+}
+
+
+.tour-os-scope tbody tr:hover {
+  background:
+    rgba(255,255,255,.018);
+}
+
+
+.tour-os-scope td {
+  vertical-align: middle;
+}
+
+
+/* ------------------------------------------------------------
+   FORM SYSTEM
+   ------------------------------------------------------------ */
+
+.tour-os-scope input,
+.tour-os-scope select,
+.tour-os-scope textarea {
+
+  outline: none;
+
+  border-color:
+    rgba(148,163,184,.12)
+    !important;
+
+  background:
+    rgba(1,6,11,.72)
+    !important;
+
+  color:
+    #e2e8f0
+    !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.018);
+
+  transition:
+    border-color .15s ease,
+    box-shadow .15s ease,
+    background .15s ease;
+}
+
+
+.tour-os-scope input:hover,
+.tour-os-scope select:hover,
+.tour-os-scope textarea:hover {
+
+  border-color:
+    rgba(148,163,184,.20)
+    !important;
+}
+
+
+.tour-os-scope input:focus,
+.tour-os-scope select:focus,
+.tour-os-scope textarea:focus {
+
+  border-color:
+    rgba(249,115,22,.42)
+    !important;
+
+  background:
+    rgba(3,10,17,.94)
+    !important;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(249,115,22,.07);
+}
+
+
+.tour-os-scope
+input::placeholder,
+.tour-os-scope
+textarea::placeholder {
+
+  color:
+    #475569;
+}
+
+
+/* ------------------------------------------------------------
+   BUTTON SYSTEM
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+button[class*="bg-orange"],
+.tour-os-scope
+a[class*="bg-orange"] {
+
+  box-shadow:
+    0 7px 24px
+    rgba(249,115,22,.12);
+
+  transition:
+    filter .15s ease,
+    box-shadow .15s ease,
+    transform .15s ease;
+}
+
+
+.tour-os-scope
+button[class*="bg-orange"]:hover,
+.tour-os-scope
+a[class*="bg-orange"]:hover {
+
+  filter:
+    brightness(1.08);
+
+  box-shadow:
+    0 10px 30px
+    rgba(249,115,22,.18);
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* ------------------------------------------------------------
+   LINKS / ACTIONS
+   ------------------------------------------------------------ */
+
+.tour-os-scope a {
+  transition:
+    color .14s ease,
+    background .14s ease,
+    border-color .14s ease,
+    transform .14s ease;
+}
+
+
+/* ------------------------------------------------------------
+   SCROLL AREAS
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+.overflow-auto,
+.tour-os-scope
+.overflow-x-auto {
+
+  scrollbar-width:
+    thin;
+
+  scrollbar-color:
+    rgba(148,163,184,.18)
+    transparent;
+}
+
+
+.tour-os-scope
+.overflow-auto::-webkit-scrollbar,
+.tour-os-scope
+.overflow-x-auto::-webkit-scrollbar {
+
+  width: 7px;
+  height: 7px;
+}
+
+
+.tour-os-scope
+.overflow-auto::-webkit-scrollbar-thumb,
+.tour-os-scope
+.overflow-x-auto::-webkit-scrollbar-thumb {
+
+  border-radius: 999px;
+
+  background:
+    rgba(148,163,184,.18);
+}
+
+
+/* ------------------------------------------------------------
+   TYPOGRAPHY
+   ------------------------------------------------------------ */
+
+.tour-os-scope h1,
+.tour-os-scope h2,
+.tour-os-scope h3 {
+
+  text-wrap:
+    balance;
+}
+
+
+.tour-os-scope h1 {
+  letter-spacing:
+    -.045em
+    !important;
+}
+
+
+/* ------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------ */
+
+@media (
+  max-width: 1024px
+) {
+
+  .tour-os-command-inner {
+    padding:
+      9px
+      16px;
+  }
+
+
+  .tour-os-command-brand {
+    min-width: unset;
+  }
+
+
+  .tour-os-command-context {
+    display: none;
+  }
+
+
+  .tour-os-command-action span {
+    display: none;
+  }
+
+
+  .tour-os-command-action {
+    width: 36px;
+    padding: 0;
+  }
+
+
+  .tour-os-module-track {
+    padding:
+      7px
+      16px;
+  }
+
+}
+
+
+@media (
+  max-width: 640px
+) {
+
+  .tour-os-command-title {
+    font-size: 10px;
+  }
+
+
+  .tour-os-command-eyebrow {
+    font-size: 6px;
+  }
+
+
+  .tour-os-command-inner {
+    min-height: 58px;
+  }
+
+
+  .tour-os-command-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+
+  .tour-os-module-link {
+    height: 32px;
+    padding:
+      0
+      10px;
+  }
+
+}
+
+
+/* ------------------------------------------------------------
+   ACCESSIBILITY
+   ------------------------------------------------------------ */
+
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+
+  .tour-os-scope *,
+  .tour-os-scope *::before,
+  .tour-os-scope *::after {
+
+    scroll-behavior:
+      auto
+      !important;
+
+    transition:
+      none
+      !important;
+
+  }
+
+}
