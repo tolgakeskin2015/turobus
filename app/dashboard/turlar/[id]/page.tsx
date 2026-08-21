@@ -26,6 +26,7 @@ import {
   FaMapMarkerAlt,
   FaMobileAlt,
   FaMoneyBillWave,
+  FaPaperPlane,
   FaPlane,
   FaRoute,
   FaTasks,
@@ -1612,6 +1613,24 @@ export default function TourOperationHubPage() {
 
             tone:
               "slate",
+          },
+
+
+          {
+            label:
+              "Mesajlar",
+
+            description:
+              "Müşteri, personel ve tedarikçi operasyon iletişimi",
+
+            href:
+              `/dashboard/turlar/${tour.id}/mesajlar`,
+
+            icon:
+              <FaPaperPlane />,
+
+            tone:
+              "emerald",
           },
 
 

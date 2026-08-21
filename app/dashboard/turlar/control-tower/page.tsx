@@ -163,6 +163,18 @@ type Sale = {
 };
 
 
+type CommunicationSummary = {
+  id: string;
+  tour_id: string;
+  departure_id:
+    string | null;
+  channel: string;
+  delivery_status: string;
+  scheduled_at:
+    string | null;
+};
+
+
 type DocumentSummary = {
   id: string;
   tour_id: string;
@@ -241,6 +253,8 @@ type TowerRow = {
   requiredDocumentAlertCount:
     number;
   expiredDocumentCount:
+    number;
+  communicationAlertCount:
     number;
 };
 
@@ -442,6 +456,15 @@ export default function TourControlTowerPage() {
       []
     );
 
+
+  const [
+    communications,
+    setCommunications,
+  ] =
+    useState<CommunicationSummary[]>(
+      []
+    );
+
   const [
     search,
     setSearch,
@@ -555,6 +578,7 @@ export default function TourControlTowerPage() {
             taskResult,
             supplierCommitmentResult,
             documentResult,
+            communicationResult,
           ] =
             await Promise.all([
 
@@ -843,6 +867,30 @@ export default function TourControlTowerPage() {
                   "cancelled"
                 ),
 
+
+              supabase
+                .from(
+                  "tour_operation_communications"
+                )
+                .select(
+                  [
+                    "id",
+                    "tour_id",
+                    "departure_id",
+                    "channel",
+                    "delivery_status",
+                    "scheduled_at",
+                  ].join(",")
+                )
+                .eq(
+                  "company_id",
+                  companyId
+                )
+                .neq(
+                  "delivery_status",
+                  "cancelled"
+                ),
+
             ]);
 
 
@@ -860,6 +908,7 @@ export default function TourControlTowerPage() {
             taskResult.error,
             supplierCommitmentResult.error,
             documentResult.error,
+            communicationResult.error,
           ].filter(Boolean);
 
 
@@ -985,6 +1034,15 @@ export default function TourControlTowerPage() {
               []
             ) as unknown as
               DocumentSummary[]
+          );
+
+
+          setCommunications(
+            (
+              communicationResult.data ??
+              []
+            ) as unknown as
+              CommunicationSummary[]
           );
 
 
@@ -1314,6 +1372,69 @@ export default function TourControlTowerPage() {
 
                   }
                 ).length;
+
+
+              const departureCommunications =
+                communications.filter(
+                  communication =>
+                    communication.tour_id ===
+                      tour.id &&
+                    (
+                      communication.departure_id ===
+                        departure.id ||
+                      communication.departure_id ===
+                        null
+                    )
+                );
+
+
+              const communicationFailedCount =
+                departureCommunications.filter(
+                  communication =>
+                    communication.delivery_status ===
+                    "failed"
+                ).length;
+
+
+              const communicationOverdueCount =
+                departureCommunications.filter(
+                  communication => {
+
+                    if (
+                      !communication.scheduled_at ||
+                      ![
+                        "draft",
+                        "ready",
+                        "queued",
+                      ].includes(
+                        communication.delivery_status
+                      )
+                    ) {
+                      return false;
+                    }
+
+
+                    const time =
+                      new Date(
+                        communication.scheduled_at
+                      ).getTime();
+
+
+                    return (
+                      Number.isFinite(
+                        time
+                      ) &&
+                      time <
+                        Date.now()
+                    );
+
+                  }
+                ).length;
+
+
+              const communicationAlertCount =
+                communicationFailedCount +
+                communicationOverdueCount;
 
 
               const checks:
@@ -1734,6 +1855,7 @@ export default function TourControlTowerPage() {
                 supplierIssueCount,
                 requiredDocumentAlertCount,
                 expiredDocumentCount,
+                communicationAlertCount,
               };
 
             }
@@ -1757,6 +1879,7 @@ export default function TourControlTowerPage() {
         manifest,
         passengers,
         reservations,
+        communications,
         documents,
         sales,
         supplierCommitments,
@@ -2003,6 +2126,18 @@ export default function TourControlTowerPage() {
     );
 
 
+  const totalCommunicationAlerts =
+    rows.reduce(
+      (
+        total,
+        row
+      ) =>
+        total +
+        row.communicationAlertCount,
+      0
+    );
+
+
   if (
     loading
   ) {
@@ -2156,6 +2291,13 @@ export default function TourControlTowerPage() {
                 "Belge Alarmı",
               value:
                 totalDocumentAlerts,
+            },
+
+            {
+              label:
+                "İletişim Alarmı",
+              value:
+                totalCommunicationAlerts,
             },
           ].map(
             item => (
