@@ -21,6 +21,7 @@ import {
   FaClipboardCheck,
   FaEdit,
   FaExclamationTriangle,
+  FaFileAlt,
   FaIdCard,
   FaMapMarkerAlt,
   FaMobileAlt,
@@ -1611,6 +1612,24 @@ export default function TourOperationHubPage() {
 
             tone:
               "slate",
+          },
+
+
+          {
+            label:
+              "Belgeler",
+
+            description:
+              "Voucher, PNR, manifest ve operasyon evrakları",
+
+            href:
+              `/dashboard/turlar/${tour.id}/belgeler`,
+
+            icon:
+              <FaFileAlt />,
+
+            tone:
+              "blue",
           },
 
 

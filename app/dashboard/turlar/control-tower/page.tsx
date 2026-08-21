@@ -163,6 +163,18 @@ type Sale = {
 };
 
 
+type DocumentSummary = {
+  id: string;
+  tour_id: string;
+  departure_id:
+    string | null;
+  document_status: string;
+  is_required: boolean;
+  expires_at:
+    string | null;
+};
+
+
 type SupplierCommitmentSummary = {
   id: string;
   tour_id: string;
@@ -225,6 +237,10 @@ type TowerRow = {
   pendingSupplierConfirmationCount:
     number;
   supplierIssueCount:
+    number;
+  requiredDocumentAlertCount:
+    number;
+  expiredDocumentCount:
     number;
 };
 
@@ -417,6 +433,15 @@ export default function TourControlTowerPage() {
       []
     );
 
+
+  const [
+    documents,
+    setDocuments,
+  ] =
+    useState<DocumentSummary[]>(
+      []
+    );
+
   const [
     search,
     setSearch,
@@ -529,6 +554,7 @@ export default function TourControlTowerPage() {
             salesResult,
             taskResult,
             supplierCommitmentResult,
+            documentResult,
           ] =
             await Promise.all([
 
@@ -793,6 +819,30 @@ export default function TourControlTowerPage() {
                   "cancelled"
                 ),
 
+
+              supabase
+                .from(
+                  "tour_documents"
+                )
+                .select(
+                  [
+                    "id",
+                    "tour_id",
+                    "departure_id",
+                    "document_status",
+                    "is_required",
+                    "expires_at",
+                  ].join(",")
+                )
+                .eq(
+                  "company_id",
+                  companyId
+                )
+                .neq(
+                  "document_status",
+                  "cancelled"
+                ),
+
             ]);
 
 
@@ -809,6 +859,7 @@ export default function TourControlTowerPage() {
             salesResult.error,
             taskResult.error,
             supplierCommitmentResult.error,
+            documentResult.error,
           ].filter(Boolean);
 
 
@@ -925,6 +976,15 @@ export default function TourControlTowerPage() {
               []
             ) as unknown as
               SupplierCommitmentSummary[]
+          );
+
+
+          setDocuments(
+            (
+              documentResult.data ??
+              []
+            ) as unknown as
+              DocumentSummary[]
           );
 
 
@@ -1194,6 +1254,65 @@ export default function TourControlTowerPage() {
                   item =>
                     item.operational_status ===
                     "issue"
+                ).length;
+
+
+              const departureDocuments =
+                documents.filter(
+                  document =>
+                    document.tour_id ===
+                      tour.id &&
+                    (
+                      document.departure_id ===
+                        departure.id ||
+                      document.departure_id ===
+                        null
+                    )
+                );
+
+
+              const requiredDocumentAlertCount =
+                departureDocuments.filter(
+                  document =>
+                    document.is_required &&
+                    ![
+                      "ready",
+                      "sent",
+                      "cancelled",
+                    ].includes(
+                      document.document_status
+                    )
+                ).length;
+
+
+              const expiredDocumentCount =
+                departureDocuments.filter(
+                  document => {
+
+                    if (
+                      !document.expires_at ||
+                      document.document_status ===
+                        "cancelled"
+                    ) {
+                      return false;
+                    }
+
+
+                    const time =
+                      new Date(
+                        document.expires_at
+                      ).getTime();
+
+
+                    return (
+                      Number.isFinite(
+                        time
+                      ) &&
+                      time <
+                        Date.now()
+                    );
+
+                  }
                 ).length;
 
 
@@ -1613,6 +1732,8 @@ export default function TourControlTowerPage() {
                 criticalTaskCount,
                 pendingSupplierConfirmationCount,
                 supplierIssueCount,
+                requiredDocumentAlertCount,
+                expiredDocumentCount,
               };
 
             }
@@ -1636,6 +1757,7 @@ export default function TourControlTowerPage() {
         manifest,
         passengers,
         reservations,
+        documents,
         sales,
         supplierCommitments,
         tasks,
@@ -1868,6 +1990,19 @@ export default function TourControlTowerPage() {
     );
 
 
+  const totalDocumentAlerts =
+    rows.reduce(
+      (
+        total,
+        row
+      ) =>
+        total +
+        row.requiredDocumentAlertCount +
+        row.expiredDocumentCount,
+      0
+    );
+
+
   if (
     loading
   ) {
@@ -2014,6 +2149,13 @@ export default function TourControlTowerPage() {
                 "Tedarikçi Alarmı",
               value:
                 totalSupplierAlerts,
+            },
+
+            {
+              label:
+                "Belge Alarmı",
+              value:
+                totalDocumentAlerts,
             },
           ].map(
             item => (
@@ -2186,6 +2328,11 @@ export default function TourControlTowerPage() {
 
 
                   <th className="px-4 py-4">
+                    Belge
+                  </th>
+
+
+                  <th className="px-4 py-4">
                     Ciro
                   </th>
 
@@ -2213,7 +2360,7 @@ export default function TourControlTowerPage() {
                   <tr>
 
                     <td
-                      colSpan={15}
+                      colSpan={16}
                       className="px-5 py-16 text-center text-[8px] text-slate-600"
                     >
                       Filtreye uygun tur çıkışı bulunamadı.
@@ -2444,6 +2591,32 @@ export default function TourControlTowerPage() {
                               : row.pendingSupplierConfirmationCount >
                                   0
                                 ? `${row.pendingSupplierConfirmationCount} teyit`
+                                : "Hazır"}
+                          </Link>
+
+                        </td>
+
+
+                        <td className="px-4 py-4">
+
+                          <Link
+                            href={`/dashboard/turlar/${row.tour.id}/belgeler`}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[7px] font-black ${
+                              row.expiredDocumentCount >
+                              0
+                                ? "border-red-500/20 bg-red-500/[.07] text-red-300"
+                                : row.requiredDocumentAlertCount >
+                                    0
+                                  ? "border-amber-500/20 bg-amber-500/[.07] text-amber-300"
+                                  : "border-emerald-500/20 bg-emerald-500/[.05] text-emerald-300"
+                            }`}
+                          >
+                            {row.expiredDocumentCount >
+                            0
+                              ? `${row.expiredDocumentCount} süresi geçmiş`
+                              : row.requiredDocumentAlertCount >
+                                  0
+                                ? `${row.requiredDocumentAlertCount} eksik`
                                 : "Hazır"}
                           </Link>
 
