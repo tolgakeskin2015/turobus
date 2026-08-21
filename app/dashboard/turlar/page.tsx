@@ -23,6 +23,7 @@ import {
   FaPlane,
   FaPlus,
   FaSearch,
+  FaThLarge,
   FaUserCheck,
   FaUsers,
 } from "react-icons/fa";
@@ -1266,6 +1267,15 @@ export default function DashboardToursPage() {
                         <td className="px-5 py-4">
 
                           <div className="flex justify-end gap-2">
+
+                            <Link
+                              href={`/dashboard/turlar/${tour.id}`}
+                              title="Tur operasyon merkezi"
+                              className="grid h-9 w-9 place-items-center rounded-xl border border-orange-500/20 bg-orange-500/[.07] text-orange-300 transition hover:bg-orange-500 hover:text-white"
+                            >
+                              <FaThLarge />
+                            </Link>
+
 
                             <Link
                               href={`/turlar/${tour.slug}`}
