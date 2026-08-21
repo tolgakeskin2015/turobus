@@ -13,6 +13,7 @@ import {
   FaArrowLeft,
   FaBus,
   FaCalendarAlt,
+  FaChartLine,
   FaEdit,
   FaEye,
   FaExclamationTriangle,
@@ -735,6 +736,15 @@ export default function DashboardToursPage() {
               >
                 <FaArrowLeft />
                 Operasyon Merkezi
+              </Link>
+
+
+              <Link
+                href="/dashboard/turlar/control-tower"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-orange-500/20 bg-orange-500/[.07] px-4 text-[9px] font-black text-orange-300"
+              >
+                <FaChartLine />
+                Control Tower
               </Link>
 
 
