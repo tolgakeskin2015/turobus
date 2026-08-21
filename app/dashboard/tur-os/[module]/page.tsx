@@ -42,6 +42,7 @@ import {
 
 
 type ModuleKey =
+  | "durum"
   | "hazirlik"
   | "yolcular"
   | "ucus"
@@ -97,6 +98,17 @@ const MODULES:
     ModuleKey,
     ModuleDefinition
   > = {
+
+    durum: {
+      key:
+        "durum",
+      title:
+        "Durum & Operasyon Akışı",
+      description:
+        "Kontrollü lifecycle, readiness ve audit geçmişi",
+      route:
+        "durum",
+    },
 
     hazirlik: {
       key:
@@ -307,22 +319,22 @@ function operationStatusLabel(
     > = {
     draft:
       "Taslak",
-    on_sale:
+    sales:
       "Satışta",
     confirmed:
       "Kesinleşti",
-    operation_preparation:
+    preparing:
       "Operasyon Hazırlığı",
-    departure_ready:
+    ready:
       "Çıkış Hazır",
-    on_the_way:
-      "Yolda",
-    in_progress:
-      "Tur Devam Ediyor",
-    return:
+    active:
+      "Aktif",
+    returning:
       "Dönüş",
     completed:
       "Tamamlandı",
+    cancelled:
+      "İptal",
   };
 
 

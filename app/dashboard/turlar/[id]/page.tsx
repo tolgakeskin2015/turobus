@@ -1618,6 +1618,24 @@ export default function TourOperationHubPage() {
 
           {
             label:
+              "Durum & Akış",
+
+            description:
+              "Kontrollü operasyon lifecycle ve readiness motoru",
+
+            href:
+              `/dashboard/turlar/${tour.id}/durum`,
+
+            icon:
+              <FaRoute />,
+
+            tone:
+              "orange",
+          },
+
+
+          {
+            label:
               "Mesajlar",
 
             description:

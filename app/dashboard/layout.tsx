@@ -186,6 +186,16 @@ const menuGroups: MenuGroup[] = [
             ],
           },
           {
+            href: "/dashboard/tur-os/durum",
+            label: "Durum & Akış",
+            icon: FaMapMarkedAlt,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+          {
             href: "/dashboard/tur-os/hazirlik",
             label: "Hazırlık & Alarmlar",
             icon: FaExclamationTriangle,
