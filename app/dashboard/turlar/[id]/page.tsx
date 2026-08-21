@@ -13,6 +13,7 @@ import {
 import {
   FaArrowLeft,
   FaBed,
+  FaBuilding,
   FaBus,
   FaCalendarAlt,
   FaChartLine,
@@ -1610,6 +1611,24 @@ export default function TourOperationHubPage() {
 
             tone:
               "slate",
+          },
+
+
+          {
+            label:
+              "Tedarikçiler",
+
+            description:
+              "Teyit, sözleşme, voucher ve gerçek cari bağlantısı",
+
+            href:
+              `/dashboard/turlar/${tour.id}/tedarikciler`,
+
+            icon:
+              <FaBuilding />,
+
+            tone:
+              "violet",
           },
 
 

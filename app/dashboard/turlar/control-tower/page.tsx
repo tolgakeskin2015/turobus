@@ -163,6 +163,20 @@ type Sale = {
 };
 
 
+type SupplierCommitmentSummary = {
+  id: string;
+  tour_id: string;
+  departure_id:
+    string | null;
+  confirmation_status: string;
+  operational_status: string;
+  payment_due_at:
+    string | null;
+  operation_expense_id:
+    string | null;
+};
+
+
 type TaskSummary = {
   id: string;
   tour_id: string;
@@ -207,6 +221,10 @@ type TowerRow = {
   overdueTaskCount:
     number;
   criticalTaskCount:
+    number;
+  pendingSupplierConfirmationCount:
+    number;
+  supplierIssueCount:
     number;
 };
 
@@ -390,6 +408,15 @@ export default function TourControlTowerPage() {
       []
     );
 
+
+  const [
+    supplierCommitments,
+    setSupplierCommitments,
+  ] =
+    useState<SupplierCommitmentSummary[]>(
+      []
+    );
+
   const [
     search,
     setSearch,
@@ -501,6 +528,7 @@ export default function TourControlTowerPage() {
             expenseResult,
             salesResult,
             taskResult,
+            supplierCommitmentResult,
           ] =
             await Promise.all([
 
@@ -740,6 +768,31 @@ export default function TourControlTowerPage() {
                   "cancelled"
                 ),
 
+
+              supabase
+                .from(
+                  "tour_supplier_commitments"
+                )
+                .select(
+                  [
+                    "id",
+                    "tour_id",
+                    "departure_id",
+                    "confirmation_status",
+                    "operational_status",
+                    "payment_due_at",
+                    "operation_expense_id",
+                  ].join(",")
+                )
+                .eq(
+                  "company_id",
+                  companyId
+                )
+                .neq(
+                  "confirmation_status",
+                  "cancelled"
+                ),
+
             ]);
 
 
@@ -755,6 +808,7 @@ export default function TourControlTowerPage() {
             expenseResult.error,
             salesResult.error,
             taskResult.error,
+            supplierCommitmentResult.error,
           ].filter(Boolean);
 
 
@@ -862,6 +916,15 @@ export default function TourControlTowerPage() {
               []
             ) as unknown as
               TaskSummary[]
+          );
+
+
+          setSupplierCommitments(
+            (
+              supplierCommitmentResult.data ??
+              []
+            ) as unknown as
+              SupplierCommitmentSummary[]
           );
 
 
@@ -1097,6 +1160,40 @@ export default function TourControlTowerPage() {
                   task =>
                     task.priority ===
                     "critical"
+                ).length;
+
+
+              const departureSupplierCommitments =
+                supplierCommitments.filter(
+                  item =>
+                    item.tour_id ===
+                      tour.id &&
+                    (
+                      item.departure_id ===
+                        departure.id ||
+                      item.departure_id ===
+                        null
+                    )
+                );
+
+
+              const pendingSupplierConfirmationCount =
+                departureSupplierCommitments.filter(
+                  item =>
+                    [
+                      "pending",
+                      "requested",
+                    ].includes(
+                      item.confirmation_status
+                    )
+                ).length;
+
+
+              const supplierIssueCount =
+                departureSupplierCommitments.filter(
+                  item =>
+                    item.operational_status ===
+                    "issue"
                 ).length;
 
 
@@ -1514,6 +1611,8 @@ export default function TourControlTowerPage() {
                   openTasks.length,
                 overdueTaskCount,
                 criticalTaskCount,
+                pendingSupplierConfirmationCount,
+                supplierIssueCount,
               };
 
             }
@@ -1538,6 +1637,7 @@ export default function TourControlTowerPage() {
         passengers,
         reservations,
         sales,
+        supplierCommitments,
         tasks,
         tours,
       ]
@@ -1755,6 +1855,19 @@ export default function TourControlTowerPage() {
     );
 
 
+  const totalSupplierAlerts =
+    rows.reduce(
+      (
+        total,
+        row
+      ) =>
+        total +
+        row.pendingSupplierConfirmationCount +
+        row.supplierIssueCount,
+      0
+    );
+
+
   if (
     loading
   ) {
@@ -1894,6 +2007,13 @@ export default function TourControlTowerPage() {
                 "Geciken Görev",
               value:
                 totalOverdueTasks,
+            },
+
+            {
+              label:
+                "Tedarikçi Alarmı",
+              value:
+                totalSupplierAlerts,
             },
           ].map(
             item => (
@@ -2061,6 +2181,11 @@ export default function TourControlTowerPage() {
 
 
                   <th className="px-4 py-4">
+                    Tedarikçi
+                  </th>
+
+
+                  <th className="px-4 py-4">
                     Ciro
                   </th>
 
@@ -2088,7 +2213,7 @@ export default function TourControlTowerPage() {
                   <tr>
 
                     <td
-                      colSpan={14}
+                      colSpan={15}
                       className="px-5 py-16 text-center text-[8px] text-slate-600"
                     >
                       Filtreye uygun tur çıkışı bulunamadı.
@@ -2294,6 +2419,32 @@ export default function TourControlTowerPage() {
                             {row.overdueTaskCount >
                               0 &&
                               ` · ${row.overdueTaskCount} gecikmiş`}
+                          </Link>
+
+                        </td>
+
+
+                        <td className="px-4 py-4">
+
+                          <Link
+                            href={`/dashboard/turlar/${row.tour.id}/tedarikciler`}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[7px] font-black ${
+                              row.supplierIssueCount >
+                              0
+                                ? "border-red-500/20 bg-red-500/[.07] text-red-300"
+                                : row.pendingSupplierConfirmationCount >
+                                    0
+                                  ? "border-amber-500/20 bg-amber-500/[.07] text-amber-300"
+                                  : "border-emerald-500/20 bg-emerald-500/[.05] text-emerald-300"
+                            }`}
+                          >
+                            {row.supplierIssueCount >
+                            0
+                              ? `${row.supplierIssueCount} sorun`
+                              : row.pendingSupplierConfirmationCount >
+                                  0
+                                ? `${row.pendingSupplierConfirmationCount} teyit`
+                                : "Hazır"}
                           </Link>
 
                         </td>
