@@ -2180,6 +2180,14 @@ export default function TourControlTowerPage() {
 
 
                             <Link
+                              href={`/dashboard/turlar/${row.tour.id}/mobil`}
+                              className="rounded-lg border border-orange-500/20 bg-orange-500/[.05] px-3 py-2 text-[7px] font-black text-orange-300"
+                            >
+                              Mobil
+                            </Link>
+
+
+                            <Link
                               href={`/dashboard/turlar/${row.tour.id}/finans`}
                               className="rounded-lg border border-white/10 px-3 py-2 text-[7px] font-black text-slate-300"
                             >

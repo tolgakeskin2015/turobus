@@ -23,6 +23,7 @@ import {
   FaPlane,
   FaPlus,
   FaSearch,
+  FaUserCheck,
   FaUsers,
 } from "react-icons/fa";
 
@@ -1323,6 +1324,15 @@ export default function DashboardToursPage() {
                               className="grid h-9 w-9 place-items-center rounded-xl border border-emerald-500/20 bg-emerald-500/[.06] text-emerald-300 transition hover:bg-emerald-500 hover:text-white"
                             >
                               <FaMoneyBillWave />
+                            </Link>
+
+
+                            <Link
+                              href={`/dashboard/turlar/${tour.id}/mobil`}
+                              title="Mobil saha operasyonu"
+                              className="grid h-9 w-9 place-items-center rounded-xl border border-orange-500/20 bg-orange-500/[.06] text-orange-300 transition hover:bg-orange-500 hover:text-white"
+                            >
+                              <FaUserCheck />
                             </Link>
 
 
