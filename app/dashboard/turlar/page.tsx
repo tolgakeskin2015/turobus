@@ -1288,6 +1288,15 @@ export default function DashboardToursPage() {
 
 
                             <Link
+                              href={`/dashboard/turlar/${tour.id}/yolcular`}
+                              title="Yolcu operasyonu"
+                              className="grid h-9 w-9 place-items-center rounded-xl border border-emerald-500/20 bg-emerald-500/[.06] text-emerald-300 transition hover:bg-emerald-500 hover:text-white"
+                            >
+                              <FaUsers />
+                            </Link>
+
+
+                            <Link
                               href={`/dashboard/turlar/${tour.id}/takvim`}
                               title="Tur takvimi"
                               className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[.03] text-slate-400 transition hover:text-emerald-300"
