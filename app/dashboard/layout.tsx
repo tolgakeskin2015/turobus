@@ -26,6 +26,13 @@ import {
   FaUsers,
   FaHotel,
   FaCoins,
+  FaExclamationTriangle,
+  FaFileAlt,
+  FaMobileAlt,
+  FaMoneyBillWave,
+  FaPaperPlane,
+  FaPlane,
+  FaTasks,
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 import ManagerNotificationBell from "./components/ManagerNotificationBell";
@@ -108,8 +115,8 @@ const menuGroups: MenuGroup[] = [
     title: "İŞLETME SİSTEMLERİ",
     items: [
       {
-        href: "/dashboard/operasyon",
-        label: "Tur Operasyon",
+        href: "/dashboard/turlar/control-tower",
+        label: "Tur OS",
         icon: FaBus,
         roles: [
           "super_admin",
@@ -122,9 +129,30 @@ const menuGroups: MenuGroup[] = [
         ],
         children: [
           {
+            href: "/dashboard/turlar/control-tower",
+            label: "Kontrol Kulesi",
+            icon: FaMapMarkedAlt,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+          {
+            href: "/dashboard/turlar",
+            label: "Tüm Turlar",
+            icon: FaBus,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+            ],
+          },
+          {
             href: "/dashboard/operasyon",
             label: "Operasyon Merkezi",
-            icon: FaBus,
+            icon: FaMapMarkedAlt,
             roles: [
               "super_admin",
               "company_owner",
@@ -158,14 +186,48 @@ const menuGroups: MenuGroup[] = [
             ],
           },
           {
-            href: "/dashboard/turlar",
-            label: "Tur Yönetimi",
-            icon: FaBus,
+            href: "/dashboard/tur-os/hazirlik",
+            label: "Hazırlık & Alarmlar",
+            icon: FaExclamationTriangle,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+            ],
+          },
+          {
+            href: "/dashboard/tur-os/yolcular",
+            label: "Yolcu & Rooming",
+            icon: FaUsers,
             roles: [
               "super_admin",
               "company_owner",
               "operation_manager",
               "sales",
+              "guide",
+            ],
+          },
+          {
+            href: "/dashboard/tur-os/ucus",
+            label: "Uçuş Yönetimi",
+            icon: FaPlane,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+            ],
+          },
+          {
+            href: "/dashboard/tur-os/otobus",
+            label: "Otobüs Operasyonu",
+            icon: FaBus,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "guide",
+              "driver",
             ],
           },
           {
@@ -179,13 +241,70 @@ const menuGroups: MenuGroup[] = [
             ],
           },
           {
-            href: "/dashboard/gorev-atama",
-            label: "Görev Atama",
-            icon: FaClipboardList,
+            href: "/dashboard/tur-os/gorevler",
+            label: "Görev & Personel",
+            icon: FaTasks,
             roles: [
               "super_admin",
               "company_owner",
               "operation_manager",
+            ],
+          },
+          {
+            href: "/dashboard/tur-os/tedarikciler",
+            label: "Tedarikçi & Cari",
+            icon: FaHotel,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "accounting",
+            ],
+          },
+          {
+            href: "/dashboard/tur-os/belgeler",
+            label: "Belge & Voucher",
+            icon: FaFileAlt,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+              "guide",
+            ],
+          },
+          {
+            href: "/dashboard/tur-os/mesajlar",
+            label: "Mesajlaşma",
+            icon: FaPaperPlane,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "sales",
+            ],
+          },
+          {
+            href: "/dashboard/tur-os/finans",
+            label: "Tur Finansmanı",
+            icon: FaMoneyBillWave,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "accounting",
+            ],
+          },
+          {
+            href: "/dashboard/tur-os/mobil",
+            label: "Mobil Operasyon",
+            icon: FaMobileAlt,
+            roles: [
+              "super_admin",
+              "company_owner",
+              "operation_manager",
+              "guide",
+              "driver",
             ],
           },
         ],
