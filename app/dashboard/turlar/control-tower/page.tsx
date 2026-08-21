@@ -18,6 +18,7 @@ import {
   FaMoneyBillWave,
   FaPlane,
   FaSearch,
+  FaTasks,
   FaTicketAlt,
   FaTimesCircle,
   FaUsers,
@@ -162,6 +163,18 @@ type Sale = {
 };
 
 
+type TaskSummary = {
+  id: string;
+  tour_id: string;
+  departure_id:
+    string | null;
+  priority: string;
+  status: string;
+  due_at:
+    string | null;
+};
+
+
 type TowerRow = {
   tour:
     Tour;
@@ -189,6 +202,12 @@ type TowerRow = {
     boolean;
   expiredDeadline:
     boolean;
+  openTaskCount:
+    number;
+  overdueTaskCount:
+    number;
+  criticalTaskCount:
+    number;
 };
 
 
@@ -362,6 +381,15 @@ export default function TourControlTowerPage() {
       []
     );
 
+
+  const [
+    tasks,
+    setTasks,
+  ] =
+    useState<TaskSummary[]>(
+      []
+    );
+
   const [
     search,
     setSearch,
@@ -472,6 +500,7 @@ export default function TourControlTowerPage() {
             manifestResult,
             expenseResult,
             salesResult,
+            taskResult,
           ] =
             await Promise.all([
 
@@ -687,6 +716,30 @@ export default function TourControlTowerPage() {
                   "cancelled"
                 ),
 
+
+              supabase
+                .from(
+                  "tour_operation_tasks"
+                )
+                .select(
+                  [
+                    "id",
+                    "tour_id",
+                    "departure_id",
+                    "priority",
+                    "status",
+                    "due_at",
+                  ].join(",")
+                )
+                .eq(
+                  "company_id",
+                  companyId
+                )
+                .neq(
+                  "status",
+                  "cancelled"
+                ),
+
             ]);
 
 
@@ -701,6 +754,7 @@ export default function TourControlTowerPage() {
             manifestResult.error,
             expenseResult.error,
             salesResult.error,
+            taskResult.error,
           ].filter(Boolean);
 
 
@@ -799,6 +853,15 @@ export default function TourControlTowerPage() {
               []
             ) as unknown as
               Sale[]
+          );
+
+
+          setTasks(
+            (
+              taskResult.data ??
+              []
+            ) as unknown as
+              TaskSummary[]
           );
 
 
@@ -986,6 +1049,55 @@ export default function TourControlTowerPage() {
               const contribution =
                 grossProfit -
                 expenseTotal;
+
+
+              const departureTasks =
+                tasks.filter(
+                  task =>
+                    task.tour_id ===
+                      tour.id &&
+                    (
+                      task.departure_id ===
+                        departure.id ||
+                      task.departure_id ===
+                        null
+                    )
+                );
+
+
+              const openTasks =
+                departureTasks.filter(
+                  task =>
+                    ![
+                      "completed",
+                      "cancelled",
+                    ].includes(
+                      task.status
+                    )
+                );
+
+
+              const overdueTaskCount =
+                openTasks.filter(
+                  task =>
+                    Boolean(
+                      task.due_at
+                    ) &&
+                    new Date(
+                      String(
+                        task.due_at
+                      )
+                    ).getTime() <
+                      Date.now()
+                ).length;
+
+
+              const criticalTaskCount =
+                openTasks.filter(
+                  task =>
+                    task.priority ===
+                    "critical"
+                ).length;
 
 
               const checks:
@@ -1398,6 +1510,10 @@ export default function TourControlTowerPage() {
                 contribution,
                 deadlineRisk,
                 expiredDeadline,
+                openTaskCount:
+                  openTasks.length,
+                overdueTaskCount,
+                criticalTaskCount,
               };
 
             }
@@ -1422,6 +1538,7 @@ export default function TourControlTowerPage() {
         passengers,
         reservations,
         sales,
+        tasks,
         tours,
       ]
     );
@@ -1626,6 +1743,18 @@ export default function TourControlTowerPage() {
     ).length;
 
 
+  const totalOverdueTasks =
+    rows.reduce(
+      (
+        total,
+        row
+      ) =>
+        total +
+        row.overdueTaskCount,
+      0
+    );
+
+
   if (
     loading
   ) {
@@ -1758,6 +1887,13 @@ export default function TourControlTowerPage() {
                 "Deadline Riski",
               value:
                 deadlineRiskCount,
+            },
+
+            {
+              label:
+                "Geciken Görev",
+              value:
+                totalOverdueTasks,
             },
           ].map(
             item => (
@@ -1920,6 +2056,11 @@ export default function TourControlTowerPage() {
                   </th>
 
                   <th className="px-4 py-4">
+                    Görev
+                  </th>
+
+
+                  <th className="px-4 py-4">
                     Ciro
                   </th>
 
@@ -1947,7 +2088,7 @@ export default function TourControlTowerPage() {
                   <tr>
 
                     <td
-                      colSpan={13}
+                      colSpan={14}
                       className="px-5 py-16 text-center text-[8px] text-slate-600"
                     >
                       Filtreye uygun tur çıkışı bulunamadı.
@@ -2131,6 +2272,33 @@ export default function TourControlTowerPage() {
                         </td>
 
 
+                        <td className="px-4 py-4">
+
+                          <Link
+                            href={`/dashboard/turlar/${row.tour.id}/gorevler`}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[7px] font-black ${
+                              row.overdueTaskCount >
+                              0
+                                ? "border-red-500/20 bg-red-500/[.07] text-red-300"
+                                : row.criticalTaskCount >
+                                    0
+                                  ? "border-orange-500/20 bg-orange-500/[.07] text-orange-300"
+                                  : "border-white/10 bg-white/[.025] text-slate-400"
+                            }`}
+                          >
+                            <FaTasks />
+
+                            {row.openTaskCount}
+                            {" açık"}
+
+                            {row.overdueTaskCount >
+                              0 &&
+                              ` · ${row.overdueTaskCount} gecikmiş`}
+                          </Link>
+
+                        </td>
+
+
                         <td className="px-4 py-4 text-[9px] font-black">
                           {money(
                             row.revenue
@@ -2184,6 +2352,14 @@ export default function TourControlTowerPage() {
                               className="rounded-lg border border-orange-500/20 bg-orange-500/[.05] px-3 py-2 text-[7px] font-black text-orange-300"
                             >
                               Mobil
+                            </Link>
+
+
+                            <Link
+                              href={`/dashboard/turlar/${row.tour.id}/gorevler`}
+                              className="rounded-lg border border-orange-500/20 bg-orange-500/[.05] px-3 py-2 text-[7px] font-black text-orange-300"
+                            >
+                              Görev
                             </Link>
 
 

@@ -26,6 +26,7 @@ import {
   FaMoneyBillWave,
   FaPlane,
   FaRoute,
+  FaTasks,
   FaTicketAlt,
   FaUsers,
 } from "react-icons/fa";
@@ -1609,6 +1610,24 @@ export default function TourOperationHubPage() {
 
             tone:
               "slate",
+          },
+
+
+          {
+            label:
+              "Görevler",
+
+            description:
+              "Personel, deadline, öncelik ve operasyon görevleri",
+
+            href:
+              `/dashboard/turlar/${tour.id}/gorevler`,
+
+            icon:
+              <FaTasks />,
+
+            tone:
+              "orange",
           },
 
 
