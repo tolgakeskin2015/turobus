@@ -1263,6 +1263,18 @@ export default function DashboardToursPage() {
                             </Link>
 
 
+                            {tour.transport_mode ===
+                              "air" && (
+                              <Link
+                                href={`/dashboard/turlar/${tour.id}/ucus`}
+                                title="Uçuş operasyonu"
+                                className="grid h-9 w-9 place-items-center rounded-xl border border-blue-500/20 bg-blue-500/[.06] text-blue-300 transition hover:bg-blue-500 hover:text-white"
+                              >
+                                <FaPlane />
+                              </Link>
+                            )}
+
+
                             <Link
                               href={`/dashboard/turlar/${tour.id}/takvim`}
                               title="Tur takvimi"
