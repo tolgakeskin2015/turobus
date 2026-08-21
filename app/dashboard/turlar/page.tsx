@@ -15,6 +15,7 @@ import {
   FaCalendarAlt,
   FaEdit,
   FaEye,
+  FaExclamationTriangle,
   FaFilter,
   FaMapMarkerAlt,
   FaPlane,
@@ -1293,6 +1294,15 @@ export default function DashboardToursPage() {
                               className="grid h-9 w-9 place-items-center rounded-xl border border-emerald-500/20 bg-emerald-500/[.06] text-emerald-300 transition hover:bg-emerald-500 hover:text-white"
                             >
                               <FaUsers />
+                            </Link>
+
+
+                            <Link
+                              href={`/dashboard/turlar/${tour.id}/hazirlik`}
+                              title="Operasyon hazırlığı"
+                              className="grid h-9 w-9 place-items-center rounded-xl border border-amber-500/20 bg-amber-500/[.06] text-amber-300 transition hover:bg-amber-500 hover:text-white"
+                            >
+                              <FaExclamationTriangle />
                             </Link>
 
 
