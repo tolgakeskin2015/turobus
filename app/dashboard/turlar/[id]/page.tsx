@@ -49,6 +49,7 @@ import {
 } from "@/lib/current-user";
 
 import TourDetailTabs from "../../components/TourDetailTabs";
+import TourOperationsCockpit from "../../components/TourOperationsCockpit";
 
 
 type TransportMode =
@@ -2050,7 +2051,36 @@ export default function TourOperationHubPage() {
         </div>
 
 
-        <section className="mt-4 overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.16),transparent_34%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
+        <TourOperationsCockpit
+          tourId={tour.id}
+          transportMode={tour.transport_mode}
+          operationStatus={operationLabel(
+            tour.operation_status
+          )}
+          departureDate={
+            selectedDeparture?.departure_date ??
+            tour.departure_date
+          }
+          returnDate={tour.return_date}
+          occupancy={occupancy}
+          expectedPassenger={expectedPassenger}
+          passengerCount={passengerCount}
+          documentReadyCount={documentReadyCount}
+          roomingCount={roomingCount}
+          manifestReady={manifestReady}
+          revenue={revenue}
+          grossProfit={grossProfit}
+          expenseTotal={expenseTotal}
+          operationalContribution={operationalContribution}
+          overviewReadiness={overviewReadiness}
+          deadlineRisk={deadlineRisk}
+          linkedSeatCount={linkedSeatCount}
+          boardedCount={boardedCount}
+        />
+
+
+
+        <section data-tour-detail-secondary-hero className="mt-4 overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.16),transparent_34%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
 
@@ -2100,7 +2130,7 @@ export default function TourOperationHubPage() {
               </div>
 
 
-              <h1 className="mt-5 text-3xl font-black tracking-[-.05em] lg:text-5xl">
+              <h1 className="mt-5 text-3xl font-black tracking-[-.04em] lg:text-4xl">
                 {tour.title}
               </h1>
 
@@ -2829,3 +2859,32 @@ export default function TourOperationHubPage() {
 // TOUR_OS_PACKAGE_E_NAV
 
 // TOUR_DETAIL_PROFESSIONAL_V1
+
+
+<style jsx global>{`
+  [data-tour-os-screen="tour-hub"] [data-tour-detail-secondary-hero] {
+    margin-top: 14px;
+  }
+
+  [data-tour-os-screen="tour-hub"] section,
+  [data-tour-os-screen="tour-hub"] article {
+    scroll-margin-top: 90px;
+  }
+
+  [data-tour-os-screen="tour-hub"] a,
+  [data-tour-os-screen="tour-hub"] button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-operations-cockpit] {
+      border-radius: 22px;
+    }
+
+    [data-tour-os-screen="tour-hub"] {
+      padding-bottom: 82px;
+    }
+  }
+`}</style>
+
+// TOUR_UI_PROFESSIONAL_V2

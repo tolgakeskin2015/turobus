@@ -3,6 +3,7 @@
 import Link from "next/link";
 import FavoriteButton from "@/components/favorites/FavoriteButton";
 import TourReviews from "@/components/reviews/TourReviews";
+import PublicTourExperienceBar from "@/app/components/tours/PublicTourExperienceBar";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -129,41 +130,19 @@ export default function TourDetailPage() {
   }
 
   const included =
-    tour.included && tour.included.length > 0
-      ? tour.included
-      : [
-          "Aktivite transferleri",
-          "Profesyonel rehber",
-          "Gerekli ekipmanlar",
-          "Seyahat sigortası",
-        ];
+    tour.included ?? [];
 
   const excluded =
-    tour.excluded && tour.excluded.length > 0
-      ? tour.excluded
-      : [
-          "Kişisel harcamalar",
-          "Fotoğraf ve video hizmetleri",
-          "İçecekler",
-          "Opsiyonel etkinlikler",
-        ];
+    tour.excluded ?? [];
 
   const itinerary =
-    tour.itinerary && tour.itinerary.length > 0
-      ? tour.itinerary
-      : [
-          "Buluşma noktasından hareket",
-          "Tur programının başlaması",
-          "Aktivite ve serbest zaman",
-          "Programın devamı",
-          "Dönüş transferi",
-        ];
+    tour.itinerary ?? [];
 
   const itineraryTimes = ["08:30", "10:00", "12:30", "15:00", "17:30"];
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-white/10 bg-slate-950/95">
+    <main data-public-tour-detail className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.07),transparent_27%),linear-gradient(180deg,#050b12_0%,#071019_45%,#050a10_100%)] text-white">
+      <header className="border-b border-white/[.07] bg-[#050b12]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-xl font-black">
@@ -189,7 +168,7 @@ export default function TourDetailPage() {
         </div>
       </header>
 
-      <section className="relative h-[520px] overflow-hidden bg-slate-900">
+      <section className="relative h-[560px] overflow-hidden bg-[#071019] md:h-[620px]">
         {tour.cover_image ? (
           <img
             src={tour.cover_image}
@@ -202,7 +181,7 @@ export default function TourDetailPage() {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,8,14,.08),rgba(3,8,14,.18)_35%,rgba(3,8,14,.96)_100%)]" />
 
         <div className="absolute inset-x-0 bottom-0">
           <div className="mx-auto max-w-7xl px-5 pb-12 lg:px-8">
@@ -232,7 +211,7 @@ export default function TourDetailPage() {
               </span>
             </div>
 
-            <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-tight md:text-6xl">
+            <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-[-.04em] md:text-6xl md:leading-[1.03]">
               {tour.title}
             </h1>
 
@@ -261,9 +240,23 @@ export default function TourDetailPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-14 lg:grid-cols-[1fr_390px] lg:px-8">
+      <PublicTourExperienceBar
+        tourId={tour.id}
+        slug={tour.slug}
+        city={tour.city}
+        district={tour.district}
+        duration={tour.duration}
+        rating={tour.rating}
+        reviewCount={tour.review_count}
+        price={tour.adult_price}
+        oldPrice={tour.old_price}
+      />
+
+
+
+      <section className="mx-auto grid max-w-7xl gap-8 px-5 py-14 lg:grid-cols-[1fr_390px] lg:px-8">
         <div>
-          <section className="rounded-[30px] border border-white/10 bg-slate-900 p-7">
+          <section className="rounded-[28px] border border-white/[.08] bg-[linear-gradient(145deg,#0a1621,#071019)] shadow-[0_20px_60px_rgba(0,0,0,.16)] p-7">
             <h2 className="text-3xl font-black">Tur hakkında</h2>
 
             <p className="mt-5 text-lg leading-8 text-slate-400">
@@ -280,7 +273,7 @@ export default function TourDetailPage() {
                   {tour.highlights.map((highlight) => (
                     <div
                       key={highlight}
-                      className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-slate-300"
+                      className="flex gap-3 rounded-2xl border border-white/[.07] bg-white/[.025] p-4 text-slate-300"
                     >
                       <FaCheckCircle className="mt-1 shrink-0 text-orange-400" />
                       {highlight}
@@ -291,7 +284,7 @@ export default function TourDetailPage() {
             )}
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+              <div className="rounded-2xl border border-white/[.07] bg-white/[.025] p-5">
                 <FaClock className="text-orange-400" />
 
                 <p className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -303,7 +296,7 @@ export default function TourDetailPage() {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+              <div className="rounded-2xl border border-white/[.07] bg-white/[.025] p-5">
                 <FaMapMarkerAlt className="text-orange-400" />
 
                 <p className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -315,7 +308,7 @@ export default function TourDetailPage() {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+              <div className="rounded-2xl border border-white/[.07] bg-white/[.025] p-5">
                 <FaUserFriends className="text-orange-400" />
 
                 <p className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -329,58 +322,76 @@ export default function TourDetailPage() {
             </div>
           </section>
 
-          <section className="mt-8 rounded-[30px] border border-white/10 bg-slate-900 p-7">
+          <section className="mt-8 rounded-[28px] border border-white/[.08] bg-[linear-gradient(145deg,#0a1621,#071019)] shadow-[0_20px_60px_rgba(0,0,0,.16)] p-7">
             <h2 className="text-3xl font-black">Tur programı</h2>
 
             <div className="mt-8 space-y-6">
-              {itinerary.map((item, index) => (
-                <div key={`${item}-${index}`} className="flex gap-5">
-                  <div className="flex h-12 w-20 shrink-0 items-center justify-center rounded-xl bg-orange-500 font-black">
-                    {itineraryTimes[index] || `${index + 1}. adım`}
-                  </div>
+              {itinerary.length > 0 ? (
+                itinerary.map((item, index) => (
+                  <div key={`${item}-${index}`} className="flex gap-5">
+                    <div className="flex h-12 w-20 shrink-0 items-center justify-center rounded-xl bg-orange-500 font-black">
+                      {itineraryTimes[index] || `${index + 1}. adım`}
+                    </div>
 
-                  <div className="border-l border-white/10 pl-5">
-                    <p className="pt-3 font-bold text-slate-300">
-                      {item}
-                    </p>
+                    <div className="border-l border-white/10 pl-5">
+                      <p className="pt-3 font-bold text-slate-300">
+                        {item}
+                      </p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-white/[.02] p-6 text-sm leading-6 text-slate-500">
+                  Tur programı henüz yayınlanmadı.
                 </div>
-              ))}
+              )}
             </div>
           </section>
 
           <section className="mt-8 grid gap-6 md:grid-cols-2">
-            <div className="rounded-[30px] border border-white/10 bg-slate-900 p-7">
+            <div className="rounded-[28px] border border-white/[.08] bg-[linear-gradient(145deg,#0a1621,#071019)] shadow-[0_20px_60px_rgba(0,0,0,.16)] p-7">
               <h2 className="text-2xl font-black">Fiyata dahil</h2>
 
               <div className="mt-6 space-y-4">
-                {included.map((item) => (
-                  <div key={item} className="flex gap-3 text-slate-300">
-                    <FaCheckCircle className="mt-1 shrink-0 text-emerald-400" />
-                    {item}
-                  </div>
-                ))}
+                {included.length > 0 ? (
+                  included.map((item) => (
+                    <div key={item} className="flex gap-3 text-slate-300">
+                      <FaCheckCircle className="mt-1 shrink-0 text-emerald-400" />
+                      {item}
+                    </div>
+                  ))
+                ) : (
+                  <p className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-slate-500">
+                    Fiyata dahil hizmetler henüz eklenmedi.
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-white/10 bg-slate-900 p-7">
+            <div className="rounded-[28px] border border-white/[.08] bg-[linear-gradient(145deg,#0a1621,#071019)] shadow-[0_20px_60px_rgba(0,0,0,.16)] p-7">
               <h2 className="text-2xl font-black">
                 Fiyata dahil değil
               </h2>
 
               <div className="mt-6 space-y-4">
-                {excluded.map((item) => (
-                  <div key={item} className="flex gap-3 text-slate-300">
-                    <FaTimesCircle className="mt-1 shrink-0 text-red-400" />
-                    {item}
-                  </div>
-                ))}
+                {excluded.length > 0 ? (
+                  excluded.map((item) => (
+                    <div key={item} className="flex gap-3 text-slate-300">
+                      <FaTimesCircle className="mt-1 shrink-0 text-red-400" />
+                      {item}
+                    </div>
+                  ))
+                ) : (
+                  <p className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-slate-500">
+                    Fiyata dahil olmayan hizmetler henüz eklenmedi.
+                  </p>
+                )}
               </div>
             </div>
           </section>
 
           {tour.gallery && tour.gallery.length > 0 && (
-            <section className="mt-8 rounded-[30px] border border-white/10 bg-slate-900 p-7">
+            <section className="mt-8 rounded-[28px] border border-white/[.08] bg-[linear-gradient(145deg,#0a1621,#071019)] shadow-[0_20px_60px_rgba(0,0,0,.16)] p-7">
               <h2 className="text-3xl font-black">Tur galerisi</h2>
 
               <div className="mt-7 grid gap-4 sm:grid-cols-2">
@@ -420,12 +431,12 @@ export default function TourDetailPage() {
 
               <FavoriteButton
                 tourId={tour.id}
-                className="h-12 w-12 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-orange-500"
+                className="h-12 w-12 rounded-2xl border border-white/[.07] bg-white/[.025] hover:bg-orange-500"
               />
             </div>
 
             {tour.child_price > 0 && (
-              <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <div className="mt-5 rounded-2xl border border-white/[.07] bg-white/[.025] p-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   Çocuk fiyatı
                 </p>
@@ -490,3 +501,49 @@ export default function TourDetailPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-public-tour-detail] {
+    scroll-behavior: smooth;
+  }
+
+  [data-public-tour-detail] section {
+    scroll-margin-top: 84px;
+  }
+
+  [data-public-tour-detail] img {
+    image-rendering: auto;
+  }
+
+  [data-public-tour-detail] a,
+  [data-public-tour-detail] button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [data-public-tour-detail] aside > div {
+    box-shadow:
+      0 28px 90px rgba(0,0,0,.23),
+      0 0 0 1px rgba(255,255,255,.015);
+  }
+
+  @media (max-width: 767px) {
+    [data-public-tour-experience-bar] {
+      bottom: 0;
+      top: auto;
+      position: fixed;
+      width: 100%;
+      z-index: 60;
+    }
+
+    [data-public-tour-detail] {
+      padding-bottom: 84px;
+    }
+
+    [data-public-tour-detail] h1 {
+      text-wrap: balance;
+    }
+  }
+`}</style>
+
+// PUBLIC_TOUR_DETAIL_PROFESSIONAL_V2
