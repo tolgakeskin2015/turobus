@@ -817,3 +817,461 @@ a[class*="bg-orange"]:hover {
   }
 
 }
+
+
+/* ============================================================
+   TOUR OS 14.2A — CORE SCREEN POLISH
+
+   Individual professional treatment:
+   - Tour list
+   - Control Tower
+   - Tour Hub
+
+   Business logic untouched.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   SHARED CORE SCREEN
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen] {
+  position: relative;
+}
+
+
+[data-tour-os-screen] > div {
+  position: relative;
+  z-index: 2;
+}
+
+
+[data-tour-os-screen] > div > section:first-of-type {
+  position: relative;
+  overflow: hidden;
+
+  border-color:
+    rgba(148, 163, 184, .11)
+    !important;
+
+  background:
+    radial-gradient(
+      circle at 88% 15%,
+      rgba(249, 115, 22, .13),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 15% 100%,
+      rgba(14, 165, 233, .055),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(7, 19, 31, .98),
+      rgba(2, 8, 14, .98)
+    )
+    !important;
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255,255,255,.028),
+    0 20px 55px
+      rgba(0,0,0,.16);
+}
+
+
+[data-tour-os-screen] > div > section:first-of-type::before {
+  content: "";
+
+  position: absolute;
+  pointer-events: none;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      110deg,
+      rgba(255,255,255,.018),
+      transparent 30%,
+      transparent 72%,
+      rgba(249,115,22,.025)
+    );
+}
+
+
+[data-tour-os-screen]
+section[class*="grid"]
+article[class*="rounded"] {
+  min-height: 118px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(8, 22, 35, .96),
+      rgba(4, 13, 22, .96)
+    )
+    !important;
+
+  border-color:
+    rgba(148,163,184,.10)
+    !important;
+}
+
+
+[data-tour-os-screen]
+section[class*="grid"]
+article[class*="rounded"]:hover {
+  border-color:
+    rgba(249,115,22,.17)
+    !important;
+
+  box-shadow:
+    0 18px 46px
+    rgba(0,0,0,.18);
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* ------------------------------------------------------------
+   TOUR LIST
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="tour-list"]
+> div {
+  max-width: 1780px
+  !important;
+}
+
+
+[data-tour-os-screen="tour-list"]
+table {
+  min-width: 1500px;
+}
+
+
+[data-tour-os-screen="tour-list"]
+tbody tr {
+  min-height: 70px;
+}
+
+
+[data-tour-os-screen="tour-list"]
+tbody tr:hover {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(249,115,22,.025),
+      rgba(255,255,255,.018),
+      transparent
+    )
+    !important;
+}
+
+
+[data-tour-os-screen="tour-list"]
+tbody td:first-child {
+  position: relative;
+}
+
+
+[data-tour-os-screen="tour-list"]
+tbody td:first-child::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+
+  width: 2px;
+
+  border-radius: 20px;
+
+  background:
+    transparent;
+
+  transition:
+    background .14s ease;
+}
+
+
+[data-tour-os-screen="tour-list"]
+tbody tr:hover
+td:first-child::before {
+  background:
+    #f97316;
+}
+
+
+[data-tour-os-screen="tour-list"]
+thead th {
+  height: 48px;
+
+  background:
+    rgba(6, 17, 28, .985);
+}
+
+
+[data-tour-os-screen="tour-list"]
+select {
+  cursor: pointer;
+}
+
+
+/* ------------------------------------------------------------
+   CONTROL TOWER
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="control-tower"]
+> div {
+  max-width: 1820px
+  !important;
+}
+
+
+[data-tour-os-screen="control-tower"]
+section[class*="grid"]
+article {
+  position: relative;
+}
+
+
+[data-tour-os-screen="control-tower"]
+table {
+  min-width: 1600px;
+}
+
+
+[data-tour-os-screen="control-tower"]
+tbody tr {
+  background:
+    rgba(2,8,14,.18);
+}
+
+
+[data-tour-os-screen="control-tower"]
+tbody tr:hover {
+  background:
+    rgba(249,115,22,.022)
+    !important;
+}
+
+
+[data-tour-os-screen="control-tower"]
+[class*="text-red-300"] {
+  text-shadow:
+    0 0 18px
+    rgba(248,113,113,.08);
+}
+
+
+[data-tour-os-screen="control-tower"]
+[class*="text-emerald-300"] {
+  text-shadow:
+    0 0 18px
+    rgba(110,231,183,.06);
+}
+
+
+/* ------------------------------------------------------------
+   TOUR HUB
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="tour-hub"]
+> div {
+  max-width: 1740px
+  !important;
+}
+
+
+[data-tour-os-screen="tour-hub"]
+section[class*="grid"]
+a[class*="rounded"] {
+  position: relative;
+  overflow: hidden;
+
+  min-height: 112px;
+
+  border-color:
+    rgba(148,163,184,.105)
+    !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7,19,31,.96),
+      rgba(3,10,17,.96)
+    )
+    !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.02);
+}
+
+
+[data-tour-os-screen="tour-hub"]
+section[class*="grid"]
+a[class*="rounded"]::after {
+  content: "→";
+
+  position: absolute;
+
+  right: 16px;
+  bottom: 13px;
+
+  font-size: 13px;
+  font-weight: 900;
+
+  color:
+    rgba(148,163,184,.17);
+
+  transition:
+    color .15s ease,
+    transform .15s ease;
+}
+
+
+[data-tour-os-screen="tour-hub"]
+section[class*="grid"]
+a[class*="rounded"]:hover {
+  border-color:
+    rgba(249,115,22,.22)
+    !important;
+
+  box-shadow:
+    0 16px 42px
+    rgba(0,0,0,.17);
+
+  transform:
+    translateY(-2px);
+}
+
+
+[data-tour-os-screen="tour-hub"]
+section[class*="grid"]
+a[class*="rounded"]:hover::after {
+  color:
+    #fb923c;
+
+  transform:
+    translateX(2px);
+}
+
+
+/* ------------------------------------------------------------
+   FILTER / TOOLBAR POLISH
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen]
+section
+input,
+[data-tour-os-screen]
+section
+select {
+  min-height: 42px;
+}
+
+
+[data-tour-os-screen]
+button,
+[data-tour-os-screen]
+a {
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+
+/* ------------------------------------------------------------
+   DESKTOP DATA DENSITY
+   ------------------------------------------------------------ */
+
+@media (min-width: 1280px) {
+
+  [data-tour-os-screen]
+  table td {
+    padding-top:
+      15px;
+
+    padding-bottom:
+      15px;
+  }
+
+
+  [data-tour-os-screen]
+  table th {
+    white-space:
+      nowrap;
+  }
+
+}
+
+
+/* ------------------------------------------------------------
+   MOBILE CORE SCREENS
+   ------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+
+  [data-tour-os-screen]
+  > div {
+    padding-left:
+      14px
+      !important;
+
+    padding-right:
+      14px
+      !important;
+  }
+
+
+  [data-tour-os-screen]
+  > div
+  > section:first-of-type {
+    border-radius:
+      22px
+      !important;
+  }
+
+
+  [data-tour-os-screen]
+  section[class*="grid"]
+  article[class*="rounded"] {
+    min-height:
+      100px;
+  }
+
+
+  [data-tour-os-screen="tour-hub"]
+  section[class*="grid"]
+  a[class*="rounded"] {
+    min-height:
+      96px;
+  }
+
+}
+
+
+/* ------------------------------------------------------------
+   HIGH RESOLUTION
+   ------------------------------------------------------------ */
+
+@media (min-width: 1800px) {
+
+  [data-tour-os-screen="tour-list"]
+  > div,
+  [data-tour-os-screen="control-tower"]
+  > div,
+  [data-tour-os-screen="tour-hub"]
+  > div {
+    padding-left:
+      36px;
+
+    padding-right:
+      36px;
+  }
+
+}
