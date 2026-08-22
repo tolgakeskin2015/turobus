@@ -39,6 +39,7 @@ import ProtectionAutomationAlarm from "./ProtectionAutomationAlarm";
 import FinanceProfitAlarm from "./FinanceProfitAlarm";
 import ProductPriceAlarm from "./ProductPriceAlarm";
 import GrowthDistributionAlarm from "./GrowthDistributionAlarm";
+import PlatformGovernanceAlarm from "./PlatformGovernanceAlarm";
 
 
 type TransportMode =
@@ -2236,6 +2237,8 @@ export default function TourControlTowerPage() {
 
         <GrowthDistributionAlarm />
 
+        <PlatformGovernanceAlarm />
+
         <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
 
           {[
@@ -2954,3 +2957,5 @@ export default function TourControlTowerPage() {
 // TOUR_OS_PACKAGE_C_PRODUCT_PRICE_ALARM
 
 // TOUR_OS_PACKAGE_D_GROWTH_ALARM
+
+// TOUR_OS_PACKAGE_E_PLATFORM_GOVERNANCE_ALARM

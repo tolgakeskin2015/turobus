@@ -1901,6 +1901,23 @@ export default function TourOperationHubPage() {
               "violet",
           },
 
+          {
+            label:
+              "Platform Control Tower",
+
+            description:
+              "AI yönetim, ödeme dağıtım, audit, rol, bildirim, provider health ve raporlama",
+
+            href:
+              `/dashboard/turlar/${tour.id}/platform-kontrol`,
+
+            icon:
+              <FaChartLine />,
+
+            tone:
+              "orange",
+          },
+
 
           {
             label:
@@ -2800,3 +2817,5 @@ export default function TourOperationHubPage() {
 // TOUR_OS_PACKAGE_C_NAV
 
 // TOUR_OS_PACKAGE_D_NAV
+
+// TOUR_OS_PACKAGE_E_NAV
