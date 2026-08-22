@@ -1780,6 +1780,57 @@ export default function TourOperationHubPage() {
               "amber",
           },
 
+          {
+            label:
+              "Güvence & Koruma",
+
+            description:
+              "Rezervasyon güvence paketleri ve müşteri koruma talepleri",
+
+            href:
+              `/dashboard/turlar/${tour.id}/guvence`,
+
+            icon:
+              <FaCheckCircle />,
+
+            tone:
+              "emerald",
+          },
+
+          {
+            label:
+              "Mesaj & Otomasyon",
+
+            description:
+              "Kural, kuyruk, provider durumu ve otomatik iletişim",
+
+            href:
+              `/dashboard/turlar/${tour.id}/otomasyon`,
+
+            icon:
+              <FaPaperPlane />,
+
+            tone:
+              "orange",
+          },
+
+          {
+            label:
+              "AI Operasyon",
+
+            description:
+              "Gerçek operasyon verisinden risk ve aksiyon analizi",
+
+            href:
+              `/dashboard/turlar/${tour.id}/ai-operasyon`,
+
+            icon:
+              <FaChartLine />,
+
+            tone:
+              "violet",
+          },
+
 
           {
             label:
@@ -2671,3 +2722,5 @@ export default function TourOperationHubPage() {
 }
 
 // TOUR_OS_15_1C_HUB_ACTIVE_PASSENGERS
+
+// TOUR_OS_PACKAGE_A_NAV
