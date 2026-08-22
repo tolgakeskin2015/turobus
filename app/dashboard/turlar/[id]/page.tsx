@@ -1744,6 +1744,24 @@ export default function TourOperationHubPage() {
 
           {
             label:
+              "İptal & Değişiklik",
+
+            description:
+              "İptal, iade, yolcu ve operasyon değişiklik vaka merkezi",
+
+            href:
+              `/dashboard/turlar/${tour.id}/degisiklikler`,
+
+            icon:
+              <FaExclamationTriangle />,
+
+            tone:
+              "amber",
+          },
+
+
+          {
+            label:
               "Mobil",
 
             description:
