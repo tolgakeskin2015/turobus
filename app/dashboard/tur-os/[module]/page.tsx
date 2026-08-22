@@ -703,7 +703,7 @@ export default function TourOsModuleLauncherPage() {
 
 
   return (
-    <main className="min-h-screen bg-[#030a11] text-white">
+    <main data-tour-os-screen="module-launcher" className="min-h-screen bg-[#030a11] text-white">
 
       <div className="mx-auto max-w-[1550px] px-5 py-7 lg:px-8">
 

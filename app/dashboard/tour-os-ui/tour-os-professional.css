@@ -2675,3 +2675,681 @@ td:first-child::before {
   }
 
 }
+
+
+/* ============================================================
+   TOUR OS 14.3 — FINAL QUALITY SYSTEM
+
+   Final UI quality pass:
+   - Tour Create
+   - Tour Edit
+   - Tour Calendar
+   - Module Launcher
+   - Global desktop/mobile quality
+   - Focus/accessibility
+   - Data table quality
+   - Form consistency
+   - Touch targets
+   - Empty/disabled visual states
+
+   No business logic changes.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   TOUR CREATE / EDIT
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="tour-create"],
+[data-tour-os-screen="tour-edit"] {
+  position: relative;
+}
+
+
+[data-tour-os-screen="tour-create"] > div,
+[data-tour-os-screen="tour-edit"] > div {
+  max-width:
+    1680px
+    !important;
+}
+
+
+[data-tour-os-screen="tour-create"]
+> div
+> section:first-of-type,
+
+[data-tour-os-screen="tour-edit"]
+> div
+> section:first-of-type {
+
+  border-color:
+    rgba(249,115,22,.16)
+    !important;
+
+  background:
+    radial-gradient(
+      circle at 90% 8%,
+      rgba(249,115,22,.13),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 8% 100%,
+      rgba(14,165,233,.045),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(18,13,8,.99),
+      rgba(2,8,14,.99)
+    )
+    !important;
+}
+
+
+[data-tour-os-screen="tour-create"]
+form,
+
+[data-tour-os-screen="tour-edit"]
+form {
+
+  position:
+    relative;
+
+  border-radius:
+    24px;
+}
+
+
+[data-tour-os-screen="tour-create"]
+form section,
+
+[data-tour-os-screen="tour-edit"]
+form section {
+
+  border-color:
+    rgba(148,163,184,.10)
+    !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.018);
+}
+
+
+[data-tour-os-screen="tour-create"]
+input,
+
+[data-tour-os-screen="tour-create"]
+select,
+
+[data-tour-os-screen="tour-create"]
+textarea,
+
+[data-tour-os-screen="tour-edit"]
+input,
+
+[data-tour-os-screen="tour-edit"]
+select,
+
+[data-tour-os-screen="tour-edit"]
+textarea {
+
+  min-height:
+    43px;
+}
+
+
+/* ------------------------------------------------------------
+   TOUR CALENDAR
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="tour-calendar"] {
+  position:
+    relative;
+}
+
+
+[data-tour-os-screen="tour-calendar"] > div {
+  max-width:
+    1760px
+    !important;
+}
+
+
+[data-tour-os-screen="tour-calendar"]
+> div
+> section:first-of-type {
+
+  border-color:
+    rgba(56,189,248,.15)
+    !important;
+
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(56,189,248,.11),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 10% 100%,
+      rgba(168,85,247,.04),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(5,18,30,.99),
+      rgba(2,8,14,.99)
+    )
+    !important;
+}
+
+
+[data-tour-os-screen="tour-calendar"]
+button {
+
+  transition:
+    transform .14s ease,
+    border-color .14s ease,
+    background .14s ease,
+    box-shadow .14s ease;
+}
+
+
+[data-tour-os-screen="tour-calendar"]
+button:hover:not(:disabled) {
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* ------------------------------------------------------------
+   MODULE LAUNCHER
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="module-launcher"] {
+  position:
+    relative;
+}
+
+
+[data-tour-os-screen="module-launcher"] > div {
+  max-width:
+    1720px
+    !important;
+}
+
+
+[data-tour-os-screen="module-launcher"]
+a[class*="rounded"] {
+
+  position:
+    relative;
+
+  overflow:
+    hidden;
+
+  border-color:
+    rgba(148,163,184,.10)
+    !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7,19,31,.97),
+      rgba(3,10,17,.97)
+    )
+    !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.018);
+
+  transition:
+    transform .15s ease,
+    border-color .15s ease,
+    box-shadow .15s ease;
+}
+
+
+[data-tour-os-screen="module-launcher"]
+a[class*="rounded"]:hover {
+
+  border-color:
+    rgba(249,115,22,.20)
+    !important;
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 18px 44px
+    rgba(0,0,0,.16);
+}
+
+
+/* ------------------------------------------------------------
+   GLOBAL PROFESSIONAL CONTROL QUALITY
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+button,
+
+.tour-os-scope
+a[role="button"] {
+
+  min-height:
+    36px;
+}
+
+
+.tour-os-scope
+button:disabled,
+
+.tour-os-scope
+input:disabled,
+
+.tour-os-scope
+select:disabled,
+
+.tour-os-scope
+textarea:disabled {
+
+  cursor:
+    not-allowed;
+
+  opacity:
+    .48;
+}
+
+
+.tour-os-scope
+button:focus-visible,
+
+.tour-os-scope
+a:focus-visible,
+
+.tour-os-scope
+input:focus-visible,
+
+.tour-os-scope
+select:focus-visible,
+
+.tour-os-scope
+textarea:focus-visible {
+
+  outline:
+    2px solid
+    rgba(249,115,22,.50);
+
+  outline-offset:
+    2px;
+}
+
+
+/* ------------------------------------------------------------
+   PROFESSIONAL DATA TABLE
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+table {
+
+  width:
+    100%;
+}
+
+
+.tour-os-scope
+thead th {
+
+  position:
+    sticky;
+
+  top:
+    0;
+
+  z-index:
+    8;
+
+  height:
+    46px;
+
+  background:
+    rgba(5,15,25,.985)
+    !important;
+
+  box-shadow:
+    inset 0 -1px 0
+    rgba(148,163,184,.08);
+}
+
+
+.tour-os-scope
+tbody td {
+
+  border-bottom-color:
+    rgba(148,163,184,.055)
+    !important;
+}
+
+
+.tour-os-scope
+tbody tr:last-child td {
+
+  border-bottom-color:
+    transparent
+    !important;
+}
+
+
+/* ------------------------------------------------------------
+   TABLE ACTIONS
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+table button,
+
+.tour-os-scope
+table a {
+
+  white-space:
+    nowrap;
+}
+
+
+/* ------------------------------------------------------------
+   TYPOGRAPHY QUALITY
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+h1 {
+
+  line-height:
+    1.05;
+}
+
+
+.tour-os-scope
+h2 {
+
+  line-height:
+    1.15;
+}
+
+
+.tour-os-scope
+p {
+
+  line-height:
+    1.55;
+}
+
+
+/* ------------------------------------------------------------
+   STATUS PILLS
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+span[class*="rounded-full"] {
+
+  white-space:
+    nowrap;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+/* ------------------------------------------------------------
+   FORM QUALITY
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+label {
+
+  letter-spacing:
+    .01em;
+}
+
+
+.tour-os-scope
+textarea {
+
+  resize:
+    vertical;
+}
+
+
+.tour-os-scope
+select {
+
+  cursor:
+    pointer;
+}
+
+
+/* ------------------------------------------------------------
+   LONG CONTENT PROTECTION
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+td,
+
+.tour-os-scope
+th {
+
+  overflow-wrap:
+    normal;
+}
+
+
+.tour-os-scope
+[class*="truncate"] {
+
+  min-width:
+    0;
+}
+
+
+/* ------------------------------------------------------------
+   EMPTY / INFORMATION PANELS
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+[class*="border-dashed"] {
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7,19,31,.48),
+      rgba(3,10,17,.48)
+    )
+    !important;
+
+  border-color:
+    rgba(148,163,184,.13)
+    !important;
+}
+
+
+/* ------------------------------------------------------------
+   SCROLL QUALITY
+   ------------------------------------------------------------ */
+
+.tour-os-scope
+[class*="overflow-x-auto"] {
+
+  overscroll-behavior-x:
+    contain;
+
+  -webkit-overflow-scrolling:
+    touch;
+}
+
+
+/* ------------------------------------------------------------
+   DESKTOP
+   ------------------------------------------------------------ */
+
+@media (min-width: 1280px) {
+
+  .tour-os-scope
+  table td {
+
+    vertical-align:
+      middle;
+  }
+
+
+  .tour-os-scope
+  section[class*="rounded"] {
+
+    scroll-margin-top:
+      130px;
+  }
+
+}
+
+
+/* ------------------------------------------------------------
+   TABLET
+   ------------------------------------------------------------ */
+
+@media (
+  min-width: 769px
+) and (
+  max-width: 1100px
+) {
+
+  .tour-os-scope
+  table {
+
+    font-size:
+      .94em;
+  }
+
+
+  .tour-os-scope
+  [class*="grid-cols-4"],
+  .tour-os-scope
+  [class*="grid-cols-5"],
+  .tour-os-scope
+  [class*="grid-cols-6"] {
+
+    gap:
+      12px;
+  }
+
+}
+
+
+/* ------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+
+  [data-tour-os-screen="tour-create"]
+  > div,
+
+  [data-tour-os-screen="tour-edit"]
+  > div,
+
+  [data-tour-os-screen="tour-calendar"]
+  > div,
+
+  [data-tour-os-screen="module-launcher"]
+  > div {
+
+    padding-left:
+      14px
+      !important;
+
+    padding-right:
+      14px
+      !important;
+  }
+
+
+  .tour-os-scope
+  button,
+
+  .tour-os-scope
+  a[role="button"] {
+
+    min-height:
+      42px;
+  }
+
+
+  .tour-os-scope
+  input,
+
+  .tour-os-scope
+  select,
+
+  .tour-os-scope
+  textarea {
+
+    font-size:
+      16px;
+  }
+
+
+  .tour-os-scope
+  table {
+
+    font-size:
+      .92em;
+  }
+
+
+  .tour-os-scope
+  h1 {
+
+    letter-spacing:
+      -.035em
+      !important;
+  }
+
+
+  [data-tour-os-screen="tour-create"]
+  form,
+
+  [data-tour-os-screen="tour-edit"]
+  form {
+
+    border-radius:
+      20px;
+  }
+
+}
+
+
+/* ------------------------------------------------------------
+   REDUCED MOTION
+   ------------------------------------------------------------ */
+
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+
+  .tour-os-scope *,
+  .tour-os-scope *::before,
+  .tour-os-scope *::after {
+
+    animation-duration:
+      .01ms
+      !important;
+
+    animation-iteration-count:
+      1
+      !important;
+
+    transition-duration:
+      .01ms
+      !important;
+  }
+
+}

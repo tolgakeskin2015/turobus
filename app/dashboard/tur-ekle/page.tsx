@@ -201,7 +201,7 @@ export default function AddTourPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-5 py-10 text-white lg:px-8">
+    <main data-tour-os-screen="tour-create" className="min-h-screen bg-slate-950 px-5 py-10 text-white lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-center">
           <div>
