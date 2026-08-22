@@ -310,6 +310,13 @@ export default function TourRefundFinancePage() {
             Vaka Detayı
           </Link>
 
+          <Link
+            href={`/dashboard/turlar/${tourId}/degisiklikler/${caseId}/iade/kapanis`}
+            className="inline-flex items-center gap-2 rounded-xl border border-orange-500/20 bg-orange-500/[.05] px-4 py-2 text-[8px] font-black text-orange-300"
+          >
+            Kapanış & Mutabakat
+          </Link>
+
           <div className="rounded-full border border-emerald-500/20 bg-emerald-500/[.05] px-3 py-1.5 text-[8px] font-black text-emerald-300">
             GERÇEK IYZICO REFUND ADAPTER
           </div>
@@ -580,3 +587,5 @@ export default function TourRefundFinancePage() {
     </main>
   );
 }
+
+// TOUR_OS_15_1E_CLOSURE_LINK

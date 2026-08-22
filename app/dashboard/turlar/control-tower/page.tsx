@@ -33,6 +33,9 @@ import {
 } from "@/lib/current-user";
 
 
+import RefundClosureAlarm from "./RefundClosureAlarm";
+
+
 type TransportMode =
   | "air"
   | "bus"
@@ -2216,6 +2219,8 @@ export default function TourControlTowerPage() {
         )}
 
 
+        <RefundClosureAlarm />
+
         <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
 
           {[
@@ -2922,3 +2927,5 @@ export default function TourControlTowerPage() {
     </main>
   );
 }
+
+// TOUR_OS_15_1E_REFUND_CLOSURE_ALARM
