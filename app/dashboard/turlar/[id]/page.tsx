@@ -32,6 +32,8 @@ import {
   FaTasks,
   FaTicketAlt,
   FaUsers,
+  FaUserTie,
+  FaWallet,
 } from "react-icons/fa";
 
 import {
@@ -1831,6 +1833,40 @@ export default function TourOperationHubPage() {
               "violet",
           },
 
+          {
+            label:
+              "Satış & Prim",
+
+            description:
+              "Personel satışları, primleri ve performans sonuçları",
+
+            href:
+              `/dashboard/turlar/${tour.id}/performans`,
+
+            icon:
+              <FaUserTie />,
+
+            tone:
+              "blue",
+          },
+
+          {
+            label:
+              "Finans Yönetimi",
+
+            description:
+              "Ciro, gider, iade, zarar, tahsilat ve net kârlılık",
+
+            href:
+              `/dashboard/turlar/${tour.id}/finans-yonetim`,
+
+            icon:
+              <FaWallet />,
+
+            tone:
+              "emerald",
+          },
+
 
           {
             label:
@@ -2724,3 +2760,5 @@ export default function TourOperationHubPage() {
 // TOUR_OS_15_1C_HUB_ACTIVE_PASSENGERS
 
 // TOUR_OS_PACKAGE_A_NAV
+
+// TOUR_OS_PACKAGE_B_NAV
