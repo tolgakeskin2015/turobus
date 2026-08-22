@@ -1869,9 +1869,12 @@ export default function TourChangeCenterPage() {
 
                         <td className="px-4 py-4">
 
-                          <div className="font-black text-white">
+                          <Link
+                            href={`/dashboard/turlar/${tourId}/degisiklikler/${item.id}`}
+                            className="font-black text-white hover:text-orange-300"
+                          >
                             {item.case_number}
-                          </div>
+                          </Link>
 
                           <div className="mt-1 max-w-[220px] truncate text-slate-500">
                             {item.reason ||

@@ -467,6 +467,10 @@ export default function TourPassengerCenterPage() {
                 "departure_id",
                 departureId
               )
+              .eq(
+                "cancellation_status",
+                "active"
+              )
               .neq(
                 "status",
                 "cancelled"
@@ -2595,3 +2599,5 @@ export default function TourPassengerCenterPage() {
     </main>
   );
 }
+
+// TOUR_OS_15_1C_ACTIVE_PASSENGERS

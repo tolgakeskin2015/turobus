@@ -567,6 +567,10 @@ export default function TourOperationHubPage() {
               .eq(
                 "departure_id",
                 departureId
+              )
+              .eq(
+                "cancellation_status",
+                "active"
               ),
 
 
@@ -2648,3 +2652,5 @@ export default function TourOperationHubPage() {
     </main>
   );
 }
+
+// TOUR_OS_15_1C_HUB_ACTIVE_PASSENGERS
