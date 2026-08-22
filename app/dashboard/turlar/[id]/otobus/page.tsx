@@ -76,6 +76,15 @@ type Tour = {
 };
 
 
+type Departure = {
+  id: string;
+  departure_date: string;
+  capacity: number;
+  reserved_count: number;
+  status: string;
+};
+
+
 type Vehicle = {
   id: string;
   plate_number: string;
@@ -98,6 +107,8 @@ type BusOperation = {
   id: string;
   company_id: string;
   tour_id: string;
+  departure_id:
+    string | null;
   vehicle_id:
     string | null;
   bus_no: number;
@@ -330,6 +341,20 @@ export default function TourBusOperationsPage() {
     );
 
   const [
+    departures,
+    setDepartures,
+  ] =
+    useState<Departure[]>(
+      []
+    );
+
+  const [
+    selectedDepartureId,
+    setSelectedDepartureId,
+  ] =
+    useState("");
+
+  const [
     vehicles,
     setVehicles,
   ] =
@@ -534,18 +559,22 @@ export default function TourBusOperationsPage() {
     useCallback(
       async (
         currentCompanyId:
+          string,
+        requestedDepartureId?:
           string
       ) => {
+
         const [
           tourResult,
           vehicleResult,
-          operationResult,
-          stopResult,
-          seatResult,
+          departureResult,
         ] =
           await Promise.all([
+
             supabase
-              .from("tours")
+              .from(
+                "tours"
+              )
               .select(
                 [
                   "id",
@@ -554,7 +583,9 @@ export default function TourBusOperationsPage() {
                   "departure_city",
                   "arrival_city",
                   "capacity",
-                ].join(",")
+                ].join(
+                  ","
+                )
               )
               .eq(
                 "id",
@@ -567,7 +598,9 @@ export default function TourBusOperationsPage() {
               .maybeSingle(),
 
             supabase
-              .from("vehicles")
+              .from(
+                "vehicles"
+              )
               .select(
                 [
                   "id",
@@ -578,7 +611,9 @@ export default function TourBusOperationsPage() {
                   "capacity",
                   "vehicle_type",
                   "status",
-                ].join(",")
+                ].join(
+                  ","
+                )
               )
               .eq(
                 "company_id",
@@ -606,9 +641,19 @@ export default function TourBusOperationsPage() {
 
             supabase
               .from(
-                "tour_bus_operations"
+                "tour_departures"
               )
-              .select("*")
+              .select(
+                [
+                  "id",
+                  "departure_date",
+                  "capacity",
+                  "reserved_count",
+                  "status",
+                ].join(
+                  ","
+                )
+              )
               .eq(
                 "company_id",
                 currentCompanyId
@@ -618,39 +663,11 @@ export default function TourBusOperationsPage() {
                 tourId
               )
               .order(
-                "bus_no",
+                "departure_date",
                 {
                   ascending:
                     true,
                 }
-              ),
-
-            supabase
-              .from(
-                "tour_bus_boarding_stops"
-              )
-              .select("*")
-              .eq(
-                "company_id",
-                currentCompanyId
-              )
-              .eq(
-                "tour_id",
-                tourId
-              ),
-
-            supabase
-              .from(
-                "tour_bus_seats"
-              )
-              .select("*")
-              .eq(
-                "company_id",
-                currentCompanyId
-              )
-              .eq(
-                "tour_id",
-                tourId
               ),
           ]);
 
@@ -661,6 +678,7 @@ export default function TourBusOperationsPage() {
           throw tourResult.error;
         }
 
+
         if (
           !tourResult.data
         ) {
@@ -669,69 +687,274 @@ export default function TourBusOperationsPage() {
           );
         }
 
+
         if (
           vehicleResult.error
         ) {
           throw vehicleResult.error;
         }
 
-        if (
-          operationResult.error
-        ) {
-          throw operationResult.error;
-        }
 
         if (
-          stopResult.error
+          departureResult.error
         ) {
-          throw stopResult.error;
-        }
-
-        if (
-          seatResult.error
-        ) {
-          throw seatResult.error;
+          throw departureResult.error;
         }
 
 
-                const loadedTour =
-          tourResult.data as unknown as Tour;
+        const loadedDepartures =
+          (
+            departureResult.data ??
+            []
+          ) as unknown as
+            Departure[];
 
-        const loadedVehicles =
-          (vehicleResult.data ?? []) as unknown as Vehicle[];
+
+        const availableIds =
+          new Set(
+            loadedDepartures.map(
+              item =>
+                item.id
+            )
+          );
+
+
+        let scope =
+          requestedDepartureId ??
+          "";
+
+
+        if (
+          !scope ||
+          (
+            scope !==
+              "__legacy__" &&
+            !availableIds.has(
+              scope
+            )
+          )
+        ) {
+          scope =
+            loadedDepartures[0]
+              ?.id ??
+            "__legacy__";
+        }
+
+
+        let operationQuery =
+          supabase
+            .from(
+              "tour_bus_operations"
+            )
+            .select(
+              "*"
+            )
+            .eq(
+              "company_id",
+              currentCompanyId
+            )
+            .eq(
+              "tour_id",
+              tourId
+            );
+
+
+        if (
+          scope ===
+          "__legacy__"
+        ) {
+
+          operationQuery =
+            operationQuery.is(
+              "departure_id",
+              null
+            );
+
+        } else {
+
+          operationQuery =
+            operationQuery.eq(
+              "departure_id",
+              scope
+            );
+        }
+
+
+        const {
+          data:
+            operationData,
+          error:
+            operationError,
+        } =
+          await operationQuery
+            .order(
+              "bus_no",
+              {
+                ascending:
+                  true,
+              }
+            );
+
+
+        if (
+          operationError
+        ) {
+          throw operationError;
+        }
+
 
         const loadedOperations =
-          (operationResult.data ?? []) as unknown as BusOperation[];
+          (
+            operationData ??
+            []
+          ) as unknown as
+            BusOperation[];
 
-        const loadedStops =
-          (stopResult.data ?? []) as unknown as BoardingStop[];
 
-        const loadedSeats =
-          (seatResult.data ?? []) as unknown as Seat[];
+        const operationIds =
+          loadedOperations.map(
+            item =>
+              item.id
+          );
+
+
+        let loadedStops:
+          BoardingStop[] =
+            [];
+
+
+        let loadedSeats:
+          Seat[] =
+            [];
+
+
+        if (
+          operationIds.length >
+          0
+        ) {
+
+          const [
+            stopResult,
+            seatResult,
+          ] =
+            await Promise.all([
+
+              supabase
+                .from(
+                  "tour_bus_boarding_stops"
+                )
+                .select(
+                  "*"
+                )
+                .eq(
+                  "company_id",
+                  currentCompanyId
+                )
+                .eq(
+                  "tour_id",
+                  tourId
+                )
+                .in(
+                  "bus_operation_id",
+                  operationIds
+                ),
+
+              supabase
+                .from(
+                  "tour_bus_seats"
+                )
+                .select(
+                  "*"
+                )
+                .eq(
+                  "company_id",
+                  currentCompanyId
+                )
+                .eq(
+                  "tour_id",
+                  tourId
+                )
+                .in(
+                  "bus_operation_id",
+                  operationIds
+                ),
+            ]);
+
+
+          if (
+            stopResult.error
+          ) {
+            throw stopResult.error;
+          }
+
+
+          if (
+            seatResult.error
+          ) {
+            throw seatResult.error;
+          }
+
+
+          loadedStops =
+            (
+              stopResult.data ??
+              []
+            ) as unknown as
+              BoardingStop[];
+
+
+          loadedSeats =
+            (
+              seatResult.data ??
+              []
+            ) as unknown as
+              Seat[];
+        }
+
 
         setTour(
-          loadedTour
+          tourResult.data as unknown as
+            Tour
         );
 
+
         setVehicles(
-          loadedVehicles
+          (
+            vehicleResult.data ??
+            []
+          ) as unknown as
+            Vehicle[]
         );
+
+
+        setDepartures(
+          loadedDepartures
+        );
+
+
+        setSelectedDepartureId(
+          scope
+        );
+
 
         setOperations(
           loadedOperations
         );
 
+
         setStops(
           loadedStops
         );
+
 
         setSeats(
           loadedSeats
         );
 
-        setSelectedOperationId(
 
+        setSelectedOperationId(
           current => {
+
             if (
               current &&
               loadedOperations.some(
@@ -743,6 +966,7 @@ export default function TourBusOperationsPage() {
               return current;
             }
 
+
             return (
               loadedOperations[0]
                 ?.id ??
@@ -750,11 +974,15 @@ export default function TourBusOperationsPage() {
             );
           }
         );
+
       },
       [
         tourId,
       ]
     );
+
+
+  // TOUR_OS_15_0B_BUS_DEPARTURE_SCOPE
 
 
   useEffect(() => {
@@ -916,8 +1144,20 @@ export default function TourBusOperationsPage() {
 
   async function createBus() {
     if (
-      !companyId
+      !companyId ||
+      !selectedDepartureId
     ) {
+      return;
+    }
+
+    if (
+      selectedDepartureId ===
+      "__legacy__"
+    ) {
+      setError(
+        "Yeni otobüs operasyonu oluşturmak için gerçek bir tur çıkışı seçin."
+      );
+
       return;
     }
 
@@ -953,6 +1193,8 @@ export default function TourBusOperationsPage() {
               companyId,
             tour_id:
               tourId,
+            departure_id:
+              selectedDepartureId,
             bus_no:
               nextBusNo,
             seat_capacity:
@@ -1032,6 +1274,11 @@ export default function TourBusOperationsPage() {
             "tour_bus_operations"
           )
           .update({
+            departure_id:
+              selectedDepartureId ===
+                "__legacy__"
+                ? null
+                : selectedDepartureId,
             vehicle_id:
               busForm.vehicleId ||
               null,
@@ -1743,6 +1990,113 @@ export default function TourBusOperationsPage() {
             </button>
 
           </div>
+
+        </section>
+
+
+        <section className="mt-4 rounded-[22px] border border-orange-500/15 bg-orange-500/[.035] p-4 lg:p-5">
+
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+
+            <div>
+
+              <div className="text-[8px] font-black uppercase tracking-[.16em] text-orange-300">
+                TUR ÇIKIŞI
+              </div>
+
+              <div className="mt-1 text-[11px] font-black text-white">
+                Otobüs operasyon tarihini seç
+              </div>
+
+              <div className="mt-1 text-[8px] font-bold text-slate-500">
+                Otobüs, araç, sürücü, rehber, biniş noktası ve koltuk planı seçilen çıkışa göre ayrılır.
+              </div>
+
+            </div>
+
+
+            <select
+              value={
+                selectedDepartureId
+              }
+              disabled={
+                busy
+              }
+              onChange={
+                event => {
+
+                  const value =
+                    event.target.value;
+
+                  setSelectedSeatNumber(
+                    null
+                  );
+
+                  setSelectedOperationId(
+                    ""
+                  );
+
+                  void loadAll(
+                    companyId,
+                    value
+                  );
+                }
+              }
+              className="min-h-11 min-w-[280px] rounded-xl border border-white/10 bg-[#07131f] px-3 text-[9px] font-black text-white outline-none"
+            >
+
+              {departures.map(
+                departure => (
+
+                  <option
+                    key={
+                      departure.id
+                    }
+                    value={
+                      departure.id
+                    }
+                  >
+                    {new Intl.DateTimeFormat(
+                      "tr-TR",
+                      {
+                        day:
+                          "2-digit",
+                        month:
+                          "long",
+                        year:
+                          "numeric",
+                      }
+                    ).format(
+                      new Date(
+                        `${departure.departure_date}T12:00:00`
+                      )
+                    )}
+                    {" · "}
+                    {departure.reserved_count}
+                    /
+                    {departure.capacity}
+                  </option>
+                )
+              )}
+
+              <option
+                value="__legacy__"
+              >
+                Atanmamış Eski Kayıtlar
+              </option>
+
+            </select>
+
+          </div>
+
+
+          {selectedDepartureId ===
+            "__legacy__" && (
+
+            <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/[.06] px-3 py-2 text-[8px] font-bold text-amber-300">
+              Bu bölüm yalnız eski ve henüz bir tur çıkışına bağlanmamış otobüs operasyonlarını gösterir.
+            </div>
+          )}
 
         </section>
 

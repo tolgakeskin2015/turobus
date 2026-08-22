@@ -69,10 +69,21 @@ type Tour = {
 };
 
 
+type Departure = {
+  id: string;
+  departure_date: string;
+  capacity: number;
+  reserved_count: number;
+  status: string;
+};
+
+
 type Flight = {
   id: string;
   company_id: string;
   tour_id: string;
+  departure_id:
+    string | null;
   direction:
     Direction;
   segment_no:
@@ -510,6 +521,20 @@ export default function TourFlightOperationsPage() {
     );
 
   const [
+    departures,
+    setDepartures,
+  ] =
+    useState<Departure[]>(
+      []
+    );
+
+  const [
+    selectedDepartureId,
+    setSelectedDepartureId,
+  ] =
+    useState("");
+
+  const [
     flights,
     setFlights,
   ] =
@@ -560,13 +585,17 @@ export default function TourFlightOperationsPage() {
     useCallback(
       async (
         currentCompanyId:
+          string,
+        requestedDepartureId?:
           string
       ) => {
+
         const [
           tourResult,
-          flightResult,
+          departureResult,
         ] =
           await Promise.all([
+
             supabase
               .from(
                 "tours"
@@ -597,10 +626,18 @@ export default function TourFlightOperationsPage() {
 
             supabase
               .from(
-                "tour_flights"
+                "tour_departures"
               )
               .select(
-                "*"
+                [
+                  "id",
+                  "departure_date",
+                  "capacity",
+                  "reserved_count",
+                  "status",
+                ].join(
+                  ","
+                )
               )
               .eq(
                 "company_id",
@@ -611,14 +648,7 @@ export default function TourFlightOperationsPage() {
                 tourId
               )
               .order(
-                "direction",
-                {
-                  ascending:
-                    true,
-                }
-              )
-              .order(
-                "segment_no",
+                "departure_date",
                 {
                   ascending:
                     true,
@@ -626,11 +656,13 @@ export default function TourFlightOperationsPage() {
               ),
           ]);
 
+
         if (
           tourResult.error
         ) {
           throw tourResult.error;
         }
+
 
         if (
           !tourResult.data
@@ -640,29 +672,154 @@ export default function TourFlightOperationsPage() {
           );
         }
 
+
         if (
-          flightResult.error
+          departureResult.error
         ) {
-          throw flightResult.error;
+          throw departureResult.error;
         }
+
+
+        const loadedDepartures =
+          (
+            departureResult.data ??
+            []
+          ) as unknown as
+            Departure[];
+
+
+        const availableIds =
+          new Set(
+            loadedDepartures.map(
+              item =>
+                item.id
+            )
+          );
+
+
+        let scope =
+          requestedDepartureId ??
+          "";
+
+
+        if (
+          !scope ||
+          (
+            scope !==
+              "__legacy__" &&
+            !availableIds.has(
+              scope
+            )
+          )
+        ) {
+          scope =
+            loadedDepartures[0]
+              ?.id ??
+            "__legacy__";
+        }
+
+
+        let flightQuery =
+          supabase
+            .from(
+              "tour_flights"
+            )
+            .select(
+              "*"
+            )
+            .eq(
+              "company_id",
+              currentCompanyId
+            )
+            .eq(
+              "tour_id",
+              tourId
+            );
+
+
+        if (
+          scope ===
+          "__legacy__"
+        ) {
+
+          flightQuery =
+            flightQuery.is(
+              "departure_id",
+              null
+            );
+
+        } else {
+
+          flightQuery =
+            flightQuery.eq(
+              "departure_id",
+              scope
+            );
+        }
+
+
+        const {
+          data:
+            flightData,
+          error:
+            flightError,
+        } =
+          await flightQuery
+            .order(
+              "direction",
+              {
+                ascending:
+                  true,
+              }
+            )
+            .order(
+              "segment_no",
+              {
+                ascending:
+                  true,
+              }
+            );
+
+
+        if (
+          flightError
+        ) {
+          throw flightError;
+        }
+
 
         setTour(
           tourResult.data as unknown as
             Tour
         );
 
+
+        setDepartures(
+          loadedDepartures
+        );
+
+
+        setSelectedDepartureId(
+          scope
+        );
+
+
         setFlights(
           (
-            flightResult.data ??
+            flightData ??
             []
-          ) as
+          ) as unknown as
             Flight[]
         );
+
       },
       [
         tourId,
       ]
     );
+
+
+  // TOUR_OS_15_0B_FLIGHT_DEPARTURE_SCOPE
 
 
   useEffect(() => {
@@ -944,8 +1101,21 @@ export default function TourFlightOperationsPage() {
 
   async function save() {
     if (
-      !companyId
+      !companyId ||
+      !selectedDepartureId
     ) {
+      return;
+    }
+
+    if (
+      selectedDepartureId ===
+        "__legacy__" &&
+      !editingId
+    ) {
+      setError(
+        "Yeni uçuş eklemek için gerçek bir tur çıkışı seçin."
+      );
+
       return;
     }
 
@@ -1026,6 +1196,12 @@ export default function TourFlightOperationsPage() {
 
         tour_id:
           tourId,
+
+        departure_id:
+          selectedDepartureId ===
+            "__legacy__"
+            ? null
+            : selectedDepartureId,
 
         direction:
           form.direction,
@@ -1421,6 +1597,113 @@ export default function TourFlightOperationsPage() {
             </div>
 
           </div>
+
+        </section>
+
+
+        <section className="mt-4 rounded-[22px] border border-blue-500/15 bg-blue-500/[.035] p-4 lg:p-5">
+
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+
+            <div className="min-w-0">
+
+              <div className="text-[8px] font-black uppercase tracking-[.16em] text-blue-300">
+                TUR ÇIKIŞI
+              </div>
+
+              <div className="mt-1 text-[11px] font-black text-white">
+                Uçuş operasyonunun bağlı olduğu tarih
+              </div>
+
+              <div className="mt-1 text-[8px] font-bold text-slate-500">
+                Her çıkışın PNR, uçuş segmenti, kapasite ve ticketing takibi birbirinden ayrıdır.
+              </div>
+
+            </div>
+
+
+            <select
+              value={
+                selectedDepartureId
+              }
+              disabled={
+                busy
+              }
+              onChange={
+                event => {
+
+                  const value =
+                    event.target.value;
+
+                  setEditingId(
+                    ""
+                  );
+
+                  setForm(
+                    EMPTY_FORM
+                  );
+
+                  void load(
+                    companyId,
+                    value
+                  );
+                }
+              }
+              className="min-h-11 min-w-[280px] rounded-xl border border-white/10 bg-[#07131f] px-3 text-[9px] font-black text-white outline-none"
+            >
+
+              {departures.map(
+                departure => (
+
+                  <option
+                    key={
+                      departure.id
+                    }
+                    value={
+                      departure.id
+                    }
+                  >
+                    {new Intl.DateTimeFormat(
+                      "tr-TR",
+                      {
+                        day:
+                          "2-digit",
+                        month:
+                          "long",
+                        year:
+                          "numeric",
+                      }
+                    ).format(
+                      new Date(
+                        `${departure.departure_date}T12:00:00`
+                      )
+                    )}
+                    {" · "}
+                    {departure.reserved_count}
+                    /
+                    {departure.capacity}
+                  </option>
+                )
+              )}
+
+              <option
+                value="__legacy__"
+              >
+                Atanmamış Eski Kayıtlar
+              </option>
+
+            </select>
+
+          </div>
+
+
+          {selectedDepartureId ===
+            "__legacy__" && (
+
+            <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/[.06] px-3 py-2 text-[8px] font-bold text-amber-300">
+              Bu bölüm yalnız eski ve henüz çıkışa bağlanmamış uçuş kayıtlarını gösterir. Yeni kayıt oluşturmak için gerçek bir çıkış seçin.
+            </div>
+          )}
 
         </section>
 
