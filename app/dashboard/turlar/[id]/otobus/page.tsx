@@ -35,6 +35,8 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 
+import TourModuleChrome from "../../../components/TourModuleChrome";
+
 
 type BusStatus =
   | "planning"
@@ -1907,7 +1909,13 @@ export default function TourBusOperationsPage() {
     loading
   ) {
     return (
-      <main className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+      <main data-tour-module-screen className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+
+      <TourModuleChrome
+        tourId={tourId}
+        moduleKey="bus"
+      />
+
         Otobüs operasyon merkezi yükleniyor...
       </main>
     );
@@ -1928,7 +1936,7 @@ export default function TourBusOperationsPage() {
         </Link>
 
 
-        <section className="mt-4 rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.14),transparent_35%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
+        <section className="mt-4 rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.14),transparent_35%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 
@@ -2042,7 +2050,7 @@ export default function TourBusOperationsPage() {
                   );
                 }
               }
-              className="min-h-11 min-w-[280px] rounded-xl border border-white/10 bg-[#07131f] px-3 text-[9px] font-black text-white outline-none"
+              className="min-h-11 min-w-[280px] rounded-xl border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] px-3 text-[9px] font-black text-white outline-none"
             >
 
               {departures.map(
@@ -2144,7 +2152,7 @@ export default function TourBusOperationsPage() {
                 key={
                   String(label)
                 }
-                className="rounded-[22px] border border-white/10 bg-[#07131f] p-5"
+                className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
               >
                 <div className="text-[7px] font-black uppercase tracking-[.12em] text-slate-600">
                   {label}
@@ -2215,7 +2223,7 @@ export default function TourBusOperationsPage() {
           <>
             <section className="mt-5 grid gap-5 2xl:grid-cols-[430px_1fr]">
 
-              <aside className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
+              <aside className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                 <div className="text-[9px] font-black">
                   Araç & Ekip
@@ -2261,7 +2269,7 @@ export default function TourBusOperationsPage() {
                           })
                         );
                       }}
-                      className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                      className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                     >
                       <option value="">
                         Araç seçilmedi
@@ -2319,7 +2327,7 @@ export default function TourBusOperationsPage() {
                             })
                           )
                         }
-                        className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                       />
                     </label>
 
@@ -2345,7 +2353,7 @@ export default function TourBusOperationsPage() {
                             })
                           )
                         }
-                        className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                       />
                     </label>
 
@@ -2415,7 +2423,7 @@ export default function TourBusOperationsPage() {
                               })
                             )
                           }
-                          className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                          className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                         />
                       </label>
                     )
@@ -2443,7 +2451,7 @@ export default function TourBusOperationsPage() {
                             })
                           )
                         }
-                        className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                       />
                     </label>
 
@@ -2467,7 +2475,7 @@ export default function TourBusOperationsPage() {
                             })
                           )
                         }
-                        className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                       />
                     </label>
 
@@ -2493,7 +2501,7 @@ export default function TourBusOperationsPage() {
                           })
                         )
                       }
-                      className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                      className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                     >
                       <option value="planning">
                         Planlama
@@ -2542,7 +2550,7 @@ export default function TourBusOperationsPage() {
                           })
                         )
                       }
-                      className="w-full rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+                      className="w-full rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
                     />
                   </label>
 
@@ -2566,7 +2574,7 @@ export default function TourBusOperationsPage() {
 
               <section className="space-y-5">
 
-                <div className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
+                <div className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -2604,7 +2612,7 @@ export default function TourBusOperationsPage() {
                       Koltuk kapasitesini girip “Koltuk Planını Oluştur” butonuna basın.
                     </div>
                   ) : (
-                    <div className="mt-6 mx-auto max-w-[560px] rounded-[28px] border border-white/10 bg-[#030a11] p-5">
+                    <div className="mt-6 mx-auto max-w-[560px] rounded-[28px] border border-white/[.08] bg-[#03080e] p-5">
 
                       <div className="mb-6 flex items-center justify-between border-b border-white/[.06] pb-4">
 
@@ -2684,7 +2692,7 @@ export default function TourBusOperationsPage() {
                 </div>
 
 
-                <div className="rounded-[26px] border border-white/10 bg-[#07131f]">
+                <div className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)]">
 
                   <div className="border-b border-white/[.06] p-5">
 
@@ -2862,7 +2870,7 @@ export default function TourBusOperationsPage() {
 
             <section className="mt-5 grid gap-5 xl:grid-cols-[430px_1fr]">
 
-              <aside className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
+              <aside className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                 <div className="flex items-center gap-2 text-[9px] font-black">
                   <FaMapMarkerAlt className="text-orange-300" />
@@ -2890,7 +2898,7 @@ export default function TourBusOperationsPage() {
                         )
                       }
                       placeholder="Sıra"
-                      className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                      className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                     />
 
                     <input
@@ -2907,7 +2915,7 @@ export default function TourBusOperationsPage() {
                         )
                       }
                       placeholder="Fethiye Otogar"
-                      className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                      className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                     />
 
                   </div>
@@ -2927,7 +2935,7 @@ export default function TourBusOperationsPage() {
                       )
                     }
                     placeholder="Adres / buluşma noktası"
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                   />
 
 
@@ -2945,7 +2953,7 @@ export default function TourBusOperationsPage() {
                         })
                       )
                     }
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                   />
 
 
@@ -2964,7 +2972,7 @@ export default function TourBusOperationsPage() {
                       )
                     }
                     placeholder="Not"
-                    className="rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+                    className="rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
                   />
 
 
@@ -2985,7 +2993,7 @@ export default function TourBusOperationsPage() {
               </aside>
 
 
-              <section className="overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f]">
+              <section className="overflow-hidden rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)]">
 
                 <div className="border-b border-white/[.06] p-5">
 
@@ -3134,7 +3142,7 @@ export default function TourBusOperationsPage() {
           null && (
           <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4">
 
-            <div className="w-full max-w-md rounded-[26px] border border-white/10 bg-[#07131f] p-5 shadow-2xl">
+            <div className="w-full max-w-md rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5 shadow-2xl">
 
               <div className="flex items-start justify-between">
 
@@ -3179,7 +3187,7 @@ export default function TourBusOperationsPage() {
                     )
                   }
                   placeholder="Yolcu adı soyadı"
-                  className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
 
 
@@ -3201,7 +3209,7 @@ export default function TourBusOperationsPage() {
                       )
                     }
                     placeholder="Telefon"
-                    className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-9 pr-3 text-[8px]"
+                    className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] pl-9 pr-3 text-[8px]"
                   />
 
                 </div>
@@ -3220,7 +3228,7 @@ export default function TourBusOperationsPage() {
                       })
                     )
                   }
-                  className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 >
                   <option value="">
                     Biniş noktası seçilmedi
@@ -3260,7 +3268,7 @@ export default function TourBusOperationsPage() {
                     )
                   }
                   placeholder="Yolcu / koltuk notu"
-                  className="rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+                  className="rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
                 />
 
 
@@ -3288,3 +3296,62 @@ export default function TourBusOperationsPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-module-screen] {
+    min-height: 100vh;
+  }
+
+  [data-tour-module-screen] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-module-screen] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  [data-tour-module-screen] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-module-screen] tbody tr:hover {
+    background: rgba(255,255,255,.024);
+  }
+
+  [data-tour-module-screen] input,
+  [data-tour-module-screen] select,
+  [data-tour-module-screen] textarea {
+    outline: none;
+  }
+
+  [data-tour-module-screen] input:focus,
+  [data-tour-module-screen] select:focus,
+  [data-tour-module-screen] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-module-screen] button,
+  [data-tour-module-screen] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-module-screen] {
+      padding-bottom: 84px;
+    }
+
+    [data-tour-module-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_MODULE_PRO_V3_BUS

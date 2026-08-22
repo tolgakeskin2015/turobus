@@ -35,6 +35,8 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 
+import TourModuleChrome from "../../../components/TourModuleChrome";
+
 
 type Direction =
   | "outbound"
@@ -1493,7 +1495,13 @@ export default function TourFlightOperationsPage() {
     loading
   ) {
     return (
-      <main className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+      <main data-tour-module-screen className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+
+      <TourModuleChrome
+        tourId={tourId}
+        moduleKey="flight"
+      />
+
         Uçuş operasyon merkezi yükleniyor...
       </main>
     );
@@ -1514,7 +1522,7 @@ export default function TourFlightOperationsPage() {
         </Link>
 
 
-        <section className="mt-4 overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,.13),transparent_35%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
+        <section className="mt-4 overflow-hidden rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,.13),transparent_35%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 
@@ -1649,7 +1657,7 @@ export default function TourFlightOperationsPage() {
                   );
                 }
               }
-              className="min-h-11 min-w-[280px] rounded-xl border border-white/10 bg-[#07131f] px-3 text-[9px] font-black text-white outline-none"
+              className="min-h-11 min-w-[280px] rounded-xl border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] px-3 text-[9px] font-black text-white outline-none"
             >
 
               {departures.map(
@@ -1824,7 +1832,7 @@ export default function TourFlightOperationsPage() {
                 key={
                   item.title
                 }
-                className="rounded-[22px] border border-white/10 bg-[#07131f] p-5"
+                className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
               >
 
                 <div className="flex items-start justify-between">
@@ -1856,7 +1864,7 @@ export default function TourFlightOperationsPage() {
 
         <section className="mt-5 grid gap-5 2xl:grid-cols-[480px_1fr]">
 
-          <aside className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
+          <aside className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center justify-between">
 
@@ -1912,7 +1920,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 >
                   <option value="outbound">
                     Gidiş
@@ -1947,7 +1955,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -1973,7 +1981,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="Turkish Airlines"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -1999,7 +2007,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="TK"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px] uppercase"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px] uppercase"
                 />
               </label>
 
@@ -2025,7 +2033,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="TK2420"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px] uppercase"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px] uppercase"
                 />
               </label>
 
@@ -2051,7 +2059,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="ABC123"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px] uppercase"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px] uppercase"
                 />
               </label>
 
@@ -2076,7 +2084,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2102,7 +2110,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="Dalaman Havalimanı"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2129,7 +2137,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="DLM"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px] uppercase"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px] uppercase"
                 />
               </label>
 
@@ -2155,7 +2163,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="İstanbul Havalimanı"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2182,7 +2190,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="IST"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px] uppercase"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px] uppercase"
                 />
               </label>
 
@@ -2208,7 +2216,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2234,7 +2242,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2286,7 +2294,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="8 kg"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2312,7 +2320,7 @@ export default function TourFlightOperationsPage() {
                     )
                   }
                   placeholder="20 kg"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2339,7 +2347,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2366,7 +2374,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2393,7 +2401,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
               </label>
 
@@ -2419,7 +2427,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 >
                   <option value="scheduled">
                     Planlandı
@@ -2467,7 +2475,7 @@ export default function TourFlightOperationsPage() {
                       })
                     )
                   }
-                  className="w-full rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+                  className="w-full rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
                 />
               </label>
 
@@ -2496,7 +2504,7 @@ export default function TourFlightOperationsPage() {
           </aside>
 
 
-          <section className="overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f]">
+          <section className="overflow-hidden rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)]">
 
             <div className="border-b border-white/[.07] px-5 py-4">
 
@@ -2853,3 +2861,62 @@ export default function TourFlightOperationsPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-module-screen] {
+    min-height: 100vh;
+  }
+
+  [data-tour-module-screen] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-module-screen] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  [data-tour-module-screen] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-module-screen] tbody tr:hover {
+    background: rgba(255,255,255,.024);
+  }
+
+  [data-tour-module-screen] input,
+  [data-tour-module-screen] select,
+  [data-tour-module-screen] textarea {
+    outline: none;
+  }
+
+  [data-tour-module-screen] input:focus,
+  [data-tour-module-screen] select:focus,
+  [data-tour-module-screen] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-module-screen] button,
+  [data-tour-module-screen] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-module-screen] {
+      padding-bottom: 84px;
+    }
+
+    [data-tour-module-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_MODULE_PRO_V3_FLIGHT

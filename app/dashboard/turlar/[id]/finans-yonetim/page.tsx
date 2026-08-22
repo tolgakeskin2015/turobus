@@ -30,6 +30,8 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 
+import TourModuleChrome from "../../../components/TourModuleChrome";
+
 
 type Departure = {
   id: string;
@@ -437,7 +439,13 @@ export default function TourFinanceManagementPage() {
   ) {
 
     return (
-      <main className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+      <main data-tour-module-screen className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+
+      <TourModuleChrome
+        tourId={tourId}
+        moduleKey="finance"
+      />
+
         Finans yönetim merkezi yükleniyor...
       </main>
     );
@@ -461,7 +469,7 @@ export default function TourFinanceManagementPage() {
         </Link>
 
 
-        <section className="mt-4 rounded-[30px] border border-emerald-500/15 bg-[#07131f] p-6 lg:p-8">
+        <section className="mt-4 rounded-[26px] border border-emerald-500/15 bg-[#07131f] p-6 lg:p-8">
 
           <div className="flex items-center gap-3">
 
@@ -507,7 +515,7 @@ export default function TourFinanceManagementPage() {
         )}
 
 
-        <section className="mt-5 rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+        <section className="mt-5 rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
           <div className="flex flex-col gap-3 sm:flex-row">
 
@@ -521,7 +529,7 @@ export default function TourFinanceManagementPage() {
                     event.target.value
                   )
               }
-              className="min-h-11 flex-1 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[9px]"
+              className="min-h-11 flex-1 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[9px]"
             >
 
               <option value="">
@@ -609,7 +617,7 @@ export default function TourFinanceManagementPage() {
                     key={
                       item[0]
                     }
-                    className="rounded-[22px] border border-white/10 bg-[#07131f] p-5"
+                    className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
                   >
 
                     <div className="text-[7px] font-black text-slate-500">
@@ -629,7 +637,7 @@ export default function TourFinanceManagementPage() {
 
             <section className="mt-5 grid gap-5 xl:grid-cols-2">
 
-              <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+              <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                 <div className="flex items-center gap-2 text-sm font-black">
                   <FaChartPie className="text-emerald-300" />
@@ -717,7 +725,7 @@ export default function TourFinanceManagementPage() {
               </article>
 
 
-              <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+              <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                 <div className="flex items-center gap-2 text-sm font-black">
                   <FaExclamationTriangle className="text-amber-300" />
@@ -795,7 +803,7 @@ export default function TourFinanceManagementPage() {
 
         ) : (
 
-          <section className="mt-5 rounded-[24px] border border-dashed border-white/10 py-16 text-center text-[9px] text-slate-500">
+          <section className="mt-5 rounded-[22px] border border-dashed border-white/10 py-16 text-center text-[9px] text-slate-500">
             Finans snapshot henüz oluşturulmadı.
           </section>
         )}
@@ -805,3 +813,62 @@ export default function TourFinanceManagementPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-module-screen] {
+    min-height: 100vh;
+  }
+
+  [data-tour-module-screen] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-module-screen] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  [data-tour-module-screen] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-module-screen] tbody tr:hover {
+    background: rgba(255,255,255,.024);
+  }
+
+  [data-tour-module-screen] input,
+  [data-tour-module-screen] select,
+  [data-tour-module-screen] textarea {
+    outline: none;
+  }
+
+  [data-tour-module-screen] input:focus,
+  [data-tour-module-screen] select:focus,
+  [data-tour-module-screen] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-module-screen] button,
+  [data-tour-module-screen] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-module-screen] {
+      padding-bottom: 84px;
+    }
+
+    [data-tour-module-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_MODULE_PRO_V3_FINANCE

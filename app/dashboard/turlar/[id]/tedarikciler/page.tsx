@@ -40,6 +40,8 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 
+import TourModuleChrome from "../../../components/TourModuleChrome";
+
 
 type ServiceType =
   | "flight"
@@ -1773,7 +1775,13 @@ export default function TourSupplierCurrentPage() {
   ) {
 
     return (
-      <main className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+      <main data-tour-module-screen className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+
+      <TourModuleChrome
+        tourId={tourId}
+        moduleKey="suppliers"
+      />
+
         Tedarikçi operasyon merkezi yükleniyor...
       </main>
     );
@@ -1807,7 +1815,7 @@ export default function TourSupplierCurrentPage() {
         </div>
 
 
-        <section className="mt-4 rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.15),transparent_36%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
+        <section className="mt-4 rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.15),transparent_36%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 
@@ -1844,7 +1852,7 @@ export default function TourSupplierCurrentPage() {
                   event.target.value
                 )
               }
-              className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[8px] font-black"
+              className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-4 text-[8px] font-black"
             >
 
               {departures.length ===
@@ -1900,7 +1908,7 @@ export default function TourSupplierCurrentPage() {
 
         <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
 
-          <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="text-[7px] font-black text-slate-600">
               TEDARİKÇİ
@@ -1974,7 +1982,7 @@ export default function TourSupplierCurrentPage() {
           </article>
 
 
-          <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="text-[7px] font-black text-slate-600">
               ÖDENEN
@@ -1997,7 +2005,7 @@ export default function TourSupplierCurrentPage() {
             onSubmit={
               saveCommitment
             }
-            className="rounded-[26px] border border-white/10 bg-[#07131f] p-5"
+            className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
           >
 
             <div className="flex items-center gap-2 text-[9px] font-black">
@@ -2026,7 +2034,7 @@ export default function TourSupplierCurrentPage() {
                     })
                   )
                 }
-                className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               >
 
                 <option value="">
@@ -2067,7 +2075,7 @@ export default function TourSupplierCurrentPage() {
                     })
                   )
                 }
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               >
 
                 {(
@@ -2107,7 +2115,7 @@ export default function TourSupplierCurrentPage() {
                   )
                 }
                 placeholder="Örn. 2 gece yarım pansiyon grup konaklama"
-                className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -2128,7 +2136,7 @@ export default function TourSupplierCurrentPage() {
                   }
                   inputMode="decimal"
                   placeholder="Sözleşme tutarı"
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
 
 
@@ -2145,7 +2153,7 @@ export default function TourSupplierCurrentPage() {
                       })
                     )
                   }
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[8px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[8px]"
                 >
 
                   <option value="">
@@ -2189,7 +2197,7 @@ export default function TourSupplierCurrentPage() {
                       })
                     )
                   }
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                 >
 
                   <option value="pending">
@@ -2221,7 +2229,7 @@ export default function TourSupplierCurrentPage() {
                       })
                     )
                   }
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                 >
 
                   <option value="pending">
@@ -2269,7 +2277,7 @@ export default function TourSupplierCurrentPage() {
                       })
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
 
               </label>
@@ -2288,7 +2296,7 @@ export default function TourSupplierCurrentPage() {
                     })
                   )
                 }
-                className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[7px]"
+                className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[7px]"
               >
 
                 <option value="">
@@ -2331,7 +2339,7 @@ export default function TourSupplierCurrentPage() {
                   )
                 }
                 placeholder="Teyit / rezervasyon kodu"
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -2349,7 +2357,7 @@ export default function TourSupplierCurrentPage() {
                   )
                 }
                 placeholder="Voucher referansı"
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -2368,7 +2376,7 @@ export default function TourSupplierCurrentPage() {
                   )
                 }
                 placeholder="Tedarikçi teyit notu"
-                className="rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+                className="rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
               />
 
 
@@ -2387,7 +2395,7 @@ export default function TourSupplierCurrentPage() {
                   )
                 }
                 placeholder="İç operasyon notu"
-                className="rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+                className="rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
               />
 
 
@@ -2409,7 +2417,7 @@ export default function TourSupplierCurrentPage() {
 
           <section className="space-y-5">
 
-            <div className="rounded-[22px] border border-white/10 bg-[#07131f] p-4">
+            <div className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4">
 
               <div className="relative">
 
@@ -2425,7 +2433,7 @@ export default function TourSupplierCurrentPage() {
                     )
                   }
                   placeholder="Tedarikçi, hizmet, voucher veya teyit kodu ara..."
-                  className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-9 pr-3 text-[8px]"
+                  className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] pl-9 pr-3 text-[8px]"
                 />
 
               </div>
@@ -2433,7 +2441,7 @@ export default function TourSupplierCurrentPage() {
             </div>
 
 
-            <div className="overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f]">
+            <div className="overflow-hidden rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)]">
 
               <div className="border-b border-white/[.06] p-5">
 
@@ -2632,7 +2640,7 @@ export default function TourSupplierCurrentPage() {
                                         ConfirmationStatus
                                     )
                                   }
-                                  className="h-9 rounded-lg border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                                  className="h-9 rounded-lg border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                                 >
 
                                   {(
@@ -2679,7 +2687,7 @@ export default function TourSupplierCurrentPage() {
                                         OperationalStatus
                                     )
                                   }
-                                  className="h-9 rounded-lg border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                                  className="h-9 rounded-lg border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                                 >
 
                                   <option value="pending">
@@ -2881,7 +2889,7 @@ export default function TourSupplierCurrentPage() {
 
         <section className="mt-5 grid gap-4 xl:grid-cols-3">
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-[8px] font-black">
               <FaMoneyBillWave className="text-orange-300" />
@@ -2904,7 +2912,7 @@ export default function TourSupplierCurrentPage() {
           </article>
 
 
-          <article className="rounded-[24px] border border-red-500/15 bg-red-500/[.04] p-5">
+          <article className="rounded-[22px] border border-red-500/15 bg-red-500/[.04] p-5">
 
             <div className="flex items-center gap-2 text-[8px] font-black text-red-300">
               <FaClock />
@@ -2924,7 +2932,7 @@ export default function TourSupplierCurrentPage() {
           </article>
 
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-[8px] font-black">
               <FaFileInvoiceDollar className="text-blue-300" />
@@ -2990,3 +2998,62 @@ export default function TourSupplierCurrentPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-module-screen] {
+    min-height: 100vh;
+  }
+
+  [data-tour-module-screen] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-module-screen] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  [data-tour-module-screen] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-module-screen] tbody tr:hover {
+    background: rgba(255,255,255,.024);
+  }
+
+  [data-tour-module-screen] input,
+  [data-tour-module-screen] select,
+  [data-tour-module-screen] textarea {
+    outline: none;
+  }
+
+  [data-tour-module-screen] input:focus,
+  [data-tour-module-screen] select:focus,
+  [data-tour-module-screen] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-module-screen] button,
+  [data-tour-module-screen] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-module-screen] {
+      padding-bottom: 84px;
+    }
+
+    [data-tour-module-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_MODULE_PRO_V3_SUPPLIERS

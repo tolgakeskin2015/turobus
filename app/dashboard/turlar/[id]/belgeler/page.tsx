@@ -42,6 +42,8 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 
+import TourModuleChrome from "../../../components/TourModuleChrome";
+
 
 type DocumentType =
   | "flight_ticket"
@@ -1633,7 +1635,13 @@ export default function TourDocumentCenterPage() {
   ) {
 
     return (
-      <main className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+      <main data-tour-module-screen className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+
+      <TourModuleChrome
+        tourId={tourId}
+        moduleKey="documents"
+      />
+
         Belge merkezi yükleniyor...
       </main>
     );
@@ -1667,7 +1675,7 @@ export default function TourDocumentCenterPage() {
         </div>
 
 
-        <section className="mt-4 rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.15),transparent_36%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
+        <section className="mt-4 rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.15),transparent_36%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 
@@ -1704,7 +1712,7 @@ export default function TourDocumentCenterPage() {
                   event.target.value
                 )
               }
-              className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[8px] font-black"
+              className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-4 text-[8px] font-black"
             >
 
               {departures.length ===
@@ -1760,7 +1768,7 @@ export default function TourDocumentCenterPage() {
 
         <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
 
-          <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="text-[7px] font-black text-slate-600">
               BELGE KAYDI
@@ -1825,7 +1833,7 @@ export default function TourDocumentCenterPage() {
           </article>
 
 
-          <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="text-[7px] font-black text-slate-600">
               REZERVASYON VOUCHER
@@ -1838,7 +1846,7 @@ export default function TourDocumentCenterPage() {
           </article>
 
 
-          <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="text-[7px] font-black text-slate-600">
               PNR
@@ -1859,7 +1867,7 @@ export default function TourDocumentCenterPage() {
             onSubmit={
               saveDocument
             }
-            className="rounded-[26px] border border-white/10 bg-[#07131f] p-5"
+            className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
           >
 
             <div className="flex items-center gap-2 text-[9px] font-black">
@@ -1889,7 +1897,7 @@ export default function TourDocumentCenterPage() {
                     })
                   )
                 }
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               >
 
                 {(
@@ -1929,7 +1937,7 @@ export default function TourDocumentCenterPage() {
                   )
                 }
                 placeholder="Belge başlığı"
-                className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -1949,7 +1957,7 @@ export default function TourDocumentCenterPage() {
                       })
                     )
                   }
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                 >
 
                   {(
@@ -1991,7 +1999,7 @@ export default function TourDocumentCenterPage() {
                       })
                     )
                   }
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                 >
 
                   {(
@@ -2035,7 +2043,7 @@ export default function TourDocumentCenterPage() {
                     })
                   )
                 }
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[7px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[7px]"
               >
 
                 <option value="manual">
@@ -2079,7 +2087,7 @@ export default function TourDocumentCenterPage() {
                   )
                 }
                 placeholder="Belge / PNR / voucher referansı"
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -2097,7 +2105,7 @@ export default function TourDocumentCenterPage() {
                   )
                 }
                 placeholder="https://... belge bağlantısı"
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -2123,7 +2131,7 @@ export default function TourDocumentCenterPage() {
                         })
                       )
                     }
-                    className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                    className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                   />
 
                 </label>
@@ -2149,7 +2157,7 @@ export default function TourDocumentCenterPage() {
                         })
                       )
                     }
-                    className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                    className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                   />
 
                 </label>
@@ -2157,7 +2165,7 @@ export default function TourDocumentCenterPage() {
               </div>
 
 
-              <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#030a11] p-3">
+              <label className="flex items-center gap-3 rounded-xl border border-white/[.08] bg-[#03080e] p-3">
 
                 <input
                   type="checkbox"
@@ -2205,7 +2213,7 @@ export default function TourDocumentCenterPage() {
                   )
                 }
                 placeholder="Belge notu"
-                className="rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+                className="rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
               />
 
 
@@ -2229,7 +2237,7 @@ export default function TourDocumentCenterPage() {
 
             <section className="grid gap-3 lg:grid-cols-3">
 
-              <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+              <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                 <div className="flex items-center gap-2 text-[9px] font-black">
                   <FaReceipt className="text-orange-300" />
@@ -2290,7 +2298,7 @@ export default function TourDocumentCenterPage() {
               </article>
 
 
-              <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+              <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                 <div className="flex items-center gap-2 text-[9px] font-black">
                   <FaPlane className="text-blue-300" />
@@ -2387,7 +2395,7 @@ export default function TourDocumentCenterPage() {
               </article>
 
 
-              <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+              <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                 <div className="flex items-center gap-2 text-[9px] font-black">
                   <FaFileInvoice className="text-violet-300" />
@@ -2450,7 +2458,7 @@ export default function TourDocumentCenterPage() {
             </section>
 
 
-            <div className="rounded-[22px] border border-white/10 bg-[#07131f] p-4">
+            <div className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4">
 
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 
@@ -2468,7 +2476,7 @@ export default function TourDocumentCenterPage() {
                       )
                     }
                     placeholder="Belge, referans veya not ara..."
-                    className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-9 pr-3 text-[8px]"
+                    className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] pl-9 pr-3 text-[8px]"
                   />
 
                 </div>
@@ -2484,7 +2492,7 @@ export default function TourDocumentCenterPage() {
                         typeof statusFilter
                     )
                   }
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 >
 
                   <option value="all">
@@ -2518,7 +2526,7 @@ export default function TourDocumentCenterPage() {
             </div>
 
 
-            <div className="overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f]">
+            <div className="overflow-hidden rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)]">
 
               <div className="overflow-auto">
 
@@ -2660,7 +2668,7 @@ export default function TourDocumentCenterPage() {
                                         DocumentStatus
                                     )
                                   }
-                                  className="h-9 rounded-lg border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                                  className="h-9 rounded-lg border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                                 >
 
                                   {(
@@ -2808,7 +2816,7 @@ export default function TourDocumentCenterPage() {
 
           <Link
             href="/dashboard/manifest"
-            className="rounded-[24px] border border-white/10 bg-[#07131f] p-5"
+            className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
           >
 
             <FaRoute className="text-orange-300" />
@@ -2826,7 +2834,7 @@ export default function TourDocumentCenterPage() {
 
           <Link
             href={`/dashboard/turlar/${tourId}/yolcular`}
-            className="rounded-[24px] border border-white/10 bg-[#07131f] p-5"
+            className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
           >
 
             <FaUsers className="text-emerald-300" />
@@ -2844,7 +2852,7 @@ export default function TourDocumentCenterPage() {
 
           <Link
             href={`/dashboard/turlar/${tourId}/tedarikciler`}
-            className="rounded-[24px] border border-white/10 bg-[#07131f] p-5"
+            className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
           >
 
             <FaFileInvoice className="text-violet-300" />
@@ -2860,7 +2868,7 @@ export default function TourDocumentCenterPage() {
           </Link>
 
 
-          <article className="rounded-[24px] border border-orange-500/15 bg-orange-500/[.04] p-5">
+          <article className="rounded-[22px] border border-orange-500/15 bg-orange-500/[.04] p-5">
 
             <FaIdCard className="text-orange-300" />
 
@@ -2886,3 +2894,62 @@ export default function TourDocumentCenterPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-module-screen] {
+    min-height: 100vh;
+  }
+
+  [data-tour-module-screen] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-module-screen] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  [data-tour-module-screen] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-module-screen] tbody tr:hover {
+    background: rgba(255,255,255,.024);
+  }
+
+  [data-tour-module-screen] input,
+  [data-tour-module-screen] select,
+  [data-tour-module-screen] textarea {
+    outline: none;
+  }
+
+  [data-tour-module-screen] input:focus,
+  [data-tour-module-screen] select:focus,
+  [data-tour-module-screen] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-module-screen] button,
+  [data-tour-module-screen] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-module-screen] {
+      padding-bottom: 84px;
+    }
+
+    [data-tour-module-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_MODULE_PRO_V3_DOCUMENTS

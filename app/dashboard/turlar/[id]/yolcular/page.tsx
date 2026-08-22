@@ -36,6 +36,8 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 
+import TourModuleChrome from "../../../components/TourModuleChrome";
+
 
 type Tour = {
   id: string;
@@ -1431,7 +1433,13 @@ export default function TourPassengerCenterPage() {
     loading
   ) {
     return (
-      <main className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+      <main data-tour-module-screen className="grid min-h-[70vh] place-items-center bg-[#030a11] text-white">
+
+      <TourModuleChrome
+        tourId={tourId}
+        moduleKey="passengers"
+      />
+
         Yolcu operasyon merkezi yükleniyor...
       </main>
     );
@@ -1452,7 +1460,7 @@ export default function TourPassengerCenterPage() {
         </Link>
 
 
-        <section className="mt-4 rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.12),transparent_35%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
+        <section className="mt-4 rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.12),transparent_35%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 
@@ -1522,7 +1530,7 @@ export default function TourPassengerCenterPage() {
                     event.target.value
                   )
                 }
-                className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[8px] font-black"
+                className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-4 text-[8px] font-black"
               >
                 {departures.length ===
                 0 ? (
@@ -1638,7 +1646,7 @@ export default function TourPassengerCenterPage() {
                 key={
                   String(label)
                 }
-                className="rounded-[22px] border border-white/10 bg-[#07131f] p-5"
+                className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
               >
                 <div className="text-[7px] font-black uppercase tracking-[.1em] text-slate-600">
                   {label}
@@ -1654,7 +1662,7 @@ export default function TourPassengerCenterPage() {
         </section>
 
 
-        <section className="mt-5 rounded-[26px] border border-white/10 bg-[#07131f] p-5">
+        <section className="mt-5 rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 
@@ -1672,7 +1680,7 @@ export default function TourPassengerCenterPage() {
                   )
                 }
                 placeholder="Yolcu, rezervasyon, telefon, TC/pasaport, oda ara..."
-                className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-9 pr-3 text-[8px]"
+                className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] pl-9 pr-3 text-[8px]"
               />
 
             </div>
@@ -1731,7 +1739,7 @@ export default function TourPassengerCenterPage() {
 
         <section className="mt-5 grid gap-5 2xl:grid-cols-[1fr_430px]">
 
-          <div className="overflow-hidden rounded-[26px] border border-white/10 bg-[#07131f]">
+          <div className="overflow-hidden rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)]">
 
             <div className="border-b border-white/[.06] p-5">
 
@@ -2068,7 +2076,7 @@ export default function TourPassengerCenterPage() {
 
           <aside className="space-y-5">
 
-            <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
+            <section className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
               <div className="flex items-center justify-between">
 
@@ -2133,7 +2141,7 @@ export default function TourPassengerCenterPage() {
                       })
                     );
                   }}
-                  className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 >
                   <option value="">
                     Rezervasyon seç
@@ -2183,7 +2191,7 @@ export default function TourPassengerCenterPage() {
                       )
                     }
                     placeholder="No"
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                   />
 
                   <input
@@ -2200,7 +2208,7 @@ export default function TourPassengerCenterPage() {
                       )
                     }
                     placeholder="Ad Soyad"
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                   />
 
                 </div>
@@ -2220,7 +2228,7 @@ export default function TourPassengerCenterPage() {
                     )
                   }
                   placeholder="Telefon"
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
 
 
@@ -2238,7 +2246,7 @@ export default function TourPassengerCenterPage() {
                     )
                   }
                   placeholder="E-posta"
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
 
 
@@ -2258,7 +2266,7 @@ export default function TourPassengerCenterPage() {
                         })
                       )
                     }
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                   />
 
                   <input
@@ -2275,7 +2283,7 @@ export default function TourPassengerCenterPage() {
                       )
                     }
                     placeholder="Uyruk"
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                   />
 
                 </div>
@@ -2297,7 +2305,7 @@ export default function TourPassengerCenterPage() {
                         })
                       )
                     }
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                   >
                     <option value="">
                       Kimlik Türü
@@ -2331,7 +2339,7 @@ export default function TourPassengerCenterPage() {
                       )
                     }
                     placeholder="Kimlik / Pasaport No"
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                   />
 
                 </div>
@@ -2356,7 +2364,7 @@ export default function TourPassengerCenterPage() {
                     )
                   }
                   placeholder="Otel"
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
 
 
@@ -2376,7 +2384,7 @@ export default function TourPassengerCenterPage() {
                       )
                     }
                     placeholder="Oda Grup"
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                   />
 
                   <input
@@ -2393,7 +2401,7 @@ export default function TourPassengerCenterPage() {
                       )
                     }
                     placeholder="Oda No"
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                   />
 
                   <input
@@ -2410,7 +2418,7 @@ export default function TourPassengerCenterPage() {
                       )
                     }
                     placeholder="Tip"
-                    className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                   />
 
                 </div>
@@ -2431,7 +2439,7 @@ export default function TourPassengerCenterPage() {
                     )
                   }
                   placeholder="Özel talep / alerji / operasyon notu"
-                  className="rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+                  className="rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
                 />
 
 
@@ -2455,7 +2463,7 @@ export default function TourPassengerCenterPage() {
             </section>
 
 
-            <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
+            <section className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
               <div className="text-[9px] font-black">
                 Rezervasyon Eksik Kontrolü
@@ -2530,7 +2538,7 @@ export default function TourPassengerCenterPage() {
 
         <section className="mt-5 grid gap-5 lg:grid-cols-3">
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-[9px] font-black">
               <FaUsers className="text-orange-300" />
@@ -2548,7 +2556,7 @@ export default function TourPassengerCenterPage() {
           </article>
 
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-[9px] font-black">
               <FaBed className="text-violet-300" />
@@ -2566,7 +2574,7 @@ export default function TourPassengerCenterPage() {
           </article>
 
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-[9px] font-black">
               <FaIdCard className="text-emerald-300" />
@@ -2601,3 +2609,62 @@ export default function TourPassengerCenterPage() {
 }
 
 // TOUR_OS_15_1C_ACTIVE_PASSENGERS
+
+
+<style jsx global>{`
+  [data-tour-module-screen] {
+    min-height: 100vh;
+  }
+
+  [data-tour-module-screen] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-module-screen] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  [data-tour-module-screen] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-module-screen] tbody tr:hover {
+    background: rgba(255,255,255,.024);
+  }
+
+  [data-tour-module-screen] input,
+  [data-tour-module-screen] select,
+  [data-tour-module-screen] textarea {
+    outline: none;
+  }
+
+  [data-tour-module-screen] input:focus,
+  [data-tour-module-screen] select:focus,
+  [data-tour-module-screen] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-module-screen] button,
+  [data-tour-module-screen] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-module-screen] {
+      padding-bottom: 84px;
+    }
+
+    [data-tour-module-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_MODULE_PRO_V3_PASSENGERS
