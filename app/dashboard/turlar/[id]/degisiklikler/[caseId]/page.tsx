@@ -948,6 +948,14 @@ export default function TourChangeCaseDetailPage() {
         </Link>
 
 
+        <Link
+          href={`/dashboard/turlar/${tourId}/degisiklikler/${caseId}/iade`}
+          className="ml-3 inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[.05] px-4 py-2.5 text-[8px] font-black text-emerald-300"
+        >
+          Finans & İade
+        </Link>
+
+
         <section className="mt-4 rounded-[30px] border border-red-500/15 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,.12),transparent_35%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
