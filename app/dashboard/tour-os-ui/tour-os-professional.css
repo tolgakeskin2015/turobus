@@ -1774,3 +1774,478 @@ span[class*="rounded-full"] {
   }
 
 }
+
+
+/* ============================================================
+   TOUR OS 14.2C — OPS SUPPORT POLISH
+
+   Professional individual treatment:
+   - Task Center
+   - Supplier Center
+   - Document Center
+   - Communication Center
+
+   Business logic untouched.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   SHARED SUPPORT CENTER
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="task-center"],
+[data-tour-os-screen="supplier-center"],
+[data-tour-os-screen="document-center"],
+[data-tour-os-screen="communication-center"] {
+
+  position:
+    relative;
+}
+
+
+[data-tour-os-screen="task-center"] > div,
+[data-tour-os-screen="supplier-center"] > div,
+[data-tour-os-screen="document-center"] > div,
+[data-tour-os-screen="communication-center"] > div {
+
+  max-width:
+    1760px
+    !important;
+}
+
+
+/* ------------------------------------------------------------
+   TASK CENTER
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="task-center"]
+> div
+> section:first-of-type {
+
+  border-color:
+    rgba(168,85,247,.15)
+    !important;
+
+  background:
+    radial-gradient(
+      circle at 88% 12%,
+      rgba(168,85,247,.12),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 10% 100%,
+      rgba(249,115,22,.05),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,10,28,.99),
+      rgba(2,8,14,.99)
+    )
+    !important;
+}
+
+
+[data-tour-os-screen="task-center"]
+table {
+
+  min-width:
+    1450px;
+}
+
+
+[data-tour-os-screen="task-center"]
+tbody tr:hover {
+
+  background:
+    rgba(168,85,247,.025)
+    !important;
+}
+
+
+[data-tour-os-screen="task-center"]
+[class*="text-red-300"],
+[data-tour-os-screen="task-center"]
+[class*="text-orange-300"] {
+
+  text-shadow:
+    0 0 18px
+    rgba(248,113,113,.07);
+}
+
+
+/* ------------------------------------------------------------
+   SUPPLIER CENTER
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="supplier-center"]
+> div
+> section:first-of-type {
+
+  border-color:
+    rgba(245,158,11,.16)
+    !important;
+
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(245,158,11,.12),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 8% 100%,
+      rgba(249,115,22,.055),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(24,16,5,.99),
+      rgba(2,8,14,.99)
+    )
+    !important;
+}
+
+
+[data-tour-os-screen="supplier-center"]
+table {
+
+  min-width:
+    1550px;
+}
+
+
+[data-tour-os-screen="supplier-center"]
+tbody tr:hover {
+
+  background:
+    rgba(245,158,11,.022)
+    !important;
+}
+
+
+[data-tour-os-screen="supplier-center"]
+section[class*="grid"]
+article[class*="rounded"] {
+
+  border-color:
+    rgba(245,158,11,.11)
+    !important;
+}
+
+
+/* ------------------------------------------------------------
+   DOCUMENT CENTER
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="document-center"]
+> div
+> section:first-of-type {
+
+  border-color:
+    rgba(14,165,233,.15)
+    !important;
+
+  background:
+    radial-gradient(
+      circle at 88% 10%,
+      rgba(14,165,233,.12),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 10% 100%,
+      rgba(16,185,129,.045),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(5,18,30,.99),
+      rgba(2,8,14,.99)
+    )
+    !important;
+}
+
+
+[data-tour-os-screen="document-center"]
+table {
+
+  min-width:
+    1500px;
+}
+
+
+[data-tour-os-screen="document-center"]
+tbody tr:hover {
+
+  background:
+    rgba(14,165,233,.022)
+    !important;
+}
+
+
+[data-tour-os-screen="document-center"]
+a[class*="rounded"],
+[data-tour-os-screen="document-center"]
+button[class*="rounded"] {
+
+  transition:
+    transform .14s ease,
+    border-color .14s ease,
+    background .14s ease;
+}
+
+
+/* ------------------------------------------------------------
+   COMMUNICATION CENTER
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="communication-center"]
+> div
+> section:first-of-type {
+
+  border-color:
+    rgba(34,197,94,.14)
+    !important;
+
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(34,197,94,.10),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 8% 100%,
+      rgba(14,165,233,.04),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(4,22,18,.99),
+      rgba(2,8,14,.99)
+    )
+    !important;
+}
+
+
+[data-tour-os-screen="communication-center"]
+table {
+
+  min-width:
+    1500px;
+}
+
+
+[data-tour-os-screen="communication-center"]
+tbody tr:hover {
+
+  background:
+    rgba(34,197,94,.022)
+    !important;
+}
+
+
+[data-tour-os-screen="communication-center"]
+textarea {
+
+  min-height:
+    110px;
+}
+
+
+/* ------------------------------------------------------------
+   COMMON TABLE / ACTION POLISH
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="task-center"]
+tbody td:first-child,
+
+[data-tour-os-screen="supplier-center"]
+tbody td:first-child,
+
+[data-tour-os-screen="document-center"]
+tbody td:first-child,
+
+[data-tour-os-screen="communication-center"]
+tbody td:first-child {
+
+  position:
+    relative;
+}
+
+
+[data-tour-os-screen="task-center"]
+tbody tr:hover
+td:first-child::before,
+
+[data-tour-os-screen="supplier-center"]
+tbody tr:hover
+td:first-child::before,
+
+[data-tour-os-screen="document-center"]
+tbody tr:hover
+td:first-child::before,
+
+[data-tour-os-screen="communication-center"]
+tbody tr:hover
+td:first-child::before {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    0;
+
+  top:
+    12px;
+
+  bottom:
+    12px;
+
+  width:
+    2px;
+
+  border-radius:
+    999px;
+
+  background:
+    #f97316;
+}
+
+
+[data-tour-os-screen="task-center"]
+input,
+
+[data-tour-os-screen="supplier-center"]
+input,
+
+[data-tour-os-screen="document-center"]
+input,
+
+[data-tour-os-screen="communication-center"]
+input,
+
+[data-tour-os-screen="task-center"]
+select,
+
+[data-tour-os-screen="supplier-center"]
+select,
+
+[data-tour-os-screen="document-center"]
+select,
+
+[data-tour-os-screen="communication-center"]
+select {
+
+  min-height:
+    42px;
+}
+
+
+/* ------------------------------------------------------------
+   SUPPORT FORMS / PANELS
+   ------------------------------------------------------------ */
+
+[data-tour-os-screen="task-center"]
+form,
+
+[data-tour-os-screen="supplier-center"]
+form,
+
+[data-tour-os-screen="document-center"]
+form,
+
+[data-tour-os-screen="communication-center"]
+form {
+
+  border-radius:
+    22px;
+}
+
+
+[data-tour-os-screen="task-center"]
+section[class*="border"],
+
+[data-tour-os-screen="supplier-center"]
+section[class*="border"],
+
+[data-tour-os-screen="document-center"]
+section[class*="border"],
+
+[data-tour-os-screen="communication-center"]
+section[class*="border"] {
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.018);
+}
+
+
+/* ------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+
+  [data-tour-os-screen="task-center"]
+  > div,
+
+  [data-tour-os-screen="supplier-center"]
+  > div,
+
+  [data-tour-os-screen="document-center"]
+  > div,
+
+  [data-tour-os-screen="communication-center"]
+  > div {
+
+    padding-left:
+      14px
+      !important;
+
+    padding-right:
+      14px
+      !important;
+  }
+
+
+  [data-tour-os-screen="task-center"]
+  > div
+  > section:first-of-type,
+
+  [data-tour-os-screen="supplier-center"]
+  > div
+  > section:first-of-type,
+
+  [data-tour-os-screen="document-center"]
+  > div
+  > section:first-of-type,
+
+  [data-tour-os-screen="communication-center"]
+  > div
+  > section:first-of-type {
+
+    border-radius:
+      22px
+      !important;
+  }
+
+
+  [data-tour-os-screen="task-center"]
+  input,
+
+  [data-tour-os-screen="supplier-center"]
+  input,
+
+  [data-tour-os-screen="document-center"]
+  input,
+
+  [data-tour-os-screen="communication-center"]
+  input {
+
+    font-size:
+      16px;
+  }
+
+}

@@ -1396,7 +1396,7 @@ export default function TourTaskCenterPage() {
 
 
   return (
-    <main className="min-h-screen bg-[#030a11] text-white">
+    <main data-tour-os-screen="task-center" className="min-h-screen bg-[#030a11] text-white">
 
       <div className="mx-auto max-w-[1650px] px-5 py-7 lg:px-8">
 
