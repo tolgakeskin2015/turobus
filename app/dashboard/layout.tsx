@@ -36,6 +36,7 @@ import {
 } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 import ManagerNotificationBell from "./components/ManagerNotificationBell";
+import TourWorkspaceNav from "./components/TourWorkspaceNav";
 import {
   AppRole,
   CurrentMembership,
@@ -1421,14 +1422,14 @@ export default function DashboardLayout({
       </header>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[296px] border-r border-white/[.06] bg-[#070c12] transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[312px] border-r border-white/[.07] bg-[linear-gradient(180deg,#070c12_0%,#05090e_54%,#03070b_100%)] shadow-[20px_0_70px_rgba(0,0,0,.18)] transition-transform duration-300 lg:translate-x-0 ${
           mobileOpen
             ? "translate-x-0"
             : "-translate-x-full"
         }`}
       >
         <div className="flex h-full flex-col">
-          <div className="border-b border-white/[.06] px-4 py-4">
+          <div className="border-b border-white/[.06] bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.08),transparent_40%)] px-4 py-4">
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-400">
               TUROBUS OS
             </p>
@@ -1487,6 +1488,14 @@ export default function DashboardLayout({
               </div>
             </div>
           </div>
+
+
+          {(pathname.startsWith("/dashboard/turlar") ||
+            pathname.startsWith("/dashboard/tur-os") ||
+            pathname.startsWith("/dashboard/operasyon") ||
+            pathname.startsWith("/dashboard/manifest")) && (
+            <TourWorkspaceNav />
+          )}
 
           <nav className="turobus-sidebar-scroll flex-1 overflow-y-auto px-2.5 py-3">
             <div className="space-y-1.5">
@@ -1696,7 +1705,7 @@ export default function DashboardLayout({
         />
       )}
 
-      <div className="lg:pl-[296px]">
+      <div className="lg:pl-[312px]">
         {children}
       </div>
 
@@ -1726,3 +1735,5 @@ export default function DashboardLayout({
     </div>
   );
 }
+
+// TOUR_UI_PROFESSIONAL_V1

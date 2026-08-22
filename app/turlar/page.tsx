@@ -155,72 +155,15 @@ const domesticCities = [
 ];
 
 
-const previewTours = [
-  {
-    title:
-      "Kapadokya Kültür Turu",
-    route:
-      "İstanbul → Kapadokya",
-    scope:
-      "Yurt İçi",
-    transport:
-      "Otobüslü",
-    duration:
-      "2 Gece 3 Gün",
-    price:
-      8990,
-    image:
-      "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1400&q=90",
-  },
-  {
-    title:
-      "Karadeniz Yaylaları",
-    route:
-      "Ankara → Trabzon · Rize",
-    scope:
-      "Yurt İçi",
-    transport:
-      "Otobüslü",
-    duration:
-      "4 Gece 5 Gün",
-    price:
-      13990,
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=90",
-  },
-  {
-    title:
-      "Balkanlar Büyük Turu",
-    route:
-      "İstanbul → Balkanlar",
-    scope:
-      "Yurt Dışı",
-    transport:
-      "Uçaklı",
-    duration:
-      "6 Gece 7 Gün",
-    price:
-      32900,
-    image:
-      "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1400&q=90",
-  },
-  {
-    title:
-      "Dubai Şehir Turu",
-    route:
-      "İstanbul → Dubai",
-    scope:
-      "Yurt Dışı",
-    transport:
-      "Uçaklı",
-    duration:
-      "4 Gece 5 Gün",
-    price:
-      36900,
-    image:
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1400&q=90",
-  },
-];
+const previewTours: Array<{
+  title: string;
+  route: string;
+  scope: string;
+  transport: string;
+  duration: string;
+  price: number;
+  image: string;
+}> = [];
 
 
 function normalize(
@@ -976,7 +919,7 @@ export default function ToursPage() {
 
 
   return (
-    <main className="min-h-screen bg-[#06101b] text-white">
+    <main className="min-h-screen bg-[#f7f8fa] bg-[#06101b] text-white">
 
       <Navbar />
 
@@ -1020,7 +963,7 @@ export default function ToursPage() {
 
                 Rotanı Seç.
 
-                <span className="mt-3 block text-orange-500">
+                <span className="mt-3 block text-orange-600">
                   Yolculuğa Başla.
                 </span>
 
@@ -1107,7 +1050,7 @@ export default function ToursPage() {
               className={`flex items-center justify-between rounded-[24px] border p-5 text-left transition ${
                 transport ===
                 "bus"
-                  ? "border-orange-500/50 bg-orange-500/15 shadow-xl shadow-orange-500/10"
+                  ? "border-orange-500/50 bg-orange-600/15 shadow-xl shadow-orange-500/10"
                   : "border-white/10 bg-black/35 hover:border-orange-500/30"
               }`}
             >
@@ -1117,7 +1060,7 @@ export default function ToursPage() {
                 <div className={`grid h-13 w-13 place-items-center rounded-2xl p-4 ${
                   transport ===
                   "bus"
-                    ? "bg-orange-500 text-white"
+                    ? "bg-orange-600 text-white"
                     : "bg-white/[.05] text-slate-400"
                 }`}>
                   <FaBusAlt className="text-xl" />
@@ -1325,7 +1268,7 @@ export default function ToursPage() {
                       )
                     )
                   }
-                  className="grid h-8 w-8 place-items-center rounded-lg bg-orange-500"
+                  className="grid h-8 w-8 place-items-center rounded-lg bg-orange-600"
                 >
                   +
                 </button>
@@ -1342,7 +1285,7 @@ export default function ToursPage() {
                 onClick={
                   scrollResults
                 }
-                className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-7 font-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
+                className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-7 font-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-600"
               >
                 <FaSearch />
                 Turları Göster
@@ -1497,7 +1440,7 @@ export default function ToursPage() {
 
                     <div className="flex items-center justify-between">
 
-                      <div className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-500/10 text-orange-400">
+                      <div className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-600/10 text-orange-400">
                         <Icon />
                       </div>
 
@@ -1607,7 +1550,7 @@ export default function ToursPage() {
                     className={`rounded-xl px-4 py-3 text-xs font-black transition ${
                       scope ===
                       key
-                        ? "bg-orange-500 text-white"
+                        ? "bg-orange-600 text-white"
                         : "border border-white/10 bg-white/[.03] text-slate-400 hover:text-white"
                     }`}
                   >
@@ -1840,7 +1783,7 @@ export default function ToursPage() {
                           className={`w-full rounded-xl px-3 py-2.5 text-left text-xs font-black ${
                             scope ===
                             key
-                              ? "bg-orange-500 text-white"
+                              ? "bg-orange-600 text-white"
                               : "text-slate-400 hover:bg-white/[.04]"
                           }`}
                         >
@@ -1855,7 +1798,7 @@ export default function ToursPage() {
                 </div>
 
 
-                <div className="mt-5 rounded-xl border border-orange-500/15 bg-orange-500/[.04] p-4">
+                <div className="mt-5 rounded-xl border border-orange-500/15 bg-orange-600/[.04] p-4">
 
                   <div className="text-xs font-black text-orange-300">
                     Tur Marketplace
@@ -1981,7 +1924,7 @@ export default function ToursPage() {
                               <span className={`rounded-full px-3 py-1.5 text-[8px] font-black ${
                                 mode ===
                                 "bus"
-                                  ? "bg-orange-500 text-white"
+                                  ? "bg-orange-600 text-white"
                                   : "bg-cyan-300 text-slate-950"
                               }`}>
 
@@ -2183,7 +2126,7 @@ export default function ToursPage() {
 
                                 <Link
                                   href={`/turlar/${tour.slug}`}
-                                  className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-xs font-black transition hover:bg-orange-600"
+                                  className="flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-xs font-black transition hover:bg-orange-600"
                                 >
                                   Turu İncele
                                   <FaArrowRight />
@@ -2207,7 +2150,7 @@ export default function ToursPage() {
 
                 <div>
 
-                  <div className="rounded-[24px] border border-orange-500/15 bg-orange-500/[.04] p-5">
+                  <div className="rounded-[24px] border border-orange-500/15 bg-orange-600/[.04] p-5">
 
                     <div className="font-black text-orange-300">
                       Marketplace Tasarım Önizlemesi
@@ -2491,7 +2434,7 @@ export default function ToursPage() {
                     className={`rounded-xl border px-3 py-3 text-xs font-black ${
                       scope ===
                       key
-                        ? "border-orange-500 bg-orange-500"
+                        ? "border-orange-500 bg-orange-600"
                         : "border-white/10"
                     }`}
                   >
@@ -2578,7 +2521,7 @@ export default function ToursPage() {
                 scrollResults();
 
               }}
-              className="mt-6 w-full rounded-xl bg-orange-500 py-4 font-black"
+              className="mt-6 w-full rounded-xl bg-orange-600 py-4 font-black"
             >
               Sonuçları Göster
             </button>
@@ -2595,3 +2538,31 @@ export default function ToursPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-public-tours],
+  body {
+    scroll-behavior: smooth;
+  }
+
+  .tour-public-card {
+    transition:
+      transform .22s ease,
+      box-shadow .22s ease,
+      border-color .22s ease;
+  }
+
+  .tour-public-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 22px 54px rgba(15,23,42,.10);
+  }
+
+  @media (max-width: 768px) {
+    .tour-public-card {
+      border-radius: 20px !important;
+    }
+  }
+`}</style>
+
+// PUBLIC_TOURS_PROFESSIONAL_V1

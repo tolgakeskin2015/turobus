@@ -691,11 +691,11 @@ export default function DashboardToursPage() {
 
 
   return (
-    <main data-tour-os-screen="tour-list" className="min-h-screen bg-[#030a11] text-white">
+    <main data-tour-os-screen="tour-list" className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.06),transparent_28%),linear-gradient(180deg,#03080e_0%,#040b12_38%,#03070b_100%)] text-white">
 
-      <div className="mx-auto max-w-[1650px] px-5 py-7 lg:px-8">
+      <div className="mx-auto max-w-[1780px] px-5 py-7 lg:px-8">
 
-        <section className="overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.14),transparent_34%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
+        <section className="overflow-hidden rounded-[32px] border border-white/[.08] shadow-[0_28px_90px_rgba(0,0,0,.22)] bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.14),transparent_34%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
 
@@ -714,7 +714,7 @@ export default function DashboardToursPage() {
               </div>
 
 
-              <h1 className="mt-5 text-3xl font-black tracking-[-.04em] lg:text-5xl">
+              <h1 className="mt-5 text-3xl font-black tracking-[-.045em] lg:text-[52px] lg:leading-[1.02]">
                 Tur
                 <span className="text-orange-400">
                   {" "}
@@ -724,7 +724,7 @@ export default function DashboardToursPage() {
 
 
               <p className="mt-3 max-w-3xl text-xs leading-6 text-slate-400">
-                Uçaklı ve otobüslü turları satıştan operasyona kadar tek profesyonel tabloda yönetin.
+                Satış, kapasite, yolcu, ulaşım, operasyon ve finans durumunu tek ekrandan yönetin. Kritik işler üstte, detaylar ihtiyaç olduğunda.
               </p>
 
             </div>
@@ -850,7 +850,7 @@ export default function DashboardToursPage() {
                 key={
                   item.title
                 }
-                className="rounded-[22px] border border-white/10 bg-[#07131f] p-5"
+                className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.14)] p-5"
               >
 
                 <div className="flex items-start justify-between gap-3">
@@ -907,7 +907,7 @@ export default function DashboardToursPage() {
                     )
                   }
                   placeholder="Tur, şehir, rota veya acente ara..."
-                  className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-10 pr-4 text-[9px] font-bold outline-none focus:border-orange-500/30"
+                  className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] pl-10 pr-4 text-[9px] font-bold outline-none focus:border-orange-500/30"
                 />
 
               </div>
@@ -926,7 +926,7 @@ export default function DashboardToursPage() {
                       | TransportMode
                   )
                 }
-                className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[9px] font-bold outline-none"
+                className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-4 text-[9px] font-bold outline-none"
               >
                 <option value="all">
                   Tüm Ulaşım Tipleri
@@ -959,7 +959,7 @@ export default function DashboardToursPage() {
                       | OperationStatus
                   )
                 }
-                className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[9px] font-bold outline-none"
+                className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-4 text-[9px] font-bold outline-none"
               >
                 <option value="all">
                   Tüm Operasyon Durumları
@@ -1397,3 +1397,46 @@ export default function DashboardToursPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-os-screen="tour-list"] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-os-screen="tour-list"] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  [data-tour-os-screen="tour-list"] tbody tr {
+    transition:
+      background-color .18s ease,
+      transform .18s ease;
+  }
+
+  [data-tour-os-screen="tour-list"] tbody tr:hover {
+    background: rgba(255,255,255,.025);
+  }
+
+  [data-tour-os-screen="tour-list"] input,
+  [data-tour-os-screen="tour-list"] select {
+    outline: none;
+  }
+
+  [data-tour-os-screen="tour-list"] input:focus,
+  [data-tour-os-screen="tour-list"] select:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.07);
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-os-screen="tour-list"] {
+      padding-bottom: 88px;
+    }
+  }
+`}</style>
+
+// TOUR_LIST_PROFESSIONAL_V1

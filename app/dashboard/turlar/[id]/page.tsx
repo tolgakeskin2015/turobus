@@ -48,6 +48,8 @@ import {
   getCurrentMembership,
 } from "@/lib/current-user";
 
+import TourDetailTabs from "../../components/TourDetailTabs";
+
 
 type TransportMode =
   | "air"
@@ -2016,7 +2018,7 @@ export default function TourOperationHubPage() {
 
 
   return (
-    <main data-tour-os-screen="tour-hub" className="min-h-screen bg-[#030a11] text-white">
+    <main data-tour-os-screen="tour-hub" className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.05),transparent_28%),linear-gradient(180deg,#03080e,#040a10)] text-white">
 
       <div className="mx-auto max-w-[1750px] px-5 py-7 lg:px-8">
 
@@ -2029,6 +2031,12 @@ export default function TourOperationHubPage() {
             <FaArrowLeft />
             Tur Yönetimi
           </Link>
+
+        <TourDetailTabs
+          tourId={tour.id}
+          transportMode={tour.transport_mode}
+        />
+
 
 
           <Link
@@ -2819,3 +2827,5 @@ export default function TourOperationHubPage() {
 // TOUR_OS_PACKAGE_D_NAV
 
 // TOUR_OS_PACKAGE_E_NAV
+
+// TOUR_DETAIL_PROFESSIONAL_V1
