@@ -1763,6 +1763,23 @@ export default function TourOperationHubPage() {
               "amber",
           },
 
+          {
+            label:
+              "Operasyon Hataları",
+
+            description:
+              "Eksik hizmet, hata, SLA, müşteri ve finansal etki merkezi",
+
+            href:
+              `/dashboard/turlar/${tour.id}/hatalar`,
+
+            icon:
+              <FaExclamationTriangle />,
+
+            tone:
+              "amber",
+          },
+
 
           {
             label:
