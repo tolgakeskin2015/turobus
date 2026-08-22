@@ -1867,6 +1867,23 @@ export default function TourOperationHubPage() {
               "emerald",
           },
 
+          {
+            label:
+              "Ticari Ürün & Fiyat",
+
+            description:
+              "Filtre, alarm, takvim, karşılaştırma ve ortak ürün satış katmanı",
+
+            href:
+              `/dashboard/turlar/${tour.id}/ticari-urunler`,
+
+            icon:
+              <FaChartLine />,
+
+            tone:
+              "orange",
+          },
+
 
           {
             label:
@@ -2762,3 +2779,5 @@ export default function TourOperationHubPage() {
 // TOUR_OS_PACKAGE_A_NAV
 
 // TOUR_OS_PACKAGE_B_NAV
+
+// TOUR_OS_PACKAGE_C_NAV
