@@ -34,6 +34,7 @@ import {
 
 
 import RefundClosureAlarm from "./RefundClosureAlarm";
+import IncidentCriticalAlarm from "./IncidentCriticalAlarm";
 
 
 type TransportMode =
@@ -2221,6 +2222,8 @@ export default function TourControlTowerPage() {
 
         <RefundClosureAlarm />
 
+        <IncidentCriticalAlarm />
+
         <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
 
           {[
@@ -2929,3 +2932,5 @@ export default function TourControlTowerPage() {
 }
 
 // TOUR_OS_15_1E_REFUND_CLOSURE_ALARM
+
+// TOUR_OS_PHASE16_CRITICAL_INCIDENT_ALARM
