@@ -1715,7 +1715,7 @@ export default function MobileTourOperationsPage() {
 
 
   return (
-    <main className="min-h-screen bg-[#030a11] pb-24 text-white">
+    <main data-tour-os-screen="mobile-operations" className="min-h-screen bg-[#030a11] pb-24 text-white">
 
       <div className="mx-auto max-w-3xl px-4 py-5">
 
