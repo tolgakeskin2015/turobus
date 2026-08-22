@@ -1884,6 +1884,23 @@ export default function TourOperationHubPage() {
               "orange",
           },
 
+          {
+            label:
+              "Büyüme & Dağıtım",
+
+            description:
+              "Nereye Gidebilirim, son dakika, grup, TuroPuan, B2B, SaaS ve white-label",
+
+            href:
+              `/dashboard/turlar/${tour.id}/buyume-kanallari`,
+
+            icon:
+              <FaChartLine />,
+
+            tone:
+              "violet",
+          },
+
 
           {
             label:
@@ -2781,3 +2798,5 @@ export default function TourOperationHubPage() {
 // TOUR_OS_PACKAGE_B_NAV
 
 // TOUR_OS_PACKAGE_C_NAV
+
+// TOUR_OS_PACKAGE_D_NAV
