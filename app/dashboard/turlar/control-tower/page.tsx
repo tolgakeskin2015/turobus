@@ -2159,7 +2159,7 @@ export default function TourControlTowerPage() {
 
 
   return (
-    <main data-tour-os-screen="control-tower" className="min-h-screen bg-[#030a11] text-white">
+    <main data-tour-control-final data-tour-os-screen="control-tower" className="min-h-screen bg-[#030a11] text-white">
 
       <div className="mx-auto max-w-[1800px] px-5 py-7 lg:px-8">
 
@@ -2328,7 +2328,7 @@ export default function TourControlTowerPage() {
                 key={
                   item.label
                 }
-                className="rounded-[22px] border border-white/10 bg-[#07131f] p-5"
+                className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_15px_45px_rgba(0,0,0,.13)] p-5"
               >
                 <div className="text-[7px] font-black uppercase tracking-[.1em] text-slate-600">
                   {item.label}
@@ -2344,7 +2344,7 @@ export default function TourControlTowerPage() {
         </section>
 
 
-        <section className="mt-5 rounded-[26px] border border-white/10 bg-[#07131f] p-5">
+        <section className="mt-5 rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_15px_45px_rgba(0,0,0,.13)] p-5">
 
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
 
@@ -2362,7 +2362,7 @@ export default function TourControlTowerPage() {
                   )
                 }
                 placeholder="Tur ara..."
-                className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-9 pr-3 text-[8px]"
+                className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] pl-9 pr-3 text-[8px]"
               />
 
             </div>
@@ -2380,7 +2380,7 @@ export default function TourControlTowerPage() {
                       typeof transport
                   )
                 }
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               >
                 <option value="all">
                   Tüm Ulaşım
@@ -2410,7 +2410,7 @@ export default function TourControlTowerPage() {
                       typeof risk
                   )
                 }
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               >
                 <option value="all">
                   Tüm Durumlar
@@ -2436,7 +2436,7 @@ export default function TourControlTowerPage() {
         </section>
 
 
-        <section className="mt-5 overflow-hidden rounded-[28px] border border-white/10 bg-[#07131f]">
+        <section className="mt-5 overflow-hidden rounded-[28px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_15px_45px_rgba(0,0,0,.13)]">
 
           <div className="overflow-auto">
 
@@ -2959,3 +2959,60 @@ export default function TourControlTowerPage() {
 // TOUR_OS_PACKAGE_D_GROWTH_ALARM
 
 // TOUR_OS_PACKAGE_E_PLATFORM_GOVERNANCE_ALARM
+
+
+<style jsx global>{`
+  [data-tour-control-final] {
+    min-height: 100vh;
+    background:
+      radial-gradient(
+        circle at top right,
+        rgba(249,115,22,.055),
+        transparent 29%
+      ),
+      linear-gradient(
+        180deg,
+        #03080e 0%,
+        #040b12 42%,
+        #03070b 100%
+      );
+  }
+
+  [data-tour-control-final] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-control-final] thead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(16px);
+  }
+
+  [data-tour-control-final] tbody tr {
+    transition:
+      background-color .16s ease,
+      transform .16s ease;
+  }
+
+  [data-tour-control-final] tbody tr:hover {
+    background: rgba(255,255,255,.026);
+  }
+
+  [data-tour-control-final] input:focus,
+  [data-tour-control-final] select:focus {
+    border-color: rgba(249,115,22,.42);
+    outline: none;
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-control-final] {
+      padding-bottom: 86px;
+    }
+  }
+`}</style>
+
+// TOUR_CONTROL_TOWER_VISUAL_FINAL

@@ -1,5 +1,7 @@
 "use client";
 
+import TourExecutiveChrome from "../../../components/TourExecutiveChrome";
+
 import Link from "next/link";
 
 import {
@@ -399,10 +401,16 @@ export default function AIOperationsPage() {
 
 
   return (
-    <main
+    <main data-tour-visual-final
       data-tour-os-screen="ai-operation-center"
       className="min-h-screen bg-[#030a11] text-white"
     >
+
+      <TourExecutiveChrome
+        tourId={tourId}
+        moduleKey="ai"
+      />
+
 
       <div className="mx-auto max-w-[1500px] px-5 py-7 lg:px-8">
 
@@ -415,7 +423,7 @@ export default function AIOperationsPage() {
         </Link>
 
 
-        <section className="mt-4 rounded-[30px] border border-violet-500/15 bg-[#07131f] p-6 lg:p-8">
+        <section className="mt-4 rounded-[26px] border border-violet-500/15 bg-[#07131f] p-6 lg:p-8">
 
           <div className="flex items-center gap-3">
 
@@ -461,7 +469,7 @@ export default function AIOperationsPage() {
         )}
 
 
-        <section className="mt-5 rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+        <section className="mt-5 rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
           <div className="flex flex-col gap-3 sm:flex-row">
 
@@ -475,7 +483,7 @@ export default function AIOperationsPage() {
                     event.target.value
                   )
               }
-              className="min-h-11 flex-1 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[9px]"
+              className="min-h-11 flex-1 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[9px]"
             >
 
               <option value="">
@@ -566,7 +574,7 @@ export default function AIOperationsPage() {
 
                   <article
                     key={item[0]}
-                    className="rounded-[20px] border border-white/10 bg-[#07131f] p-4"
+                    className="rounded-[20px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4"
                   >
                     <div className="text-[7px] font-black text-slate-500">
                       {item[0]}
@@ -583,7 +591,7 @@ export default function AIOperationsPage() {
 
             <section className="mt-5 grid gap-5 xl:grid-cols-2">
 
-              <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+              <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                 <div className="text-sm font-black">
                   Bulgular
@@ -600,7 +608,7 @@ export default function AIOperationsPage() {
               </article>
 
 
-              <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+              <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
                 <div className="text-sm font-black">
                   Önerilen Aksiyonlar
@@ -632,7 +640,7 @@ export default function AIOperationsPage() {
 
         ) : (
 
-          <section className="mt-5 rounded-[24px] border border-dashed border-white/10 py-16 text-center text-[9px] text-slate-500">
+          <section className="mt-5 rounded-[22px] border border-dashed border-white/10 py-16 text-center text-[9px] text-slate-500">
             Henüz operasyon risk snapshot'ı oluşturulmadı.
           </section>
         )}
@@ -642,3 +650,63 @@ export default function AIOperationsPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-visual-final] {
+    min-height: 100vh;
+  }
+
+  [data-tour-visual-final] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-visual-final] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(14px);
+  }
+
+  [data-tour-visual-final] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-visual-final] tbody tr:hover {
+    background: rgba(255,255,255,.025);
+  }
+
+  [data-tour-visual-final] input,
+  [data-tour-visual-final] select,
+  [data-tour-visual-final] textarea {
+    outline: none;
+  }
+
+  [data-tour-visual-final] input:focus,
+  [data-tour-visual-final] select:focus,
+  [data-tour-visual-final] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-visual-final] button,
+  [data-tour-visual-final] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-visual-final] {
+      padding-bottom: 86px;
+    }
+
+    [data-tour-executive-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_VISUAL_FINAL_AI

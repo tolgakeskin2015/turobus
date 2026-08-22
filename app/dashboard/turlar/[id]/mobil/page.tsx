@@ -1,5 +1,7 @@
 "use client";
 
+import TourExecutiveChrome from "../../../components/TourExecutiveChrome";
+
 import Link from "next/link";
 
 import {
@@ -1715,7 +1717,13 @@ export default function MobileTourOperationsPage() {
 
 
   return (
-    <main data-tour-os-screen="mobile-operations" className="min-h-screen bg-[#030a11] pb-24 text-white">
+    <main data-tour-visual-final data-tour-os-screen="mobile-operations" className="min-h-screen bg-[#030a11] pb-24 text-white">
+
+      <TourExecutiveChrome
+        tourId={tourId}
+        moduleKey="mobile"
+      />
+
 
       <div className="mx-auto max-w-3xl px-4 py-5">
 
@@ -1723,7 +1731,7 @@ export default function MobileTourOperationsPage() {
 
           <Link
             href="/dashboard/turlar/control-tower"
-            className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-[#07131f] text-slate-400"
+            className="grid h-10 w-10 place-items-center rounded-xl border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] text-slate-400"
           >
             <FaArrowLeft />
           </Link>
@@ -1794,7 +1802,7 @@ export default function MobileTourOperationsPage() {
                   event.target.value
                 )
               }
-              className="max-w-[155px] rounded-xl border border-white/10 bg-[#030a11] px-3 py-2 text-[7px] font-black"
+              className="max-w-[155px] rounded-xl border border-white/[.08] bg-[#03080e] px-3 py-2 text-[7px] font-black"
             >
 
               {departures.map(
@@ -1837,7 +1845,7 @@ export default function MobileTourOperationsPage() {
 
         <section className="mt-4 grid grid-cols-2 gap-3">
 
-          <article className="rounded-[20px] border border-white/10 bg-[#07131f] p-4">
+          <article className="rounded-[20px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4">
             <div className="text-[7px] font-black text-slate-600">
               YOLCU
             </div>
@@ -1920,7 +1928,7 @@ export default function MobileTourOperationsPage() {
                   key={
                     operation.id
                   }
-                  className="rounded-[18px] border border-white/10 bg-[#07131f] p-4"
+                  className="rounded-[18px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4"
                 >
 
                   <div className="flex items-center justify-between">
@@ -2000,7 +2008,7 @@ export default function MobileTourOperationsPage() {
         )}
 
 
-        <section className="mt-4 rounded-[22px] border border-white/10 bg-[#07131f] p-4">
+        <section className="mt-4 rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4">
 
           <div className="relative">
 
@@ -2016,7 +2024,7 @@ export default function MobileTourOperationsPage() {
                 )
               }
               placeholder="Yolcu ara..."
-              className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-9 pr-3 text-[9px]"
+              className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] pl-9 pr-3 text-[9px]"
             />
 
           </div>
@@ -2342,7 +2350,7 @@ export default function MobileTourOperationsPage() {
                       key={
                         reservation.id
                       }
-                      className="rounded-[22px] border border-white/10 bg-[#07131f] p-4"
+                      className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4"
                     >
 
                       <div className="flex items-start justify-between gap-3">
@@ -2459,7 +2467,7 @@ export default function MobileTourOperationsPage() {
             }
             rows={3}
             placeholder="Örn. Otobüs 15 dk gecikiyor, yolcu sağlık problemi yaşadı..."
-            className="mt-3 w-full rounded-xl border border-white/10 bg-[#030a11] p-3 text-[9px]"
+            className="mt-3 w-full rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[9px]"
           />
 
 
@@ -2485,7 +2493,7 @@ export default function MobileTourOperationsPage() {
 
           <Link
             href={`/dashboard/turlar/${tourId}/hazirlik`}
-            className="rounded-[20px] border border-white/10 bg-[#07131f] p-4"
+            className="rounded-[20px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4"
           >
             <FaClipboardCheck className="text-amber-300" />
 
@@ -2497,7 +2505,7 @@ export default function MobileTourOperationsPage() {
 
           <Link
             href={`/dashboard/turlar/${tourId}/yolcular`}
-            className="rounded-[20px] border border-white/10 bg-[#07131f] p-4"
+            className="rounded-[20px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4"
           >
             <FaUsers className="text-emerald-300" />
 
@@ -2522,3 +2530,63 @@ export default function MobileTourOperationsPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-visual-final] {
+    min-height: 100vh;
+  }
+
+  [data-tour-visual-final] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-visual-final] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(14px);
+  }
+
+  [data-tour-visual-final] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-visual-final] tbody tr:hover {
+    background: rgba(255,255,255,.025);
+  }
+
+  [data-tour-visual-final] input,
+  [data-tour-visual-final] select,
+  [data-tour-visual-final] textarea {
+    outline: none;
+  }
+
+  [data-tour-visual-final] input:focus,
+  [data-tour-visual-final] select:focus,
+  [data-tour-visual-final] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-visual-final] button,
+  [data-tour-visual-final] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-visual-final] {
+      padding-bottom: 86px;
+    }
+
+    [data-tour-executive-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_VISUAL_FINAL_MOBILE

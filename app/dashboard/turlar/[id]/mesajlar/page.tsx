@@ -1,5 +1,7 @@
 "use client";
 
+import TourExecutiveChrome from "../../../components/TourExecutiveChrome";
+
 import Link from "next/link";
 
 import {
@@ -1838,7 +1840,13 @@ export default function TourCommunicationCenterPage() {
 
 
   return (
-    <main data-tour-os-screen="communication-center" className="min-h-screen bg-[#030a11] text-white">
+    <main data-tour-visual-final data-tour-os-screen="communication-center" className="min-h-screen bg-[#030a11] text-white">
+
+      <TourExecutiveChrome
+        tourId={tourId}
+        moduleKey="messages"
+      />
+
 
       <div className="mx-auto max-w-[1750px] px-5 py-7 lg:px-8">
 
@@ -1863,7 +1871,7 @@ export default function TourCommunicationCenterPage() {
         </div>
 
 
-        <section className="mt-4 rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.15),transparent_36%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
+        <section className="mt-4 rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.15),transparent_36%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 
@@ -1900,7 +1908,7 @@ export default function TourCommunicationCenterPage() {
                   event.target.value
                 )
               }
-              className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[8px] font-black"
+              className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-4 text-[8px] font-black"
             >
 
               {departures.map(
@@ -1949,7 +1957,7 @@ export default function TourCommunicationCenterPage() {
 
         <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
 
-          <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
             <div className="text-[7px] font-black text-slate-600">
               HAZIR
             </div>
@@ -2007,7 +2015,7 @@ export default function TourCommunicationCenterPage() {
             onSubmit={
               saveCommunication
             }
-            className="rounded-[26px] border border-white/10 bg-[#07131f] p-5"
+            className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
           >
 
             <div className="flex items-center gap-2 text-[9px] font-black">
@@ -2032,7 +2040,7 @@ export default function TourCommunicationCenterPage() {
                     event.target.value
                   )
                 }
-                className="h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               >
 
                 <option value="">
@@ -2071,7 +2079,7 @@ export default function TourCommunicationCenterPage() {
                         Channel
                     )
                   }
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[8px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[8px]"
                 >
 
                   {(
@@ -2109,7 +2117,7 @@ export default function TourCommunicationCenterPage() {
                         MessageType
                     )
                   }
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-2 text-[7px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
                 >
 
                   {(
@@ -2161,7 +2169,7 @@ export default function TourCommunicationCenterPage() {
                             MessageType
                         )
                       }
-                      className="rounded-lg border border-white/10 bg-[#030a11] px-3 py-2 text-[7px] font-black text-slate-400"
+                      className="rounded-lg border border-white/[.08] bg-[#03080e] px-3 py-2 text-[7px] font-black text-slate-400"
                     >
                       {messageTypeLabels[
                         type as
@@ -2184,7 +2192,7 @@ export default function TourCommunicationCenterPage() {
                   )
                 }
                 placeholder="Konu (e-posta için)"
-                className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -2199,7 +2207,7 @@ export default function TourCommunicationCenterPage() {
                   )
                 }
                 placeholder="Mesaj içeriği"
-                className="rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px] leading-5"
+                className="rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px] leading-5"
               />
 
 
@@ -2219,7 +2227,7 @@ export default function TourCommunicationCenterPage() {
                       event.target.value
                     )
                   }
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 />
 
               </label>
@@ -2285,7 +2293,7 @@ export default function TourCommunicationCenterPage() {
 
           <section className="space-y-4">
 
-            <div className="rounded-[22px] border border-white/10 bg-[#07131f] p-4">
+            <div className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4">
 
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 
@@ -2303,7 +2311,7 @@ export default function TourCommunicationCenterPage() {
                       )
                     }
                     placeholder="Alıcı veya mesaj ara..."
-                    className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] pl-9 pr-3 text-[8px]"
+                    className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] pl-9 pr-3 text-[8px]"
                   />
 
                 </div>
@@ -2319,7 +2327,7 @@ export default function TourCommunicationCenterPage() {
                         typeof statusFilter
                     )
                   }
-                  className="h-10 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
                 >
 
                   <option value="all">
@@ -2360,7 +2368,7 @@ export default function TourCommunicationCenterPage() {
               {visibleCommunications.length ===
               0 ? (
 
-                <div className="rounded-[24px] border border-dashed border-white/10 bg-[#07131f] p-10 text-center">
+                <div className="rounded-[22px] border border-dashed border-white/10 bg-[#07131f] p-10 text-center">
 
                   <FaPaperPlane className="mx-auto text-3xl text-slate-800" />
 
@@ -2401,7 +2409,7 @@ export default function TourCommunicationCenterPage() {
                         key={
                           item.id
                         }
-                        className="rounded-[22px] border border-white/10 bg-[#07131f] p-5"
+                        className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
                       >
 
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -2612,7 +2620,7 @@ export default function TourCommunicationCenterPage() {
 
           <Link
             href={`/dashboard/turlar/${tourId}/belgeler`}
-            className="rounded-[24px] border border-white/10 bg-[#07131f] p-5"
+            className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
           >
             <FaExternalLinkAlt className="text-blue-300" />
 
@@ -2628,7 +2636,7 @@ export default function TourCommunicationCenterPage() {
 
           <Link
             href={`/dashboard/turlar/${tourId}/gorevler`}
-            className="rounded-[24px] border border-white/10 bg-[#07131f] p-5"
+            className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
           >
             <FaUserTie className="text-orange-300" />
 
@@ -2644,7 +2652,7 @@ export default function TourCommunicationCenterPage() {
 
           <Link
             href={`/dashboard/turlar/${tourId}/tedarikciler`}
-            className="rounded-[24px] border border-white/10 bg-[#07131f] p-5"
+            className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5"
           >
             <FaUsers className="text-violet-300" />
 
@@ -2664,3 +2672,63 @@ export default function TourCommunicationCenterPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-visual-final] {
+    min-height: 100vh;
+  }
+
+  [data-tour-visual-final] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-visual-final] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(14px);
+  }
+
+  [data-tour-visual-final] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-visual-final] tbody tr:hover {
+    background: rgba(255,255,255,.025);
+  }
+
+  [data-tour-visual-final] input,
+  [data-tour-visual-final] select,
+  [data-tour-visual-final] textarea {
+    outline: none;
+  }
+
+  [data-tour-visual-final] input:focus,
+  [data-tour-visual-final] select:focus,
+  [data-tour-visual-final] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-visual-final] button,
+  [data-tour-visual-final] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-visual-final] {
+      padding-bottom: 86px;
+    }
+
+    [data-tour-executive-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_VISUAL_FINAL_MESSAGES

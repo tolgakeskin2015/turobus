@@ -1,5 +1,7 @@
 "use client";
 
+import TourExecutiveChrome from "../../../components/TourExecutiveChrome";
+
 import Link from "next/link";
 
 import {
@@ -1792,7 +1794,13 @@ export default function TourReadinessPage() {
 
 
   return (
-    <main data-tour-os-screen="readiness-center" className="min-h-screen bg-[#030a11] text-white">
+    <main data-tour-visual-final data-tour-os-screen="readiness-center" className="min-h-screen bg-[#030a11] text-white">
+
+      <TourExecutiveChrome
+        tourId={tourId}
+        moduleKey="readiness"
+      />
+
 
       <div className="mx-auto max-w-[1650px] px-5 py-7 lg:px-8">
 
@@ -1805,7 +1813,7 @@ export default function TourReadinessPage() {
         </Link>
 
 
-        <section className="mt-4 overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.14),transparent_34%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
+        <section className="mt-4 overflow-hidden rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.14),transparent_34%),linear-gradient(145deg,#07131f,#040b12)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
 
@@ -1869,7 +1877,7 @@ export default function TourReadinessPage() {
                   event.target.value
                 )
               }
-              className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-4 text-[8px] font-black"
+              className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-4 text-[8px] font-black"
             >
               {departures.length ===
               0 ? (
@@ -1914,7 +1922,7 @@ export default function TourReadinessPage() {
 
         <section className="mt-5 grid gap-4 lg:grid-cols-[320px_1fr]">
 
-          <article className="rounded-[28px] border border-white/10 bg-[#07131f] p-6">
+          <article className="rounded-[28px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-6">
 
             <div className="text-[8px] font-black uppercase tracking-[.13em] text-slate-600">
               ÇIKIŞA HAZIRLIK
@@ -1985,7 +1993,7 @@ export default function TourReadinessPage() {
 
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 
-            <article className="rounded-[24px] border border-red-500/15 bg-red-500/[.04] p-5">
+            <article className="rounded-[22px] border border-red-500/15 bg-red-500/[.04] p-5">
 
               <div className="flex items-center gap-2 text-[8px] font-black text-red-300">
                 <FaTimesCircle />
@@ -1999,7 +2007,7 @@ export default function TourReadinessPage() {
             </article>
 
 
-            <article className="rounded-[24px] border border-amber-500/15 bg-amber-500/[.04] p-5">
+            <article className="rounded-[22px] border border-amber-500/15 bg-amber-500/[.04] p-5">
 
               <div className="flex items-center gap-2 text-[8px] font-black text-amber-300">
                 <FaExclamationTriangle />
@@ -2013,7 +2021,7 @@ export default function TourReadinessPage() {
             </article>
 
 
-            <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+            <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
               <div className="flex items-center gap-2 text-[8px] font-black text-slate-400">
                 <FaUsers />
@@ -2031,7 +2039,7 @@ export default function TourReadinessPage() {
             </article>
 
 
-            <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+            <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
               <div className="flex items-center gap-2 text-[8px] font-black text-slate-400">
                 {tour?.transport_mode ===
@@ -2096,7 +2104,7 @@ export default function TourReadinessPage() {
         )}
 
 
-        <section className="mt-5 overflow-hidden rounded-[28px] border border-white/10 bg-[#07131f]">
+        <section className="mt-5 overflow-hidden rounded-[28px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)]">
 
           <div className="border-b border-white/[.06] p-5">
 
@@ -2248,7 +2256,7 @@ export default function TourReadinessPage() {
 
           <Link
             href={`/dashboard/turlar/${tourId}/yolcular`}
-            className="rounded-[22px] border border-white/10 bg-[#07131f] p-5 transition hover:border-emerald-500/20"
+            className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5 transition hover:border-emerald-500/20"
           >
             <FaIdCard className="text-emerald-300" />
             <div className="mt-4 text-[9px] font-black">
@@ -2259,7 +2267,7 @@ export default function TourReadinessPage() {
 
           <Link
             href={`/dashboard/turlar/${tourId}/yolcular`}
-            className="rounded-[22px] border border-white/10 bg-[#07131f] p-5 transition hover:border-violet-500/20"
+            className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5 transition hover:border-violet-500/20"
           >
             <FaBed className="text-violet-300" />
             <div className="mt-4 text-[9px] font-black">
@@ -2272,7 +2280,7 @@ export default function TourReadinessPage() {
             "air" ? (
             <Link
               href={`/dashboard/turlar/${tourId}/ucus`}
-              className="rounded-[22px] border border-white/10 bg-[#07131f] p-5 transition hover:border-blue-500/20"
+              className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5 transition hover:border-blue-500/20"
             >
               <FaTicketAlt className="text-blue-300" />
               <div className="mt-4 text-[9px] font-black">
@@ -2282,7 +2290,7 @@ export default function TourReadinessPage() {
           ) : (
             <Link
               href={`/dashboard/turlar/${tourId}/otobus`}
-              className="rounded-[22px] border border-white/10 bg-[#07131f] p-5 transition hover:border-orange-500/20"
+              className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5 transition hover:border-orange-500/20"
             >
               <FaBus className="text-orange-300" />
               <div className="mt-4 text-[9px] font-black">
@@ -2294,7 +2302,7 @@ export default function TourReadinessPage() {
 
           <Link
             href="/dashboard/manifest"
-            className="rounded-[22px] border border-white/10 bg-[#07131f] p-5 transition hover:border-orange-500/20"
+            className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5 transition hover:border-orange-500/20"
           >
             <FaRoute className="text-orange-300" />
             <div className="mt-4 text-[9px] font-black">
@@ -2309,3 +2317,63 @@ export default function TourReadinessPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-visual-final] {
+    min-height: 100vh;
+  }
+
+  [data-tour-visual-final] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-visual-final] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(14px);
+  }
+
+  [data-tour-visual-final] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-visual-final] tbody tr:hover {
+    background: rgba(255,255,255,.025);
+  }
+
+  [data-tour-visual-final] input,
+  [data-tour-visual-final] select,
+  [data-tour-visual-final] textarea {
+    outline: none;
+  }
+
+  [data-tour-visual-final] input:focus,
+  [data-tour-visual-final] select:focus,
+  [data-tour-visual-final] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-visual-final] button,
+  [data-tour-visual-final] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-visual-final] {
+      padding-bottom: 86px;
+    }
+
+    [data-tour-executive-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_VISUAL_FINAL_READINESS

@@ -1,5 +1,7 @@
 "use client";
 
+import TourExecutiveChrome from "../../../components/TourExecutiveChrome";
+
 import Link from "next/link";
 
 import {
@@ -1166,10 +1168,16 @@ export default function PlatformControlPage() {
 
 
   return (
-    <main
+    <main data-tour-visual-final
       data-tour-os-screen="platform-control"
       className="min-h-screen bg-[#030a11] text-white"
     >
+
+      <TourExecutiveChrome
+        tourId={tourId}
+        moduleKey="platform"
+      />
+
 
       <div className="mx-auto max-w-[1850px] px-5 py-7 lg:px-8">
 
@@ -1182,7 +1190,7 @@ export default function PlatformControlPage() {
         </Link>
 
 
-        <section className="mt-4 rounded-[30px] border border-orange-500/15 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.13),transparent_35%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
+        <section className="mt-4 rounded-[26px] border border-orange-500/15 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.13),transparent_35%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
 
           <div className="text-[8px] font-black tracking-[.16em] text-orange-300">
             AŞAMA 37–50
@@ -1276,7 +1284,7 @@ export default function PlatformControlPage() {
                 key={
                   item[0]
                 }
-                className="rounded-[20px] border border-white/10 bg-[#07131f] p-4"
+                className="rounded-[20px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-4"
               >
                 <div className="text-[7px] font-black text-slate-500">
                   {item[0]}
@@ -1294,7 +1302,7 @@ export default function PlatformControlPage() {
 
         <section className="mt-5 grid gap-5 xl:grid-cols-2">
 
-          <article className="rounded-[24px] border border-orange-500/15 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-orange-500/15 bg-[#07131f] p-5">
 
             <div className="flex items-center gap-2 text-sm font-black">
               <FaChartLine className="text-orange-300" />
@@ -1369,7 +1377,7 @@ export default function PlatformControlPage() {
           </article>
 
 
-          <article className="rounded-[24px] border border-violet-500/15 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-violet-500/15 bg-[#07131f] p-5">
 
             <div className="flex items-center gap-2 text-sm font-black">
               <FaBrain className="text-violet-300" />
@@ -1485,7 +1493,7 @@ export default function PlatformControlPage() {
         </section>
 
 
-        <section className="mt-5 rounded-[24px] border border-emerald-500/15 bg-[#07131f] p-5">
+        <section className="mt-5 rounded-[22px] border border-emerald-500/15 bg-[#07131f] p-5">
 
           <div className="flex items-center gap-2 text-sm font-black">
             <FaWallet className="text-emerald-300" />
@@ -1505,7 +1513,7 @@ export default function PlatformControlPage() {
                     event.target.value
                   )
               }
-              className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             >
               <option value="">
                 Rezervasyon seç
@@ -1548,7 +1556,7 @@ export default function PlatformControlPage() {
                   )
               }
               placeholder="Gelen tutar"
-              className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             />
 
 
@@ -1588,7 +1596,7 @@ export default function PlatformControlPage() {
                       event.target.value
                     )
                 }
-                className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               >
                 <option value="base_tour">
                   Ana Tur
@@ -1630,7 +1638,7 @@ export default function PlatformControlPage() {
                     )
                 }
                 placeholder="Dağıtılacak"
-                className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -1702,7 +1710,7 @@ export default function PlatformControlPage() {
                     )
                 }
                 placeholder="Mutabakat referansı"
-                className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -1825,7 +1833,7 @@ export default function PlatformControlPage() {
 
         <section className="mt-5 grid gap-5 xl:grid-cols-2">
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-sm font-black">
               <FaUserShield className="text-cyan-300" />
@@ -1846,7 +1854,7 @@ export default function PlatformControlPage() {
                     )
                 }
                 placeholder="Rol"
-                className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
 
@@ -1861,7 +1869,7 @@ export default function PlatformControlPage() {
                     )
                 }
                 placeholder="Capability"
-                className="min-h-11 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+                className="min-h-11 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
               />
 
             </div>
@@ -1931,7 +1939,7 @@ export default function PlatformControlPage() {
           </article>
 
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-sm font-black">
               <FaBell className="text-amber-300" />
@@ -1949,7 +1957,7 @@ export default function PlatformControlPage() {
                     event.target.value
                   )
               }
-              className="mt-4 min-h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="mt-4 min-h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             />
 
 
@@ -1964,7 +1972,7 @@ export default function PlatformControlPage() {
                   )
               }
               placeholder="Bildirim..."
-              className="mt-3 min-h-24 w-full rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+              className="mt-3 min-h-24 w-full rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
             />
 
 
@@ -2031,7 +2039,7 @@ export default function PlatformControlPage() {
 
         <section className="mt-5 grid gap-5 xl:grid-cols-3">
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-sm font-black">
               <FaFlag className="text-fuchsia-300" />
@@ -2049,11 +2057,11 @@ export default function PlatformControlPage() {
                     event.target.value
                   )
               }
-              className="mt-4 min-h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="mt-4 min-h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             />
 
 
-            <label className="mt-3 flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]">
+            <label className="mt-3 flex min-h-11 items-center gap-2 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]">
               <input
                 type="checkbox"
                 checked={
@@ -2113,7 +2121,7 @@ export default function PlatformControlPage() {
           </article>
 
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-sm font-black">
               <FaDatabase className="text-blue-300" />
@@ -2132,7 +2140,7 @@ export default function PlatformControlPage() {
                   )
               }
               placeholder="provider_key"
-              className="mt-4 min-h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="mt-4 min-h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             />
 
 
@@ -2147,7 +2155,7 @@ export default function PlatformControlPage() {
                   )
               }
               placeholder="Provider adı"
-              className="mt-3 min-h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="mt-3 min-h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             />
 
 
@@ -2161,7 +2169,7 @@ export default function PlatformControlPage() {
                     event.target.value
                   )
               }
-              className="mt-3 min-h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="mt-3 min-h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             >
               <option value="payment">
                 Payment
@@ -2242,7 +2250,7 @@ export default function PlatformControlPage() {
           </article>
 
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-sm font-black">
               <FaHeartbeat className="text-emerald-300" />
@@ -2260,7 +2268,7 @@ export default function PlatformControlPage() {
                     event.target.value
                   )
               }
-              className="mt-4 min-h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="mt-4 min-h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             >
               <option value="">
                 Provider seç
@@ -2296,7 +2304,7 @@ export default function PlatformControlPage() {
                     event.target.value
                   )
               }
-              className="mt-3 min-h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="mt-3 min-h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             >
               <option value="healthy">
                 Healthy
@@ -2326,7 +2334,7 @@ export default function PlatformControlPage() {
                   )
               }
               placeholder="Ölçülen latency ms"
-              className="mt-3 min-h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="mt-3 min-h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             />
 
 
@@ -2385,7 +2393,7 @@ export default function PlatformControlPage() {
 
         <section className="mt-5 grid gap-5 xl:grid-cols-2">
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center justify-between gap-3">
 
@@ -2435,7 +2443,7 @@ export default function PlatformControlPage() {
           </article>
 
 
-          <article className="rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-sm font-black">
               <FaRoute className="text-orange-300" />
@@ -2453,7 +2461,7 @@ export default function PlatformControlPage() {
                     event.target.value
                   )
               }
-              className="mt-4 min-h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-[8px]"
+              className="mt-4 min-h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
             >
               <option value="">
                 Rezervasyon seç
@@ -2568,7 +2576,7 @@ export default function PlatformControlPage() {
         </section>
 
 
-        <section className="mt-5 rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+        <section className="mt-5 rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
           <div className="flex items-center gap-2 text-sm font-black">
             <FaHistory className="text-slate-300" />
@@ -2617,7 +2625,7 @@ export default function PlatformControlPage() {
         </section>
 
 
-        <section className="mt-5 rounded-[24px] border border-white/10 bg-[#07131f] p-5">
+        <section className="mt-5 rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
           <div className="flex items-center gap-2 text-sm font-black">
             <FaShieldAlt className="text-emerald-300" />
@@ -2655,3 +2663,63 @@ export default function PlatformControlPage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-visual-final] {
+    min-height: 100vh;
+  }
+
+  [data-tour-visual-final] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-visual-final] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(14px);
+  }
+
+  [data-tour-visual-final] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-visual-final] tbody tr:hover {
+    background: rgba(255,255,255,.025);
+  }
+
+  [data-tour-visual-final] input,
+  [data-tour-visual-final] select,
+  [data-tour-visual-final] textarea {
+    outline: none;
+  }
+
+  [data-tour-visual-final] input:focus,
+  [data-tour-visual-final] select:focus,
+  [data-tour-visual-final] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-visual-final] button,
+  [data-tour-visual-final] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-visual-final] {
+      padding-bottom: 86px;
+    }
+
+    [data-tour-executive-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_VISUAL_FINAL_PLATFORM

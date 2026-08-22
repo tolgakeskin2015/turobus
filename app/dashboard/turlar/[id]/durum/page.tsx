@@ -1,5 +1,7 @@
 "use client";
 
+import TourExecutiveChrome from "../../../components/TourExecutiveChrome";
+
 import Link from "next/link";
 
 import {
@@ -784,7 +786,13 @@ export default function TourStateEnginePage() {
 
 
   return (
-    <main data-tour-os-screen="state-engine" className="min-h-screen bg-[#030a11] text-white">
+    <main data-tour-visual-final data-tour-os-screen="state-engine" className="min-h-screen bg-[#030a11] text-white">
+
+      <TourExecutiveChrome
+        tourId={tourId}
+        moduleKey="status"
+      />
+
 
       <div className="mx-auto max-w-[1700px] px-5 py-7 lg:px-8">
 
@@ -797,7 +805,7 @@ export default function TourStateEnginePage() {
         </Link>
 
 
-        <section className="mt-4 rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.16),transparent_36%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
+        <section className="mt-4 rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,.16),transparent_36%),linear-gradient(145deg,#07131f,#03080e)] p-6 lg:p-8">
 
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 
@@ -1041,7 +1049,7 @@ export default function TourStateEnginePage() {
           </article>
 
 
-          <article className="rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+          <article className="rounded-[22px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
             <div className="text-[7px] font-black text-slate-600">
               UYARI
             </div>
@@ -1056,7 +1064,7 @@ export default function TourStateEnginePage() {
 
         <section className="mt-5 grid gap-5 2xl:grid-cols-[1fr_430px]">
 
-          <section className="rounded-[26px] border border-white/10 bg-[#07131f] p-5">
+          <section className="rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)] p-5">
 
             <div className="flex items-center gap-2 text-[9px] font-black">
               <FaClipboardCheck className="text-orange-300" />
@@ -1211,7 +1219,7 @@ export default function TourStateEnginePage() {
 
               <>
 
-                <div className="mt-4 rounded-[18px] border border-white/10 bg-[#030a11] p-4">
+                <div className="mt-4 rounded-[18px] border border-white/[.08] bg-[#03080e] p-4">
 
                   <div className="text-[7px] text-slate-600">
                     ŞİMDİ
@@ -1254,7 +1262,7 @@ export default function TourStateEnginePage() {
                   }
                   rows={3}
                   placeholder="Durum değişikliği operasyon notu..."
-                  className="mt-4 w-full rounded-xl border border-white/10 bg-[#030a11] p-3 text-[8px]"
+                  className="mt-4 w-full rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
                 />
 
 
@@ -1306,7 +1314,7 @@ export default function TourStateEnginePage() {
         </section>
 
 
-        <section className="mt-5 rounded-[26px] border border-white/10 bg-[#07131f]">
+        <section className="mt-5 rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)]">
 
           <div className="border-b border-white/[.06] p-5">
 
@@ -1392,3 +1400,63 @@ export default function TourStateEnginePage() {
     </main>
   );
 }
+
+
+<style jsx global>{`
+  [data-tour-visual-final] {
+    min-height: 100vh;
+  }
+
+  [data-tour-visual-final] table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  [data-tour-visual-final] thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(14px);
+  }
+
+  [data-tour-visual-final] tbody tr {
+    transition:
+      background-color .16s ease,
+      border-color .16s ease;
+  }
+
+  [data-tour-visual-final] tbody tr:hover {
+    background: rgba(255,255,255,.025);
+  }
+
+  [data-tour-visual-final] input,
+  [data-tour-visual-final] select,
+  [data-tour-visual-final] textarea {
+    outline: none;
+  }
+
+  [data-tour-visual-final] input:focus,
+  [data-tour-visual-final] select:focus,
+  [data-tour-visual-final] textarea:focus {
+    border-color: rgba(249,115,22,.42);
+    box-shadow:
+      0 0 0 3px rgba(249,115,22,.06);
+  }
+
+  [data-tour-visual-final] button,
+  [data-tour-visual-final] a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    [data-tour-visual-final] {
+      padding-bottom: 86px;
+    }
+
+    [data-tour-executive-chrome] {
+      border-radius: 22px;
+    }
+  }
+`}</style>
+
+// TOUR_VISUAL_FINAL_STATUS
