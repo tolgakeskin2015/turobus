@@ -469,10 +469,7 @@ export default function TourPassengerCenterPage() {
                 "departure_id",
                 departureId
               )
-              .eq(
-                "cancellation_status",
-                "active"
-              )
+
               .neq(
                 "status",
                 "cancelled"

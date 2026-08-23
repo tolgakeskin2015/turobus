@@ -573,10 +573,7 @@ export default function TourOperationHubPage() {
                 "departure_id",
                 departureId
               )
-              .eq(
-                "cancellation_status",
-                "active"
-              ),
+,
 
 
             supabase

@@ -3353,3 +3353,232 @@ th {
   }
 
 }
+
+/* ============================================================
+   TOUR OS VILLA-STYLE READABILITY LAYER
+
+   Visual-only layer.
+   Business logic / RPC / Supabase / event handlers untouched.
+   ============================================================ */
+
+/* TOUR OS VILLA-STYLE READABILITY LAYER */
+
+.tour-os-scope {
+  --tour-surface: #091522;
+  --tour-surface-soft: #091724;
+  --tour-field: #07111f;
+  --tour-border: rgba(255,255,255,.07);
+  --tour-muted: #94a3b8;
+}
+
+/* ------------------------------------------------------------
+   GLOBAL READABILITY
+   ------------------------------------------------------------ */
+
+.tour-os-scope [class*="text-[7px]"],
+.tour-os-scope [class*="text-[8px]"],
+.tour-os-scope [class*="text-[9px]"] {
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+}
+
+.tour-os-scope [class*="text-[10px]"] {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+.tour-os-scope [class*="text-[11px]"] {
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+.tour-os-scope p,
+.tour-os-scope td,
+.tour-os-scope label {
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------
+   COMMAND BAR / TOUR NAV
+   ------------------------------------------------------------ */
+
+.tour-os-command-eyebrow {
+  font-size: 10px !important;
+}
+
+.tour-os-command-title {
+  font-size: 15px !important;
+}
+
+.tour-os-command-context {
+  font-size: 12px !important;
+}
+
+.tour-os-command-action,
+.tour-os-command-alert {
+  font-size: 12px !important;
+}
+
+.tour-os-module-link {
+  height: 38px !important;
+  padding-left: 13px !important;
+  padding-right: 13px !important;
+  font-size: 12px !important;
+  border-radius: 10px !important;
+}
+
+/* ------------------------------------------------------------
+   VILLA OS STYLE SURFACES
+   ------------------------------------------------------------ */
+
+.tour-os-scope section[class*="rounded"],
+.tour-os-scope article[class*="rounded"],
+.tour-os-scope aside[class*="rounded"] {
+  border-color: var(--tour-border) !important;
+}
+
+.tour-os-scope section[class*="rounded"][class*="border"],
+.tour-os-scope article[class*="rounded"][class*="border"],
+.tour-os-scope aside[class*="rounded"][class*="border"] {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.018),
+    0 14px 38px rgba(0,0,0,.12);
+}
+
+/* Avoid forcing coloured status/alarm panels into one colour.
+   Normal neutral operational cards get Villa OS surface language. */
+
+.tour-os-scope
+section[class*="border-white"][class*="rounded"],
+.tour-os-scope
+article[class*="border-white"][class*="rounded"],
+.tour-os-scope
+aside[class*="border-white"][class*="rounded"] {
+  background-color: var(--tour-surface) !important;
+}
+
+/* ------------------------------------------------------------
+   FORMS — VILLA OS PROPORTIONS
+   ------------------------------------------------------------ */
+
+.tour-os-scope input:not([type="checkbox"]):not([type="radio"]),
+.tour-os-scope select,
+.tour-os-scope textarea {
+  min-height: 46px;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  background: var(--tour-field) !important;
+  padding-left: 12px;
+  padding-right: 12px;
+  font-size: 14px !important;
+  color: #f8fafc !important;
+}
+
+.tour-os-scope textarea {
+  min-height: 96px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.tour-os-scope input[type="date"],
+.tour-os-scope input[type="datetime-local"],
+.tour-os-scope input[type="time"] {
+  color-scheme: dark;
+  cursor: pointer;
+}
+
+.tour-os-scope input[type="date"]::-webkit-calendar-picker-indicator,
+.tour-os-scope input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.tour-os-scope input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: .85;
+  filter: invert(1);
+}
+
+/* ------------------------------------------------------------
+   LABELS / HEADINGS
+   ------------------------------------------------------------ */
+
+.tour-os-scope label {
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.tour-os-scope h2 {
+  line-height: 1.3;
+}
+
+.tour-os-scope h3 {
+  line-height: 1.35;
+}
+
+/* ------------------------------------------------------------
+   BUTTON PROPORTIONS
+   ------------------------------------------------------------ */
+
+.tour-os-scope button {
+  font-size: 13px;
+}
+
+.tour-os-scope button[class*="py-4"],
+.tour-os-scope button[class*="py-5"],
+.tour-os-scope button[class*="py-6"] {
+  min-height: 46px;
+}
+
+/* Full-width save buttons should remain normal controls,
+   not giant visual banners. */
+
+.tour-os-scope button.w-full[class*="bg-orange"],
+.tour-os-scope button.w-full[class*="bg-amber"],
+.tour-os-scope button.w-full[class*="bg-emerald"],
+.tour-os-scope button.w-full[class*="bg-violet"],
+.tour-os-scope button.w-full[class*="bg-cyan"] {
+  min-height: 46px;
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+}
+
+/* ------------------------------------------------------------
+   TABLE READABILITY
+   ------------------------------------------------------------ */
+
+.tour-os-scope table {
+  font-size: 13px;
+}
+
+.tour-os-scope th {
+  font-size: 11px !important;
+  line-height: 1.4;
+}
+
+.tour-os-scope td {
+  font-size: 13px;
+}
+
+/* ------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+  .tour-os-command-title {
+    font-size: 14px !important;
+  }
+
+  .tour-os-command-eyebrow {
+    font-size: 9px !important;
+  }
+
+  .tour-os-module-link {
+    height: 38px !important;
+    font-size: 12px !important;
+  }
+
+  .tour-os-scope input:not([type="checkbox"]):not([type="radio"]),
+  .tour-os-scope select,
+  .tour-os-scope textarea {
+    font-size: 16px !important;
+  }
+}
