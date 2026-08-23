@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import CustomerLiveMap from "@/components/tracking/CustomerLiveMap";
+import BusTrackingContext from "@/components/tracking/BusTrackingContext";
 import {
   FaBus,
   FaCalendarAlt,
@@ -324,6 +325,14 @@ export default function PublicTrackingPage() {
         </section>
 
         <div className="mt-8">
+          <BusTrackingContext
+            code={code}
+            mode="customer"
+          />
+        </div>
+
+
+        <div className="mt-8">
           <CustomerLiveMap
             reservationId={reservation.id}
             reservationCode={reservation.reservation_code}
@@ -379,3 +388,5 @@ export default function PublicTrackingPage() {
     </main>
   );
 }
+
+// TUROBUS_BUS_CUSTOMER_TRACKING_BRIDGE

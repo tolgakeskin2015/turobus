@@ -12,6 +12,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { getCurrentMembership } from "@/lib/current-user";
 import LiveLocationShare from "@/components/tracking/LiveLocationShare";
+import BusTrackingContext from "@/components/tracking/BusTrackingContext";
 
 type Reservation = {
   id: string;
@@ -132,8 +133,8 @@ export default function GuideLocationPage() {
           </h1>
 
           <p className="mt-3 text-slate-400">
-            Konum paylaşımı yalnızca bu tur rezervasyonu için
-            kullanılacaktır.
+            Konum paylaşımı bu rezervasyonun bağlı olduğu
+            tur otobüsünün canlı araç konumu olarak kullanılacaktır.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
@@ -193,6 +194,14 @@ export default function GuideLocationPage() {
         </header>
 
         <div className="mt-8">
+          <BusTrackingContext
+            code={code}
+            mode="guide"
+          />
+        </div>
+
+
+        <div className="mt-8">
           <LiveLocationShare
             reservationId={reservation.id}
           />
@@ -207,3 +216,5 @@ export default function GuideLocationPage() {
     </main>
   );
 }
+
+// TUROBUS_GUIDE_BUS_LOCATION_BRIDGE
