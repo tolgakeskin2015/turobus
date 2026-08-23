@@ -3582,3 +3582,76 @@ aside[class*="border-white"][class*="rounded"] {
     font-size: 16px !important;
   }
 }
+
+/* ============================================================
+   TOUR OS — BUS RESPONSIVE CONTAINMENT FIX
+   Scope: bus operations only.
+   Prevent wide inner tables from expanding the whole page.
+   Business logic untouched.
+   ============================================================ */
+
+[data-tour-os-screen="bus-operations"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+[data-tour-os-screen="bus-operations"] > div {
+  width: 100%;
+  max-width: 100% !important;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+[data-tour-os-screen="bus-operations"] .grid,
+[data-tour-os-screen="bus-operations"] .grid > *,
+[data-tour-os-screen="bus-operations"] section,
+[data-tour-os-screen="bus-operations"] article,
+[data-tour-os-screen="bus-operations"] aside {
+  min-width: 0;
+  max-width: 100%;
+}
+
+[data-tour-os-screen="bus-operations"] .overflow-auto,
+[data-tour-os-screen="bus-operations"] .overflow-x-auto {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/*
+ * The generic Tour OS transport rule sets every bus table to 1450px.
+ * Bus page already declares appropriate per-table widths (900px / 760px).
+ * Do not override those local widths here.
+ */
+[data-tour-os-screen="bus-operations"] table {
+  min-width: revert;
+}
+
+/* Passenger/check-in table */
+[data-tour-os-screen="bus-operations"] table.min-w-\[900px\] {
+  min-width: 900px;
+}
+
+/* Boarding-route table */
+[data-tour-os-screen="bus-operations"] table.min-w-\[760px\] {
+  min-width: 760px;
+}
+
+@media (max-width: 1024px) {
+  [data-tour-os-screen="bus-operations"] > div {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  [data-tour-os-screen="bus-operations"] table.min-w-\[900px\] {
+    min-width: 820px;
+  }
+
+  [data-tour-os-screen="bus-operations"] table.min-w-\[760px\] {
+    min-width: 700px;
+  }
+}

@@ -25,12 +25,21 @@ type Tour = {
 type Departure = {
   id: string;
   departure_date: string;
+  return_date: string | null;
   capacity: number;
   reserved_count: number;
   adult_price: number | null;
   child_price: number | null;
   status: "active" | "full" | "cancelled";
 };
+
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
 
 export default function TourCalendarPage() {
   const params = useParams<{ id: string }>();
@@ -42,6 +51,7 @@ export default function TourCalendarPage() {
 
   const [form, setForm] = useState({
     departure_date: "",
+    return_date: "",
     capacity: "20",
     adult_price: "",
     child_price: "",
@@ -157,6 +167,36 @@ export default function TourCalendarPage() {
     event: React.FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
+
+    const today = localDateKey();
+
+    if (!form.departure_date) {
+      setMessage({
+        type: "error",
+        text: "Tur çıkış tarihi seçilmelidir.",
+      });
+      return;
+    }
+
+    if (form.departure_date < today) {
+      setMessage({
+        type: "error",
+        text: "Geçmiş tarihli yeni tur çıkışı oluşturulamaz.",
+      });
+      return;
+    }
+
+    if (
+      form.return_date &&
+      form.return_date < form.departure_date
+    ) {
+      setMessage({
+        type: "error",
+        text: "Dönüş tarihi çıkış tarihinden önce olamaz.",
+      });
+      return;
+    }
+
     setSaving(true);
     setMessage(null);
 
@@ -175,6 +215,7 @@ export default function TourCalendarPage() {
         company_id: companyId,
         tour_id: params.id,
         departure_date: form.departure_date,
+        return_date: form.return_date || null,
         capacity: Number(form.capacity),
         reserved_count: 0,
         adult_price: form.adult_price
@@ -203,6 +244,7 @@ export default function TourCalendarPage() {
 
     setForm({
       departure_date: "",
+      return_date: "",
       capacity: "20",
       adult_price: "",
       child_price: "",
@@ -350,6 +392,7 @@ export default function TourCalendarPage() {
                   <input
                     type="date"
                     required
+                    min={localDateKey()}
                     value={form.departure_date}
                     onChange={(event) =>
                       setForm((current) => ({
@@ -362,7 +405,31 @@ export default function TourCalendarPage() {
                 </div>
               </label>
 
-              <label className="block">
+                            <label className="block">
+                <span className="text-sm font-black">Dönüş tarihi</span>
+
+                <div className="mt-2 flex min-h-14 items-center gap-3 rounded-2xl bg-white px-4">
+                  <FaCalendarAlt className="text-orange-500" />
+                  <input
+                    type="date"
+                    min={form.departure_date || localDateKey()}
+                    value={form.return_date}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        return_date: event.target.value,
+                      }))
+                    }
+                    className="w-full bg-transparent text-sm font-bold text-slate-950 outline-none"
+                  />
+                </div>
+
+                <p className="mt-2 text-xs font-bold text-slate-500">
+                  Opsiyonel. Girilirse çıkış tarihinden önce olamaz.
+                </p>
+              </label>
+
+<label className="block">
                 <span className="text-sm font-black">Kontenjan</span>
 
                 <div className="mt-2 flex min-h-14 items-center gap-3 rounded-2xl bg-white px-4">
@@ -499,6 +566,21 @@ export default function TourCalendarPage() {
                               year: "numeric",
                             })}
                           </h3>
+
+                        {departure.return_date && (
+                          <p className="mt-2 text-sm font-bold text-slate-400">
+                            Dönüş:{" "}
+                            <span className="text-white">
+                              {new Date(
+                                departure.return_date + "T00:00:00",
+                              ).toLocaleDateString("tr-TR", {
+                                day: "2-digit",
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </p>
+                        )}
 
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-black ${
