@@ -120,6 +120,8 @@ type Reservation = {
 
 type Flight = {
   id: string;
+  departure_id:
+    string | null;
   direction:
     string;
   airline_name:
@@ -385,6 +387,34 @@ function formatDate(
 }
 
 
+function localDateKey(
+  date =
+    new Date()
+) {
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const day =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${year}-${month}-${day}`;
+}
+
+
+
 function expired(
   value:
     string | null
@@ -508,6 +538,22 @@ export default function TourDocumentCenterPage() {
   ] =
     useState<FormState>(
       EMPTY_FORM
+    );
+
+
+
+  const departureFlights =
+    useMemo(
+      () =>
+        flights.filter(
+          flight =>
+            flight.departure_id ===
+            selectedDepartureId
+        ),
+      [
+        flights,
+        selectedDepartureId,
+      ]
     );
 
 
@@ -875,6 +921,7 @@ export default function TourDocumentCenterPage() {
                 .select(
                   [
                     "id",
+                    "departure_id",
                     "direction",
                     "airline_name",
                     "flight_number",
@@ -962,12 +1009,7 @@ export default function TourDocumentCenterPage() {
           ) {
 
             const today =
-              new Date()
-                .toISOString()
-                .slice(
-                  0,
-                  10
-                );
+              localDateKey();
 
 
             const target =
@@ -1358,14 +1400,22 @@ export default function TourDocumentCenterPage() {
   }
 
 
-  async function deleteDocument(
+  async function cancelDocument(
     document:
       DocumentRecord
   ) {
 
     if (
+      document.document_status ===
+      "cancelled"
+    ) {
+      return;
+    }
+
+
+    if (
       !window.confirm(
-        "Bu belge kaydını silmek istediğinize emin misiniz?"
+        "Bu belge kaydını iptal etmek istediğinize emin misiniz? Operasyon geçmişinden silinmeyecek."
       )
     ) {
       return;
@@ -1376,21 +1426,44 @@ export default function TourDocumentCenterPage() {
       true
     );
 
+    setError(
+      ""
+    );
+
+    setNotice(
+      ""
+    );
+
 
     try {
 
       const {
         error:
-          deleteError,
+          updateError,
       } =
         await supabase
           .from(
             "tour_documents"
           )
-          .delete()
+          .update({
+            document_status:
+              "cancelled",
+
+            updated_by:
+              currentUserId ||
+              null,
+          })
           .eq(
             "company_id",
             companyId
+          )
+          .eq(
+            "tour_id",
+            tourId
+          )
+          .eq(
+            "departure_id",
+            selectedDepartureId
           )
           .eq(
             "id",
@@ -1399,9 +1472,9 @@ export default function TourDocumentCenterPage() {
 
 
       if (
-        deleteError
+        updateError
       ) {
-        throw deleteError;
+        throw updateError;
       }
 
 
@@ -1412,23 +1485,18 @@ export default function TourDocumentCenterPage() {
 
 
       setNotice(
-        "Belge kaydı silindi."
+        "Belge kaydı iptal edildi. Operasyon geçmişi korundu."
       );
-
 
     } catch (
       currentError
     ) {
 
       setError(
-        currentError instanceof
-          Error
+        currentError instanceof Error
           ? currentError.message
-          : String(
-              currentError
-            )
+          : "Belge iptal edilemedi."
       );
-
 
     } finally {
 
@@ -1439,6 +1507,7 @@ export default function TourDocumentCenterPage() {
     }
 
   }
+
 
 
   const requiredCount =
@@ -1507,7 +1576,7 @@ export default function TourDocumentCenterPage() {
 
 
   const activeFlights =
-    flights.filter(
+    departureFlights.filter(
       flight =>
         flight.status !==
         "cancelled"
@@ -2778,7 +2847,7 @@ export default function TourDocumentCenterPage() {
                                       busy
                                     }
                                     onClick={() =>
-                                      void deleteDocument(
+                                      void cancelDocument(
                                         document
                                       )
                                     }

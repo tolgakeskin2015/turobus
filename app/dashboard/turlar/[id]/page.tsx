@@ -93,6 +93,7 @@ type Departure = {
   id: string;
   tour_id: string;
   departure_date: string;
+  return_date: string | null;
   capacity: number;
   reserved_count: number;
   status: string;
@@ -851,7 +852,7 @@ export default function TourOperationHubPage() {
                   [
                     "id",
                     "tour_id",
-                    "departure_date",
+                    "departure_date", "return_date",
                     "capacity",
                     "reserved_count",
                     "status",
@@ -2055,10 +2056,11 @@ export default function TourOperationHubPage() {
             tour.operation_status
           )}
           departureDate={
-            selectedDeparture?.departure_date ??
-            tour.departure_date
+            selectedDeparture?.departure_date ?? null
           }
-          returnDate={tour.return_date}
+          returnDate={
+            selectedDeparture?.return_date ?? null
+          }
           occupancy={occupancy}
           expectedPassenger={expectedPassenger}
           passengerCount={passengerCount}
@@ -2780,16 +2782,16 @@ export default function TourOperationHubPage() {
               ],
 
               [
-                "İlk Tur Tarihi",
+                "Seçili Çıkış",
                 formatDate(
-                  tour.departure_date
+                  selectedDeparture?.departure_date ?? null
                 ),
               ],
 
               [
                 "Dönüş",
                 formatDate(
-                  tour.return_date
+                  selectedDeparture?.return_date ?? null
                 ),
               ],
 

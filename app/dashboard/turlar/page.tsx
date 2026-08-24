@@ -89,6 +89,15 @@ type Tour = {
 
   return_date:
     string | null;
+
+  next_departure_id:
+    string | null;
+
+  next_departure_date:
+    string | null;
+
+  next_return_date:
+    string | null;
 };
 
 
@@ -192,6 +201,26 @@ function operationClass(
   }
 
   return "border-white/10 bg-white/[.04] text-slate-400";
+}
+
+
+function localDateKey(
+  date = new Date()
+) {
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+  const day =
+    String(
+      date.getDate()
+    ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 
@@ -389,12 +418,155 @@ export default function DashboardToursPage() {
           throw loadError;
         }
 
-        setTours(
+        const loadedTours =
           (
             data ??
             []
           ) as unknown as
-            Tour[]
+            Tour[];
+
+        const tourIds =
+          loadedTours.map(
+            item =>
+              item.id
+          );
+
+        const nextDepartureByTour =
+          new Map<
+            string,
+            {
+              id: string;
+              departure_date: string;
+              return_date: string | null;
+            }
+          >();
+
+        if (
+          tourIds.length >
+          0
+        ) {
+          const {
+            data:
+              departureData,
+            error:
+              departureError,
+          } =
+            await supabase
+              .from(
+                "tour_departures"
+              )
+              .select(
+                [
+                  "id",
+                  "tour_id",
+                  "departure_date",
+                  "return_date",
+                  "status",
+                ].join(",")
+              )
+              .in(
+                "tour_id",
+                tourIds
+              )
+              .gte(
+                "departure_date",
+                localDateKey()
+              )
+              .neq(
+                "status",
+                "cancelled"
+              )
+              .order(
+                "departure_date",
+                {
+                  ascending:
+                    true,
+                }
+              );
+
+          if (
+            departureError
+          ) {
+            throw departureError;
+          }
+
+          const typedDepartures =
+            (
+              departureData ??
+              []
+            ) as unknown as
+              Array<{
+                id: string;
+                tour_id: string;
+                departure_date: string;
+                return_date: string | null;
+                status: string;
+              }>;
+
+          for (
+            const departure of
+              typedDepartures
+          ) {
+            const currentTourId =
+              String(
+                departure.tour_id
+              );
+
+            if (
+              nextDepartureByTour.has(
+                currentTourId
+              )
+            ) {
+              continue;
+            }
+
+            nextDepartureByTour.set(
+              currentTourId,
+              {
+                id:
+                  String(
+                    departure.id
+                  ),
+                departure_date:
+                  String(
+                    departure.departure_date
+                  ),
+                return_date:
+                  departure.return_date
+                    ? String(
+                        departure.return_date
+                      )
+                    : null,
+              }
+            );
+          }
+        }
+
+        setTours(
+          loadedTours.map(
+            item => {
+              const nextDeparture =
+                nextDepartureByTour.get(
+                  item.id
+                );
+
+              return {
+                ...item,
+
+                next_departure_id:
+                  nextDeparture?.id ??
+                  null,
+
+                next_departure_date:
+                  nextDeparture?.departure_date ??
+                  null,
+
+                next_return_date:
+                  nextDeparture?.return_date ??
+                  null,
+              };
+            }
+          )
         );
       },
       []
@@ -1162,22 +1334,28 @@ export default function DashboardToursPage() {
 
 
                         <td className="px-5 py-4">
+                          {tour.next_departure_date ? (
+                            <>
+                              <div className="text-[9px] font-black">
+                                {formatDate(
+                                  tour.next_departure_date
+                                )}
+                              </div>
 
-                          <div className="text-[9px] font-black">
-                            {formatDate(
-                              tour.departure_date
-                            )}
-                          </div>
-
-                          {tour.return_date && (
-                            <div className="mt-1 text-[7px] text-slate-600">
-                              Dönüş{" "}
-                              {formatDate(
-                                tour.return_date
+                              {tour.next_return_date && (
+                                <div className="mt-1 text-[7px] text-slate-600">
+                                  Dönüş{" "}
+                                  {formatDate(
+                                    tour.next_return_date
+                                  )}
+                                </div>
                               )}
+                            </>
+                          ) : (
+                            <div className="text-[8px] font-bold text-slate-600">
+                              Planlı çıkış yok
                             </div>
                           )}
-
                         </td>
 
 

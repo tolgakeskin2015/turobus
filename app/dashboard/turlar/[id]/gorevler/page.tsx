@@ -273,6 +273,33 @@ function formatDate(
 }
 
 
+function localDateKey(
+  date =
+    new Date()
+) {
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const day =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${year}-${month}-${day}`;
+}
+
+
 function isOverdue(
   task:
     Task
@@ -795,12 +822,7 @@ export default function TourTaskCenterPage() {
           ) {
 
             const today =
-              new Date()
-                .toISOString()
-                .slice(
-                  0,
-                  10
-                );
+              localDateKey();
 
 
             const target =
@@ -948,6 +970,18 @@ export default function TourTaskCenterPage() {
     ) {
       setError(
         "Görev başlığı zorunlu."
+      );
+      return;
+    }
+
+
+    if (
+      departures.length >
+        0 &&
+      !selectedDepartureId
+    ) {
+      setError(
+        "Yeni operasyon görevi için gerçek tur çıkışı seçilmelidir."
       );
       return;
     }
@@ -1169,14 +1203,22 @@ export default function TourTaskCenterPage() {
   }
 
 
-  async function deleteTask(
+  async function cancelTask(
     task:
       Task
   ) {
 
     if (
+      task.status ===
+      "cancelled"
+    ) {
+      return;
+    }
+
+
+    if (
       !window.confirm(
-        "Bu görevi silmek istediğinize emin misiniz?"
+        "Bu görevi iptal etmek istediğinize emin misiniz? Görev geçmişten silinmeyecek."
       )
     ) {
       return;
@@ -1187,21 +1229,43 @@ export default function TourTaskCenterPage() {
       true
     );
 
+    setError(
+      ""
+    );
+
+    setNotice(
+      ""
+    );
+
 
     try {
 
       const {
         error:
-          deleteError,
+          updateError,
       } =
         await supabase
           .from(
             "tour_operation_tasks"
           )
-          .delete()
+          .update({
+            status:
+              "cancelled",
+
+            updated_by:
+              currentUserId ||
+              null,
+
+            completed_at:
+              null,
+          })
           .eq(
             "company_id",
             companyId
+          )
+          .eq(
+            "tour_id",
+            tourId
           )
           .eq(
             "id",
@@ -1210,9 +1274,9 @@ export default function TourTaskCenterPage() {
 
 
       if (
-        deleteError
+        updateError
       ) {
-        throw deleteError;
+        throw updateError;
       }
 
 
@@ -1223,7 +1287,7 @@ export default function TourTaskCenterPage() {
 
 
       setNotice(
-        "Görev silindi."
+        "Görev iptal edildi. Operasyon geçmişi korundu."
       );
 
 
@@ -1246,9 +1310,7 @@ export default function TourTaskCenterPage() {
       setBusy(
         false
       );
-
     }
-
   }
 
 
@@ -2073,7 +2135,7 @@ export default function TourTaskCenterPage() {
                                 busy
                               }
                               onClick={() =>
-                                void deleteTask(
+                                void cancelTask(
                                   task
                                 )
                               }

@@ -131,6 +131,81 @@ type Flight = {
 };
 
 
+type FlightPassenger = {
+  id: string;
+  reservation_id:
+    string | null;
+  passenger_no: number;
+  full_name: string;
+  phone:
+    string | null;
+};
+
+type FlightPassengerAssignment = {
+  id: string;
+  flight_id: string;
+  passenger_id: string;
+  reservation_id:
+    string | null;
+  passenger_pnr:
+    string | null;
+  ticket_number:
+    string | null;
+  e_ticket_number:
+    string | null;
+  seat_number:
+    string | null;
+  ticketing_status:
+    | "pending"
+    | "reserved"
+    | "ticketed"
+    | "cancelled";
+  checkin_status:
+    | "pending"
+    | "checked_in"
+    | "not_checked_in";
+  boarding_status:
+    | "pending"
+    | "boarded"
+    | "no_show";
+  notes:
+    string | null;
+};
+
+type FlightPassengerForm = {
+  flightId: string;
+  passengerId: string;
+  passengerPnr: string;
+  ticketNumber: string;
+  eTicketNumber: string;
+  seatNumber: string;
+  ticketingStatus:
+    FlightPassengerAssignment["ticketing_status"];
+  checkinStatus:
+    FlightPassengerAssignment["checkin_status"];
+  boardingStatus:
+    FlightPassengerAssignment["boarding_status"];
+  notes: string;
+};
+
+const EMPTY_PASSENGER_FORM:
+  FlightPassengerForm = {
+    flightId: "",
+    passengerId: "",
+    passengerPnr: "",
+    ticketNumber: "",
+    eTicketNumber: "",
+    seatNumber: "",
+    ticketingStatus:
+      "pending",
+    checkinStatus:
+      "pending",
+    boardingStatus:
+      "pending",
+    notes: "",
+  };
+
+
 type FlightForm = {
   direction:
     Direction;
@@ -545,6 +620,36 @@ export default function TourFlightOperationsPage() {
     );
 
   const [
+    passengers,
+    setPassengers,
+  ] =
+    useState<FlightPassenger[]>(
+      []
+    );
+
+  const [
+    passengerAssignments,
+    setPassengerAssignments,
+  ] =
+    useState<FlightPassengerAssignment[]>(
+      []
+    );
+
+  const [
+    passengerForm,
+    setPassengerForm,
+  ] =
+    useState<FlightPassengerForm>(
+      EMPTY_PASSENGER_FORM
+    );
+
+  const [
+    passengerAssignmentBusy,
+    setPassengerAssignmentBusy,
+  ] =
+    useState(false);
+
+  const [
     form,
     setForm,
   ] =
@@ -788,6 +893,131 @@ export default function TourFlightOperationsPage() {
         ) {
           throw flightError;
         }
+
+        let loadedPassengers:
+          FlightPassenger[] = [];
+
+        let loadedAssignments:
+          FlightPassengerAssignment[] = [];
+
+        if (
+          scope !==
+          "__legacy__"
+        ) {
+          const [
+            passengerResult,
+            assignmentResult,
+          ] =
+            await Promise.all([
+              supabase
+                .from(
+                  "tour_passengers"
+                )
+                .select(
+                  [
+                    "id",
+                    "reservation_id",
+                    "passenger_no",
+                    "full_name",
+                    "phone",
+                  ].join(
+                    ","
+                  )
+                )
+                .eq(
+                  "company_id",
+                  currentCompanyId
+                )
+                .eq(
+                  "tour_id",
+                  tourId
+                )
+                .eq(
+                  "departure_id",
+                  scope
+                )
+                .order(
+                  "passenger_no",
+                  {
+                    ascending:
+                      true,
+                  }
+                ),
+
+              supabase
+                .from(
+                  "tour_flight_passenger_assignments"
+                )
+                .select(
+                  [
+                    "id",
+                    "flight_id",
+                    "passenger_id",
+                    "reservation_id",
+                    "passenger_pnr",
+                    "ticket_number",
+                    "e_ticket_number",
+                    "seat_number",
+                    "ticketing_status",
+                    "checkin_status",
+                    "boarding_status",
+                    "notes",
+                  ].join(
+                    ","
+                  )
+                )
+                .eq(
+                  "company_id",
+                  currentCompanyId
+                )
+                .eq(
+                  "tour_id",
+                  tourId
+                )
+                .eq(
+                  "departure_id",
+                  scope
+                ),
+            ]);
+
+          if (
+            passengerResult.error
+          ) {
+            throw passengerResult.error;
+          }
+
+          if (
+            assignmentResult.error
+          ) {
+            throw assignmentResult.error;
+          }
+
+          loadedPassengers =
+            (
+              passengerResult.data ??
+              []
+            ) as unknown as
+              FlightPassenger[];
+
+          loadedAssignments =
+            (
+              assignmentResult.data ??
+              []
+            ) as unknown as
+              FlightPassengerAssignment[];
+        }
+
+        setPassengers(
+          loadedPassengers
+        );
+
+        setPassengerAssignments(
+          loadedAssignments
+        );
+
+        setPassengerForm(
+          EMPTY_PASSENGER_FORM
+        );
 
 
         setTour(
@@ -1098,6 +1328,249 @@ export default function TourFlightOperationsPage() {
       behavior:
         "smooth",
     });
+  }
+
+
+  function openPassengerAssignment(
+    flight:
+      Flight,
+    assignment?:
+      FlightPassengerAssignment
+  ) {
+    setPassengerForm(
+      assignment
+        ? {
+            flightId:
+              assignment.flight_id,
+            passengerId:
+              assignment.passenger_id,
+            passengerPnr:
+              assignment.passenger_pnr ??
+              "",
+            ticketNumber:
+              assignment.ticket_number ??
+              "",
+            eTicketNumber:
+              assignment.e_ticket_number ??
+              "",
+            seatNumber:
+              assignment.seat_number ??
+              "",
+            ticketingStatus:
+              assignment.ticketing_status,
+            checkinStatus:
+              assignment.checkin_status,
+            boardingStatus:
+              assignment.boarding_status,
+            notes:
+              assignment.notes ??
+              "",
+          }
+        : {
+            ...EMPTY_PASSENGER_FORM,
+            flightId:
+              flight.id,
+            passengerPnr:
+              flight.pnr ??
+              "",
+          }
+    );
+
+    window.setTimeout(
+      () => {
+        document
+          .getElementById(
+            "flight-passenger-operations"
+          )
+          ?.scrollIntoView({
+            behavior:
+              "smooth",
+            block:
+              "start",
+          });
+      },
+      0
+    );
+  }
+
+  async function savePassengerAssignment() {
+    if (
+      !companyId ||
+      !selectedDepartureId ||
+      selectedDepartureId ===
+        "__legacy__"
+    ) {
+      setError(
+        "Yolcu uçuş ataması için gerçek bir tur çıkışı seçin."
+      );
+      return;
+    }
+
+    if (
+      !passengerForm.flightId ||
+      !passengerForm.passengerId
+    ) {
+      setError(
+        "Uçuş segmenti ve yolcu seçimi zorunludur."
+      );
+      return;
+    }
+
+    const selectedPassenger =
+      passengers.find(
+        passenger =>
+          passenger.id ===
+          passengerForm.passengerId
+      );
+
+    if (
+      !selectedPassenger
+    ) {
+      setError(
+        "Seçilen yolcu bulunamadı."
+      );
+      return;
+    }
+
+    setPassengerAssignmentBusy(
+      true
+    );
+    setError(
+      ""
+    );
+    setNotice(
+      ""
+    );
+
+    try {
+      const payload = {
+        company_id:
+          companyId,
+        tour_id:
+          tourId,
+        departure_id:
+          selectedDepartureId,
+        flight_id:
+          passengerForm.flightId,
+        passenger_id:
+          passengerForm.passengerId,
+        reservation_id:
+          selectedPassenger.reservation_id,
+        passenger_pnr:
+          text(
+            passengerForm.passengerPnr
+          ),
+        ticket_number:
+          text(
+            passengerForm.ticketNumber
+          ),
+        e_ticket_number:
+          text(
+            passengerForm.eTicketNumber
+          ),
+        seat_number:
+          text(
+            passengerForm.seatNumber
+          ),
+        ticketing_status:
+          passengerForm.ticketingStatus,
+        checkin_status:
+          passengerForm.checkinStatus,
+        boarding_status:
+          passengerForm.boardingStatus,
+        notes:
+          text(
+            passengerForm.notes
+          ),
+      };
+
+      const existing =
+        passengerAssignments.find(
+          assignment =>
+            assignment.flight_id ===
+              passengerForm.flightId &&
+            assignment.passenger_id ===
+              passengerForm.passengerId
+        );
+
+      if (
+        existing
+      ) {
+        const {
+          error:
+            updateError,
+        } =
+          await supabase
+            .from(
+              "tour_flight_passenger_assignments"
+            )
+            .update(
+              payload
+            )
+            .eq(
+              "id",
+              existing.id
+            )
+            .eq(
+              "company_id",
+              companyId
+            );
+
+        if (
+          updateError
+        ) {
+          throw updateError;
+        }
+
+        setNotice(
+          "Yolcu uçuş bilgileri güncellendi."
+        );
+      } else {
+        const {
+          error:
+            insertError,
+        } =
+          await supabase
+            .from(
+              "tour_flight_passenger_assignments"
+            )
+            .insert(
+              payload
+            );
+
+        if (
+          insertError
+        ) {
+          throw insertError;
+        }
+
+        setNotice(
+          "Yolcu uçuş segmentine atandı."
+        );
+      }
+
+      await load(
+        companyId,
+        selectedDepartureId
+      );
+
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof
+          Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+
+    } finally {
+      setPassengerAssignmentBusy(
+        false
+      );
+    }
   }
 
 
@@ -2810,6 +3283,22 @@ export default function TourFlightOperationsPage() {
 
                                 <button
                                   type="button"
+                                  disabled={
+                                    selectedDepartureId ===
+                                    "__legacy__"
+                                  }
+                                  onClick={() =>
+                                    openPassengerAssignment(
+                                      flight
+                                    )
+                                  }
+                                  className="rounded-lg border border-emerald-500/20 bg-emerald-500/[.05] px-3 py-2 text-[7px] font-black text-emerald-300 disabled:cursor-not-allowed disabled:opacity-30"
+                                >
+                                  Yolcular
+                                </button>
+
+                                <button
+                                  type="button"
                                   onClick={() =>
                                     editFlight(
                                       flight
@@ -2852,6 +3341,519 @@ export default function TourFlightOperationsPage() {
 
             </div>
 
+          </section>
+
+          <section
+            id="flight-passenger-operations"
+            className="mt-5 overflow-hidden rounded-[26px] border border-white/[.08] bg-[linear-gradient(145deg,#081520,#050c13)] shadow-[0_14px_40px_rgba(0,0,0,.12)]"
+          >
+            <div className="border-b border-white/[.07] px-5 py-4">
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className="text-[9px] font-black">
+                    Uçuş Yolcu Operasyonu
+                  </div>
+                  <div className="mt-1 text-[7px] text-slate-600">
+                    Gerçek yolcu · PNR · bilet · koltuk · check-in · boarding
+                  </div>
+                </div>
+
+                <div className="text-[7px] font-black text-slate-500">
+                  {passengerAssignments.length}
+                  {" "}
+                  kayıtlı segment ataması
+                </div>
+              </div>
+            </div>
+
+            {selectedDepartureId ===
+            "__legacy__" ? (
+              <div className="p-5 text-[8px] font-bold text-amber-300">
+                Eski atanmamış uçuş kayıtlarında yeni yolcu ataması yapılamaz.
+              </div>
+            ) : (
+              <div className="grid gap-5 p-5 xl:grid-cols-[430px_1fr]">
+                <div className="space-y-3">
+                  <label className="block space-y-1">
+                    <span className="text-[7px] font-black text-slate-600">
+                      UÇUŞ SEGMENTİ
+                    </span>
+                    <select
+                      value={
+                        passengerForm.flightId
+                      }
+                      onChange={
+                        event =>
+                          setPassengerForm(
+                            current => ({
+                              ...current,
+                              flightId:
+                                event.target.value,
+                            })
+                          )
+                      }
+                      className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px] text-white"
+                    >
+                      <option value="">
+                        Segment seçin
+                      </option>
+                      {flights.map(
+                        flight => (
+                          <option
+                            key={
+                              flight.id
+                            }
+                            value={
+                              flight.id
+                            }
+                          >
+                            {directionLabel(
+                              flight.direction
+                            )}
+                            {" · "}
+                            {flight.flight_number ||
+                              "Uçuş No Yok"}
+                            {" · "}
+                            {flight.departure_airport_code ||
+                              "—"}
+                            {" → "}
+                            {flight.arrival_airport_code ||
+                              "—"}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </label>
+
+                  <label className="block space-y-1">
+                    <span className="text-[7px] font-black text-slate-600">
+                      GERÇEK YOLCU
+                    </span>
+                    <select
+                      value={
+                        passengerForm.passengerId
+                      }
+                      onChange={
+                        event => {
+                          const passengerId =
+                            event.target.value;
+
+                          const existing =
+                            passengerAssignments.find(
+                              assignment =>
+                                assignment.flight_id ===
+                                  passengerForm.flightId &&
+                                assignment.passenger_id ===
+                                  passengerId
+                            );
+
+                          setPassengerForm(
+                            existing
+                              ? {
+                                  flightId:
+                                    existing.flight_id,
+                                  passengerId:
+                                    existing.passenger_id,
+                                  passengerPnr:
+                                    existing.passenger_pnr ??
+                                    "",
+                                  ticketNumber:
+                                    existing.ticket_number ??
+                                    "",
+                                  eTicketNumber:
+                                    existing.e_ticket_number ??
+                                    "",
+                                  seatNumber:
+                                    existing.seat_number ??
+                                    "",
+                                  ticketingStatus:
+                                    existing.ticketing_status,
+                                  checkinStatus:
+                                    existing.checkin_status,
+                                  boardingStatus:
+                                    existing.boarding_status,
+                                  notes:
+                                    existing.notes ??
+                                    "",
+                                }
+                              : {
+                                  ...passengerForm,
+                                  passengerId,
+                                }
+                          );
+                        }
+                      }
+                      className="h-11 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px] text-white"
+                    >
+                      <option value="">
+                        Yolcu seçin
+                      </option>
+                      {passengers.map(
+                        passenger => (
+                          <option
+                            key={
+                              passenger.id
+                            }
+                            value={
+                              passenger.id
+                            }
+                          >
+                            {passenger.passenger_no}
+                            {" · "}
+                            {passenger.full_name}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </label>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="space-y-1">
+                      <span className="text-[7px] font-black text-slate-600">
+                        YOLCU PNR
+                      </span>
+                      <input
+                        value={
+                          passengerForm.passengerPnr
+                        }
+                        onChange={
+                          event =>
+                            setPassengerForm(
+                              current => ({
+                                ...current,
+                                passengerPnr:
+                                  event.target.value,
+                              })
+                            )
+                        }
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                      />
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[7px] font-black text-slate-600">
+                        KOLTUK
+                      </span>
+                      <input
+                        value={
+                          passengerForm.seatNumber
+                        }
+                        onChange={
+                          event =>
+                            setPassengerForm(
+                              current => ({
+                                ...current,
+                                seatNumber:
+                                  event.target.value,
+                              })
+                            )
+                        }
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                      />
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[7px] font-black text-slate-600">
+                        BİLET NO
+                      </span>
+                      <input
+                        value={
+                          passengerForm.ticketNumber
+                        }
+                        onChange={
+                          event =>
+                            setPassengerForm(
+                              current => ({
+                                ...current,
+                                ticketNumber:
+                                  event.target.value,
+                              })
+                            )
+                        }
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                      />
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[7px] font-black text-slate-600">
+                        E-TICKET NO
+                      </span>
+                      <input
+                        value={
+                          passengerForm.eTicketNumber
+                        }
+                        onChange={
+                          event =>
+                            setPassengerForm(
+                              current => ({
+                                ...current,
+                                eTicketNumber:
+                                  event.target.value,
+                              })
+                            )
+                        }
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <label className="space-y-1">
+                      <span className="text-[7px] font-black text-slate-600">
+                        TICKETING
+                      </span>
+                      <select
+                        value={
+                          passengerForm.ticketingStatus
+                        }
+                        onChange={
+                          event =>
+                            setPassengerForm(
+                              current => ({
+                                ...current,
+                                ticketingStatus:
+                                  event.target.value as
+                                    FlightPassengerAssignment["ticketing_status"],
+                              })
+                            )
+                        }
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
+                      >
+                        <option value="pending">Bekliyor</option>
+                        <option value="reserved">Rezerve</option>
+                        <option value="ticketed">Biletlendi</option>
+                        <option value="cancelled">İptal</option>
+                      </select>
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[7px] font-black text-slate-600">
+                        CHECK-IN
+                      </span>
+                      <select
+                        value={
+                          passengerForm.checkinStatus
+                        }
+                        onChange={
+                          event =>
+                            setPassengerForm(
+                              current => ({
+                                ...current,
+                                checkinStatus:
+                                  event.target.value as
+                                    FlightPassengerAssignment["checkin_status"],
+                              })
+                            )
+                        }
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
+                      >
+                        <option value="pending">Bekliyor</option>
+                        <option value="checked_in">Check-in</option>
+                        <option value="not_checked_in">Yapılmadı</option>
+                      </select>
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[7px] font-black text-slate-600">
+                        BOARDING
+                      </span>
+                      <select
+                        value={
+                          passengerForm.boardingStatus
+                        }
+                        onChange={
+                          event =>
+                            setPassengerForm(
+                              current => ({
+                                ...current,
+                                boardingStatus:
+                                  event.target.value as
+                                    FlightPassengerAssignment["boarding_status"],
+                              })
+                            )
+                        }
+                        className="h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-2 text-[7px]"
+                      >
+                        <option value="pending">Bekliyor</option>
+                        <option value="boarded">Bindi</option>
+                        <option value="no_show">No-show</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <label className="block space-y-1">
+                    <span className="text-[7px] font-black text-slate-600">
+                      OPERASYON NOTU
+                    </span>
+                    <textarea
+                      rows={3}
+                      value={
+                        passengerForm.notes
+                      }
+                      onChange={
+                        event =>
+                          setPassengerForm(
+                            current => ({
+                              ...current,
+                              notes:
+                                event.target.value,
+                            })
+                          )
+                      }
+                      className="w-full rounded-xl border border-white/[.08] bg-[#03080e] p-3 text-[8px]"
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    disabled={
+                      passengerAssignmentBusy ||
+                      !passengerForm.flightId ||
+                      !passengerForm.passengerId
+                    }
+                    onClick={() =>
+                      void savePassengerAssignment()
+                    }
+                    className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-[8px] font-black text-[#03110b] disabled:opacity-40"
+                  >
+                    <FaSave />
+                    {passengerAssignmentBusy
+                      ? "Kaydediliyor..."
+                      : "Yolcu Uçuş Bilgisini Kaydet"}
+                  </button>
+                </div>
+
+                <div className="overflow-auto">
+                  <table className="min-w-[920px] w-full">
+                    <thead>
+                      <tr className="text-left text-[7px] font-black uppercase tracking-[.1em] text-slate-600">
+                        <th className="px-3 py-3">Yolcu</th>
+                        <th className="px-3 py-3">Uçuş</th>
+                        <th className="px-3 py-3">PNR / Bilet</th>
+                        <th className="px-3 py-3">Koltuk</th>
+                        <th className="px-3 py-3">Ticketing</th>
+                        <th className="px-3 py-3">Check-in</th>
+                        <th className="px-3 py-3">Boarding</th>
+                        <th className="px-3 py-3 text-right">İşlem</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {passengerAssignments.length ===
+                      0 ? (
+                        <tr>
+                          <td
+                            colSpan={8}
+                            className="px-3 py-10 text-center text-[8px] text-slate-600"
+                          >
+                            Bu çıkış için henüz uçuş-yolcu ataması yok.
+                          </td>
+                        </tr>
+                      ) : (
+                        passengerAssignments.map(
+                          assignment => {
+                            const passenger =
+                              passengers.find(
+                                item =>
+                                  item.id ===
+                                  assignment.passenger_id
+                              );
+
+                            const flight =
+                              flights.find(
+                                item =>
+                                  item.id ===
+                                  assignment.flight_id
+                              );
+
+                            return (
+                              <tr
+                                key={
+                                  assignment.id
+                                }
+                                className="border-t border-white/[.045]"
+                              >
+                                <td className="px-3 py-3">
+                                  <div className="text-[8px] font-black">
+                                    {passenger?.full_name ||
+                                      "Yolcu"}
+                                  </div>
+                                  <div className="mt-1 text-[7px] text-slate-600">
+                                    Yolcu{" "}
+                                    {passenger?.passenger_no ??
+                                      "—"}
+                                  </div>
+                                </td>
+
+                                <td className="px-3 py-3 text-[8px]">
+                                  {flight
+                                    ? `${directionLabel(
+                                        flight.direction
+                                      )} · ${
+                                        flight.flight_number ||
+                                        "—"
+                                      }`
+                                    : "—"}
+                                </td>
+
+                                <td className="px-3 py-3">
+                                  <div className="font-mono text-[8px] font-black text-blue-300">
+                                    {assignment.passenger_pnr ||
+                                      flight?.pnr ||
+                                      "—"}
+                                  </div>
+                                  <div className="mt-1 text-[7px] text-slate-600">
+                                    {assignment.e_ticket_number ||
+                                      assignment.ticket_number ||
+                                      "Bilet no yok"}
+                                  </div>
+                                </td>
+
+                                <td className="px-3 py-3 text-[8px] font-black">
+                                  {assignment.seat_number ||
+                                    "—"}
+                                </td>
+
+                                <td className="px-3 py-3 text-[7px] font-black">
+                                  {assignment.ticketing_status}
+                                </td>
+
+                                <td className="px-3 py-3 text-[7px] font-black">
+                                  {assignment.checkin_status}
+                                </td>
+
+                                <td className="px-3 py-3 text-[7px] font-black">
+                                  {assignment.boarding_status}
+                                </td>
+
+                                <td className="px-3 py-3 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (
+                                        flight
+                                      ) {
+                                        openPassengerAssignment(
+                                          flight,
+                                          assignment
+                                        );
+                                      }
+                                    }}
+                                    className="rounded-lg border border-blue-500/20 bg-blue-500/[.05] px-3 py-2 text-[7px] font-black text-blue-300"
+                                  >
+                                    Düzenle
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          }
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </section>
 
         </section>

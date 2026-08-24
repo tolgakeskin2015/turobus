@@ -103,6 +103,10 @@ type Passenger = {
     string | null;
   gender:
     string | null;
+  travel_group_id:
+    string | null;
+  tour_room_id:
+    string | null;
   room_group:
     string | null;
   room_no:
@@ -113,6 +117,48 @@ type Passenger = {
     string | null;
   special_request:
     string | null;
+  notes:
+    string | null;
+};
+
+
+type TourRoom = {
+  id: string;
+  company_id: string;
+  tour_id: string;
+  departure_id: string;
+  hotel_name: string;
+  room_no: string;
+  room_type:
+    string | null;
+  capacity: number;
+  notes:
+    string | null;
+};
+
+
+type TravelGroup = {
+  id: string;
+  company_id: string;
+  tour_id: string;
+  departure_id: string;
+
+  group_code:
+    string | null;
+
+  group_name: string;
+
+  group_type:
+    | "family"
+    | "couple"
+    | "friends"
+    | "corporate"
+    | "travel_group"
+    | "other";
+
+  contact_passenger_id:
+    string | null;
+
   notes:
     string | null;
 };
@@ -167,6 +213,8 @@ type PassengerForm = {
     "other";
   identityNumber: string;
   gender: string;
+  travelGroupId: string;
+  tourRoomId: string;
   hotelName: string;
   roomGroup: string;
   roomNo: string;
@@ -197,6 +245,10 @@ const EMPTY_FORM:
     identityNumber:
       "",
     gender:
+      "",
+    travelGroupId:
+      "",
+    tourRoomId:
       "",
     hotelName:
       "",
@@ -327,6 +379,62 @@ export default function TourPassengerCenterPage() {
     );
 
   const [
+    travelGroups,
+    setTravelGroups,
+  ] =
+    useState<TravelGroup[]>(
+      []
+    );
+
+  const [
+    tourRooms,
+    setTourRooms,
+  ] =
+    useState<TourRoom[]>(
+      []
+    );
+
+  const [
+    newRoomHotel,
+    setNewRoomHotel,
+  ] =
+    useState("");
+
+  const [
+    newRoomNo,
+    setNewRoomNo,
+  ] =
+    useState("");
+
+  const [
+    newRoomType,
+    setNewRoomType,
+  ] =
+    useState("");
+
+  const [
+    newRoomCapacity,
+    setNewRoomCapacity,
+  ] =
+    useState("2");
+
+  const [
+    newGroupName,
+    setNewGroupName,
+  ] =
+    useState("");
+
+  const [
+    newGroupType,
+    setNewGroupType,
+  ] =
+    useState<
+      TravelGroup["group_type"]
+    >(
+      "family"
+    );
+
+  const [
     busOperations,
     setBusOperations,
   ] =
@@ -439,6 +547,8 @@ export default function TourPassengerCenterPage() {
         const [
           reservationsResult,
           passengersResult,
+          travelGroupsResult,
+          tourRoomsResult,
           busOperationResult,
           busSeatsResult,
         ] =
@@ -512,6 +622,79 @@ export default function TourPassengerCenterPage() {
 
             supabase
               .from(
+                "tour_passenger_groups"
+              )
+              .select(
+                [
+                  "id",
+                  "company_id",
+                  "tour_id",
+                  "departure_id",
+                  "group_code",
+                  "group_name",
+                  "group_type",
+                  "contact_passenger_id",
+                  "notes",
+                ].join(",")
+              )
+              .eq(
+                "company_id",
+                currentCompanyId
+              )
+              .eq(
+                "departure_id",
+                departureId
+              )
+              .order(
+                "group_name",
+                {
+                  ascending:
+                    true,
+                }
+              ),
+
+            supabase
+              .from(
+                "tour_departure_rooms"
+              )
+              .select(
+                [
+                  "id",
+                  "company_id",
+                  "tour_id",
+                  "departure_id",
+                  "hotel_name",
+                  "room_no",
+                  "room_type",
+                  "capacity",
+                  "notes",
+                ].join(",")
+              )
+              .eq(
+                "company_id",
+                currentCompanyId
+              )
+              .eq(
+                "departure_id",
+                departureId
+              )
+              .order(
+                "hotel_name",
+                {
+                  ascending:
+                    true,
+                }
+              )
+              .order(
+                "room_no",
+                {
+                  ascending:
+                    true,
+                }
+              ),
+
+            supabase
+              .from(
                 "tour_bus_operations"
               )
               .select(
@@ -570,6 +753,18 @@ export default function TourPassengerCenterPage() {
           passengersResult.error
         ) {
           throw passengersResult.error;
+        }
+
+        if (
+          travelGroupsResult.error
+        ) {
+          throw travelGroupsResult.error;
+        }
+
+        if (
+          tourRoomsResult.error
+        ) {
+          throw tourRoomsResult.error;
         }
 
         if (
@@ -648,6 +843,22 @@ export default function TourPassengerCenterPage() {
             []
           ) as unknown as
             Passenger[]
+        );
+
+        setTravelGroups(
+          (
+            travelGroupsResult.data ??
+            []
+          ) as unknown as
+            TravelGroup[]
+        );
+
+        setTourRooms(
+          (
+            tourRoomsResult.data ??
+            []
+          ) as unknown as
+            TourRoom[]
         );
 
         setBusOperations(
@@ -1023,6 +1234,12 @@ export default function TourPassengerCenterPage() {
       gender:
         passenger.gender ??
         "",
+      travelGroupId:
+        passenger.travel_group_id ??
+        "",
+      tourRoomId:
+        passenger.tour_room_id ??
+        "",
       hotelName:
         passenger.hotel_name ??
         "",
@@ -1042,6 +1259,277 @@ export default function TourPassengerCenterPage() {
         passenger.notes ??
         "",
     });
+  }
+
+
+  async function createTravelGroup() {
+    if (
+      !companyId ||
+      !selectedDepartureId ||
+      !tour
+    ) {
+      return;
+    }
+
+    const groupName =
+      newGroupName.trim();
+
+    if (!groupName) {
+      setError(
+        "Grup / aile adı zorunlu."
+      );
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const {
+        data:
+          createdGroup,
+        error:
+          createGroupError,
+      } =
+        await supabase
+          .from(
+            "tour_passenger_groups"
+          )
+          .insert({
+            company_id:
+              companyId,
+
+            tour_id:
+              tour.id,
+
+            departure_id:
+              selectedDepartureId,
+
+            group_name:
+              groupName,
+
+            group_type:
+              newGroupType,
+          })
+          .select(
+            [
+              "id",
+              "company_id",
+              "tour_id",
+              "departure_id",
+              "group_code",
+              "group_name",
+              "group_type",
+              "contact_passenger_id",
+              "notes",
+            ].join(",")
+          )
+          .single();
+
+      if (createGroupError) {
+        throw createGroupError;
+      }
+
+      const typedGroup =
+        createdGroup as unknown as
+          TravelGroup;
+
+      setTravelGroups(
+        current =>
+          [
+            ...current,
+            typedGroup,
+          ].sort(
+            (a, b) =>
+              a.group_name.localeCompare(
+                b.group_name,
+                "tr"
+              )
+          )
+      );
+
+      setForm(
+        current => ({
+          ...current,
+          travelGroupId:
+            typedGroup.id,
+        })
+      );
+
+      setNewGroupName("");
+
+      setNotice(
+        "Seyahat grubu oluşturuldu ve yolcu formuna seçildi."
+      );
+
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+
+    } finally {
+      setBusy(false);
+    }
+  }
+
+
+  async function createTourRoom() {
+    if (
+      !companyId ||
+      !selectedDepartureId ||
+      !tour
+    ) {
+      return;
+    }
+
+    const hotelName =
+      newRoomHotel.trim();
+
+    const roomNo =
+      newRoomNo.trim();
+
+    const capacity =
+      Math.max(
+        1,
+        Number(
+          newRoomCapacity
+        ) || 1
+      );
+
+    if (
+      !hotelName ||
+      !roomNo
+    ) {
+      setError(
+        "Otel ve oda numarası zorunlu."
+      );
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const {
+        data:
+          createdRoom,
+        error:
+          createRoomError,
+      } =
+        await supabase
+          .from(
+            "tour_departure_rooms"
+          )
+          .insert({
+            company_id:
+              companyId,
+
+            tour_id:
+              tour.id,
+
+            departure_id:
+              selectedDepartureId,
+
+            hotel_name:
+              hotelName,
+
+            room_no:
+              roomNo,
+
+            room_type:
+              nullable(
+                newRoomType
+              ),
+
+            capacity,
+          })
+          .select(
+            [
+              "id",
+              "company_id",
+              "tour_id",
+              "departure_id",
+              "hotel_name",
+              "room_no",
+              "room_type",
+              "capacity",
+              "notes",
+            ].join(",")
+          )
+          .single();
+
+      if (createRoomError) {
+        throw createRoomError;
+      }
+
+      const typedRoom =
+        createdRoom as unknown as
+          TourRoom;
+
+      setTourRooms(
+        current =>
+          [
+            ...current,
+            typedRoom,
+          ].sort(
+            (a, b) =>
+              `${a.hotel_name}-${a.room_no}`
+                .localeCompare(
+                  `${b.hotel_name}-${b.room_no}`,
+                  "tr"
+                )
+          )
+      );
+
+      setForm(
+        current => ({
+          ...current,
+
+          tourRoomId:
+            typedRoom.id,
+
+          hotelName:
+            typedRoom.hotel_name,
+
+          roomNo:
+            typedRoom.room_no,
+
+          roomType:
+            typedRoom.room_type ??
+            "",
+        })
+      );
+
+      setNewRoomNo("");
+      setNewRoomType("");
+      setNewRoomCapacity("2");
+
+      setNotice(
+        "Oda oluşturuldu ve yolcu formuna seçildi."
+      );
+
+    } catch (
+      currentError
+    ) {
+      setError(
+        currentError instanceof Error
+          ? currentError.message
+          : String(
+              currentError
+            )
+      );
+
+    } finally {
+      setBusy(false);
+    }
   }
 
 
@@ -1138,6 +1626,14 @@ export default function TourPassengerCenterPage() {
           nullable(
             form.gender
           ),
+
+        travel_group_id:
+          form.travelGroupId ||
+          null,
+
+        tour_room_id:
+          form.tourRoomId ||
+          null,
 
         hotel_name:
           nullable(
@@ -2343,7 +2839,300 @@ export default function TourPassengerCenterPage() {
 
 
                 <div className="border-t border-white/[.06] pt-3 text-[7px] font-black uppercase tracking-[.12em] text-violet-300">
+                  Seyahat Grubu / Aile
+                </div>
+
+                <select
+                  value={
+                    form.travelGroupId
+                  }
+                  onChange={event =>
+                    setForm(
+                      current => ({
+                        ...current,
+                        travelGroupId:
+                          event.target.value,
+                      })
+                    )
+                  }
+                  className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                >
+                  <option value="">
+                    Grup seçilmedi
+                  </option>
+
+                  {travelGroups.map(
+                    group => (
+                      <option
+                        key={group.id}
+                        value={group.id}
+                      >
+                        {group.group_name}
+                        {" · "}
+                        {group.group_type === "family"
+                          ? "Aile"
+                          : group.group_type === "couple"
+                            ? "Çift"
+                            : group.group_type === "friends"
+                              ? "Arkadaş"
+                              : group.group_type === "corporate"
+                                ? "Kurumsal"
+                                : group.group_type === "travel_group"
+                                  ? "Seyahat Grubu"
+                                  : "Diğer"}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                <div className="grid gap-3 sm:grid-cols-[1fr_150px_auto]">
+                  <input
+                    value={
+                      newGroupName
+                    }
+                    onChange={event =>
+                      setNewGroupName(
+                        event.target.value
+                      )
+                    }
+                    placeholder="Yeni grup / aile adı"
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                  />
+
+                  <select
+                    value={
+                      newGroupType
+                    }
+                    onChange={event =>
+                      setNewGroupType(
+                        event.target.value as
+                          TravelGroup["group_type"]
+                      )
+                    }
+                    className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                  >
+                    <option value="family">
+                      Aile
+                    </option>
+                    <option value="couple">
+                      Çift
+                    </option>
+                    <option value="friends">
+                      Arkadaş
+                    </option>
+                    <option value="corporate">
+                      Kurumsal
+                    </option>
+                    <option value="travel_group">
+                      Seyahat Grubu
+                    </option>
+                    <option value="other">
+                      Diğer
+                    </option>
+                  </select>
+
+                  <button
+                    type="button"
+                    disabled={
+                      busy ||
+                      !newGroupName.trim()
+                    }
+                    onClick={() =>
+                      void createTravelGroup()
+                    }
+                    className="h-10 rounded-xl border border-violet-400/30 bg-violet-400/10 px-4 text-[8px] font-black text-violet-200 disabled:opacity-40"
+                  >
+                    Grup Oluştur
+                  </button>
+                </div>
+
+                <div className="text-[7px] leading-5 text-slate-500">
+                  Seyahat grubu yolcuların aile/grup ilişkisini yönetir.
+                  Oda ataması aşağıdaki Rooming alanlarında ayrıca tutulur.
+                </div>
+
+                <div className="border-t border-white/[.06] pt-3 text-[7px] font-black uppercase tracking-[.12em] text-violet-300">
                   Rooming
+                </div>
+
+                <div className="rounded-2xl border border-white/[.08] bg-[#07111f] p-3">
+                  <div className="text-[9px] font-black text-white">
+                    Gerçek Oda Seçimi
+                  </div>
+
+                  <div className="mt-1 text-[7px] leading-5 text-slate-500">
+                    Oda doluluğu gerçek yolcu atamalarından hesaplanır.
+                  </div>
+
+                  <select
+                    value={
+                      form.tourRoomId
+                    }
+                    onChange={event => {
+                      const roomId =
+                        event.target.value;
+
+                      const selectedRoom =
+                        tourRooms.find(
+                          room =>
+                            room.id ===
+                            roomId
+                        );
+
+                      setForm(
+                        current => ({
+                          ...current,
+
+                          tourRoomId:
+                            roomId,
+
+                          hotelName:
+                            selectedRoom
+                              ?.hotel_name ??
+                            current.hotelName,
+
+                          roomNo:
+                            selectedRoom
+                              ?.room_no ??
+                            current.roomNo,
+
+                          roomType:
+                            selectedRoom
+                              ?.room_type ??
+                            current.roomType,
+                        })
+                      );
+                    }}
+                    className="mt-3 h-10 w-full rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                  >
+                    <option value="">
+                      Gerçek oda seçilmedi
+                    </option>
+
+                    {tourRooms.map(
+                      room => {
+                        const occupied =
+                          passengers.filter(
+                            passenger =>
+                              passenger.tour_room_id ===
+                              room.id &&
+                              passenger.id !==
+                                editingId
+                          ).length;
+
+                        const effectiveOccupied =
+                          occupied +
+                          (
+                            form.tourRoomId ===
+                              room.id &&
+                            editingId
+                              ? 1
+                              : 0
+                          );
+
+                        const isFull =
+                          effectiveOccupied >=
+                          room.capacity;
+
+                        return (
+                          <option
+                            key={room.id}
+                            value={room.id}
+                            disabled={
+                              isFull &&
+                              form.tourRoomId !==
+                                room.id
+                            }
+                          >
+                            {room.hotel_name}
+                            {" · Oda "}
+                            {room.room_no}
+                            {room.room_type
+                              ? ` · ${room.room_type}`
+                              : ""}
+                            {" · "}
+                            {effectiveOccupied}
+                            /
+                            {room.capacity}
+                            {isFull
+                              ? " · DOLU"
+                              : ""}
+                          </option>
+                        );
+                      }
+                    )}
+                  </select>
+
+                  <div className="mt-3 grid gap-2 sm:grid-cols-[1.2fr_.7fr_.8fr_90px_auto]">
+                    <input
+                      value={
+                        newRoomHotel
+                      }
+                      onChange={event =>
+                        setNewRoomHotel(
+                          event.target.value
+                        )
+                      }
+                      placeholder="Otel"
+                      className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                    />
+
+                    <input
+                      value={
+                        newRoomNo
+                      }
+                      onChange={event =>
+                        setNewRoomNo(
+                          event.target.value
+                        )
+                      }
+                      placeholder="Oda No"
+                      className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                    />
+
+                    <input
+                      value={
+                        newRoomType
+                      }
+                      onChange={event =>
+                        setNewRoomType(
+                          event.target.value
+                        )
+                      }
+                      placeholder="Tip"
+                      className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                    />
+
+                    <input
+                      type="number"
+                      min={1}
+                      value={
+                        newRoomCapacity
+                      }
+                      onChange={event =>
+                        setNewRoomCapacity(
+                          event.target.value
+                        )
+                      }
+                      placeholder="Kapasite"
+                      className="h-10 rounded-xl border border-white/[.08] bg-[#03080e] px-3 text-[8px]"
+                    />
+
+                    <button
+                      type="button"
+                      disabled={
+                        busy ||
+                        !newRoomHotel.trim() ||
+                        !newRoomNo.trim()
+                      }
+                      onClick={() =>
+                        void createTourRoom()
+                      }
+                      className="h-10 rounded-xl border border-violet-400/30 bg-violet-400/10 px-4 text-[8px] font-black text-violet-200 disabled:opacity-40"
+                    >
+                      Oda Oluştur
+                    </button>
+                  </div>
                 </div>
 
 

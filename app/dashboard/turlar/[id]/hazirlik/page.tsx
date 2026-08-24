@@ -63,6 +63,7 @@ type Departure = {
   id: string;
   tour_id: string;
   departure_date: string;
+  return_date: string | null;
   capacity: number;
   reserved_count: number;
   status: string;
@@ -78,6 +79,8 @@ type Reservation = {
 
 type Passenger = {
   id: string;
+  tour_room_id:
+    string | null;
   reservation_id:
     string | null;
   full_name: string;
@@ -109,6 +112,8 @@ type ManifestRow = {
 
 type Flight = {
   id: string;
+  departure_id:
+    string | null;
   direction:
     "outbound" |
     "return";
@@ -141,6 +146,8 @@ type Flight = {
 
 type BusOperation = {
   id: string;
+  departure_id:
+    string | null;
   bus_no: number;
   vehicle_id:
     string | null;
@@ -177,6 +184,22 @@ type BoardingStop = {
   stop_name: string;
   planned_at:
     string | null;
+};
+
+
+type FlightPassengerAssignment = {
+  id: string;
+  flight_id: string;
+  passenger_id: string;
+  passenger_pnr:
+    string | null;
+  ticket_number:
+    string | null;
+  e_ticket_number:
+    string | null;
+  ticketing_status: string;
+  checkin_status: string;
+  boarding_status: string;
 };
 
 
@@ -398,6 +421,15 @@ export default function TourReadinessPage() {
     );
 
   const [
+    flightPassengerAssignments,
+    setFlightPassengerAssignments,
+  ] =
+    useState<FlightPassengerAssignment[]>(
+      []
+    );
+
+
+  const [
     loading,
     setLoading,
   ] =
@@ -428,6 +460,7 @@ export default function TourReadinessPage() {
           setReservations([]);
           setPassengers([]);
           setManifest([]);
+          setFlightPassengerAssignments([]);
           return;
         }
 
@@ -463,6 +496,7 @@ export default function TourReadinessPage() {
               .select(
                 [
                   "id",
+                  "tour_room_id",
                   "reservation_id",
                   "full_name",
                   "birth_date",
@@ -526,6 +560,54 @@ export default function TourReadinessPage() {
         ) {
           throw manifestResult.error;
         }
+
+
+        const assignmentResult =
+          await supabase
+            .from(
+              "tour_flight_passenger_assignments"
+            )
+            .select(
+              [
+                "id",
+                "flight_id",
+                "passenger_id",
+                "passenger_pnr",
+                "ticket_number",
+                "e_ticket_number",
+                "ticketing_status",
+                "checkin_status",
+                "boarding_status",
+              ].join(",")
+            )
+            .eq(
+              "company_id",
+              currentCompanyId
+            )
+            .eq(
+              "tour_id",
+              tourId
+            )
+            .eq(
+              "departure_id",
+              departureId
+            );
+
+
+        if (
+          assignmentResult.error
+        ) {
+          throw assignmentResult.error;
+        }
+
+
+        setFlightPassengerAssignments(
+          (
+            assignmentResult.data ??
+            []
+          ) as unknown as
+            FlightPassengerAssignment[]
+        );
 
 
         setReservations(
@@ -647,6 +729,7 @@ export default function TourReadinessPage() {
                     "id",
                     "tour_id",
                     "departure_date",
+                    "return_date",
                     "capacity",
                     "reserved_count",
                     "status",
@@ -671,6 +754,7 @@ export default function TourReadinessPage() {
                 .select(
                   [
                     "id",
+                    "departure_id",
                     "direction",
                     "segment_no",
                     "airline_name",
@@ -711,6 +795,7 @@ export default function TourReadinessPage() {
                 .select(
                   [
                     "id",
+                    "departure_id",
                     "bus_no",
                     "vehicle_id",
                     "driver_1_name",
@@ -995,6 +1080,7 @@ export default function TourReadinessPage() {
     passengers.some(
       passenger =>
         Boolean(
+          passenger.tour_room_id ||
           passenger.hotel_name ||
           passenger.room_no ||
           passenger.room_group ||
@@ -1007,18 +1093,206 @@ export default function TourReadinessPage() {
     passengers.filter(
       passenger =>
         Boolean(
+          passenger.tour_room_id ||
           passenger.room_no ||
           passenger.room_group
         )
     ).length;
 
 
-  const activeFlights =
+  // TUR-007A:
+  // Readiness must represent ONLY the selected real departure.
+  // Tour-wide transport rows must never leak into another departure.
+  const scopedFlights =
     flights.filter(
+      flight =>
+        flight.departure_id ===
+        selectedDepartureId
+    );
+
+
+  const scopedBusOperations =
+    busOperations.filter(
+      operation =>
+        operation.departure_id ===
+        selectedDepartureId
+    );
+
+
+  const scopedBusOperationIds =
+    new Set(
+      scopedBusOperations.map(
+        operation =>
+          operation.id
+      )
+    );
+
+
+  const scopedBusSeats =
+    busSeats.filter(
+      seat =>
+        scopedBusOperationIds.has(
+          seat.bus_operation_id
+        )
+    );
+
+
+  const scopedBoardingStops =
+    boardingStops.filter(
+      stop =>
+        scopedBusOperationIds.has(
+          stop.bus_operation_id
+        )
+    );
+
+
+  const activeFlights =
+    scopedFlights.filter(
       flight =>
         flight.status !==
         "cancelled"
     );
+
+
+  const activeFlightIds =
+    new Set(
+      activeFlights.map(
+        flight =>
+          flight.id
+      )
+    );
+
+
+  const activePassengerIds =
+    new Set(
+      passengers.map(
+        passenger =>
+          passenger.id
+      )
+    );
+
+
+  const scopedFlightPassengerAssignments =
+    flightPassengerAssignments.filter(
+      assignment =>
+        activeFlightIds.has(
+          assignment.flight_id
+        ) &&
+        activePassengerIds.has(
+          assignment.passenger_id
+        )
+    );
+
+
+  const expectedFlightPassengerAssignments =
+    activeFlights.length *
+    passengers.length;
+
+
+  const assignedFlightPassengerPairs =
+    new Set(
+      scopedFlightPassengerAssignments.map(
+        assignment =>
+          `${assignment.flight_id}:${assignment.passenger_id}`
+      )
+    ).size;
+
+
+  const flightPassengerAssignmentReady =
+    activeFlights.length >
+      0 &&
+    passengers.length >
+      0 &&
+    expectedFlightPassengerAssignments >
+      0 &&
+    assignedFlightPassengerPairs >=
+      expectedFlightPassengerAssignments;
+
+
+  const ticketedAssignmentCount =
+    scopedFlightPassengerAssignments.filter(
+      assignment =>
+        assignment.ticketing_status ===
+        "ticketed"
+    ).length;
+
+
+  const flightPassengerTicketingReady =
+    flightPassengerAssignmentReady &&
+    ticketedAssignmentCount >=
+      expectedFlightPassengerAssignments;
+
+
+  const pnrReadyAssignmentCount =
+    scopedFlightPassengerAssignments.filter(
+      assignment => {
+        if (
+          assignment.passenger_pnr
+        ) {
+          return true;
+        }
+
+        const flight =
+          activeFlights.find(
+            item =>
+              item.id ===
+              assignment.flight_id
+          );
+
+        return Boolean(
+          flight?.pnr ||
+          flight?.group_booking_code
+        );
+      }
+    ).length;
+
+
+  const flightPassengerPnrReady =
+    flightPassengerAssignmentReady &&
+    pnrReadyAssignmentCount >=
+      expectedFlightPassengerAssignments;
+
+
+  const missingIndividualTicketCount =
+    scopedFlightPassengerAssignments.filter(
+      assignment =>
+        assignment.ticketing_status ===
+          "ticketed" &&
+        !assignment.ticket_number &&
+        !assignment.e_ticket_number
+    ).length;
+
+
+  const checkedInAssignmentCount =
+    scopedFlightPassengerAssignments.filter(
+      assignment =>
+        assignment.checkin_status ===
+        "checked_in"
+    ).length;
+
+
+  const boardedAssignmentCount =
+    scopedFlightPassengerAssignments.filter(
+      assignment =>
+        assignment.boarding_status ===
+        "boarded"
+    ).length;
+
+
+  const noShowAssignmentCount =
+    scopedFlightPassengerAssignments.filter(
+      assignment =>
+        assignment.boarding_status ===
+        "no_show"
+    ).length;
+
+
+  const notCheckedInAssignmentCount =
+    scopedFlightPassengerAssignments.filter(
+      assignment =>
+        assignment.checkin_status ===
+        "not_checked_in"
+    ).length;
 
 
   const outboundFlights =
@@ -1141,13 +1415,13 @@ export default function TourReadinessPage() {
 
 
   const busCount =
-    busOperations.length;
+    scopedBusOperations.length;
 
 
   const vehicleReady =
     busCount >
       0 &&
-    busOperations.every(
+    scopedBusOperations.every(
       operation =>
         Boolean(
           operation.vehicle_id
@@ -1158,7 +1432,7 @@ export default function TourReadinessPage() {
   const driverReady =
     busCount >
       0 &&
-    busOperations.every(
+    scopedBusOperations.every(
       operation =>
         Boolean(
           operation.driver_1_name &&
@@ -1170,7 +1444,7 @@ export default function TourReadinessPage() {
   const guideReady =
     busCount >
       0 &&
-    busOperations.every(
+    scopedBusOperations.every(
       operation =>
         Boolean(
           operation.guide_name &&
@@ -1182,7 +1456,7 @@ export default function TourReadinessPage() {
   const seatPlanReady =
     busCount >
       0 &&
-    busOperations.every(
+    scopedBusOperations.every(
       operation => {
         if (
           !operation.seat_capacity
@@ -1191,7 +1465,7 @@ export default function TourReadinessPage() {
         }
 
         const seats =
-          busSeats.filter(
+          scopedBusSeats.filter(
             seat =>
               seat.bus_operation_id ===
               operation.id
@@ -1207,7 +1481,7 @@ export default function TourReadinessPage() {
 
   const linkedPassengerSeatCount =
     new Set(
-      busSeats
+      scopedBusSeats
         .filter(
           seat =>
             Boolean(
@@ -1231,9 +1505,9 @@ export default function TourReadinessPage() {
   const stopReady =
     busCount >
       0 &&
-    busOperations.every(
+    scopedBusOperations.every(
       operation =>
-        boardingStops.some(
+        scopedBoardingStops.some(
           stop =>
             stop.bus_operation_id ===
             operation.id
@@ -1244,7 +1518,7 @@ export default function TourReadinessPage() {
   const boardingAssignmentReady =
     passengers.length >
       0 &&
-    busSeats
+    scopedBusSeats
       .filter(
         seat =>
           Boolean(
@@ -1412,11 +1686,11 @@ export default function TourReadinessPage() {
               title:
                 "Dönüş uçuşu",
               detail:
-                tour.return_date
+                selectedDeparture?.return_date
                   ? `${returnFlights.length} dönüş segmenti tanımlı.`
                   : "Tur dönüş tarihi tanımlı değil; dönüş segmenti zorunlu sayılmadı.",
               level:
-                !tour.return_date
+                !selectedDeparture?.return_date
                   ? "na"
                   : returnFlights.length >
                       0
@@ -1424,7 +1698,7 @@ export default function TourReadinessPage() {
                     : "critical",
               required:
                 Boolean(
-                  tour.return_date
+                  selectedDeparture?.return_date
                 ),
               href:
                 `/dashboard/turlar/${tourId}/ucus`,
@@ -1729,8 +2003,153 @@ export default function TourReadinessPage() {
     );
 
 
+  const flightPassengerChecks:
+    CheckItem[] =
+      tour?.transport_mode ===
+      "air"
+        ? [
+            {
+              id:
+                "flight-passenger-assignment",
+              title:
+                "Uçuş · Yolcu Eşleştirmesi",
+              detail:
+                activeFlights.length ===
+                  0
+                  ? "Aktif uçuş segmenti bulunmuyor."
+                  : passengers.length ===
+                      0
+                    ? "Gerçek yolcu kaydı bulunmuyor."
+                    : `${assignedFlightPassengerPairs}/${expectedFlightPassengerAssignments} yolcu-segment eşleştirmesi hazır.`,
+              level:
+                flightPassengerAssignmentReady
+                  ? "ok"
+                  : "critical",
+              required:
+                true,
+              href:
+                `/dashboard/turlar/${tourId}/ucus`,
+            },
+            {
+              id:
+                "flight-passenger-pnr",
+              title:
+                "Yolcu PNR Kapsamı",
+              detail:
+                `${pnrReadyAssignmentCount}/${expectedFlightPassengerAssignments} yolcu-segment kaydında yolcu veya grup PNR mevcut.`,
+              level:
+                flightPassengerPnrReady
+                  ? "ok"
+                  : "critical",
+              required:
+                true,
+              href:
+                `/dashboard/turlar/${tourId}/ucus`,
+            },
+            {
+              id:
+                "flight-passenger-ticketing",
+              title:
+                "Yolcu Ticketing",
+              detail:
+                `${ticketedAssignmentCount}/${expectedFlightPassengerAssignments} yolcu-segment kaydı biletlendi.`,
+              level:
+                flightPassengerTicketingReady
+                  ? "ok"
+                  : "critical",
+              required:
+                true,
+              href:
+                `/dashboard/turlar/${tourId}/ucus`,
+            },
+            {
+              id:
+                "flight-ticket-number",
+              title:
+                "Bilet / E-Ticket Numaraları",
+              detail:
+                missingIndividualTicketCount >
+                  0
+                  ? `${missingIndividualTicketCount} biletlendirilmiş kayıtta bireysel bilet/e-ticket numarası henüz girilmemiş.`
+                  : scopedFlightPassengerAssignments.length >
+                      0
+                    ? "Biletlendirilmiş yolcu kayıtlarında bilet numarası açığı görünmüyor."
+                    : "Henüz yolcu-segment kaydı yok.",
+              level:
+                missingIndividualTicketCount >
+                  0
+                  ? "warning"
+                  : scopedFlightPassengerAssignments.length >
+                      0
+                    ? "ok"
+                    : "na",
+              required:
+                false,
+              href:
+                `/dashboard/turlar/${tourId}/ucus`,
+            },
+            {
+              id:
+                "flight-checkin-progress",
+              title:
+                "Check-in Takibi",
+              detail:
+                `${checkedInAssignmentCount}/${scopedFlightPassengerAssignments.length} kayıt check-in tamamlandı.`,
+              level:
+                notCheckedInAssignmentCount >
+                  0
+                  ? "warning"
+                  : scopedFlightPassengerAssignments.length >
+                        0 &&
+                      checkedInAssignmentCount ===
+                        scopedFlightPassengerAssignments.length
+                    ? "ok"
+                    : "na",
+              required:
+                false,
+              href:
+                `/dashboard/turlar/${tourId}/ucus`,
+            },
+            {
+              id:
+                "flight-boarding-progress",
+              title:
+                "Boarding Takibi",
+              detail:
+                `${boardedAssignmentCount}/${scopedFlightPassengerAssignments.length} kayıt uçağa bindi${
+                  noShowAssignmentCount >
+                  0
+                    ? ` · ${noShowAssignmentCount} no-show`
+                    : ""
+                }.`,
+              level:
+                noShowAssignmentCount >
+                  0
+                  ? "warning"
+                  : scopedFlightPassengerAssignments.length >
+                        0 &&
+                      boardedAssignmentCount ===
+                        scopedFlightPassengerAssignments.length
+                    ? "ok"
+                    : "na",
+              required:
+                false,
+              href:
+                `/dashboard/turlar/${tourId}/ucus`,
+            },
+          ]
+        : [];
+
+
+  const allChecks =
+    [
+      ...checks,
+      ...flightPassengerChecks,
+    ];
+
+
   const requiredChecks =
-    checks.filter(
+    allChecks.filter(
       item =>
         item.required
     );
@@ -1758,7 +2177,7 @@ export default function TourReadinessPage() {
 
 
   const criticalChecks =
-    checks.filter(
+    allChecks.filter(
       item =>
         item.level ===
         "critical"
@@ -1766,7 +2185,7 @@ export default function TourReadinessPage() {
 
 
   const warningChecks =
-    checks.filter(
+    allChecks.filter(
       item =>
         item.level ===
         "warning"
@@ -1849,7 +2268,6 @@ export default function TourReadinessPage() {
                   Çıkış:{" "}
                   {formatDate(
                     selectedDeparture?.departure_date ??
-                    tour?.departure_date ??
                     null
                   )}
                 </span>
@@ -2154,7 +2572,7 @@ export default function TourReadinessPage() {
 
               <tbody>
 
-                {checks.map(
+                {allChecks.map(
                   check => (
                     <tr
                       key={
