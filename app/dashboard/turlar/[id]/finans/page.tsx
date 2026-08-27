@@ -1397,13 +1397,14 @@ export default function TourFinancePage() {
   }
 
 
-  async function removeExpense(
+  async function cancelExpense(
     expenseId:
       string
   ) {
 
     if (
-      !companyId
+      !companyId ||
+      !selectedDepartureId
     ) {
       return;
     }
@@ -1411,7 +1412,7 @@ export default function TourFinancePage() {
 
     if (
       !window.confirm(
-        "Bu gider kaydını silmek istediğinize emin misiniz?"
+        "Bu gider kaydını iptal etmek istediğinize emin misiniz? Kayıt finans geçmişinde korunacaktır."
       )
     ) {
       return;
@@ -1431,16 +1432,27 @@ export default function TourFinancePage() {
 
       const {
         error:
-          deleteError,
+          updateError,
       } =
         await supabase
           .from(
             "operation_expenses"
           )
-          .delete()
+          .update({
+            payment_status:
+              "cancelled",
+          })
           .eq(
             "company_id",
             companyId
+          )
+          .eq(
+            "tour_id",
+            tourId
+          )
+          .eq(
+            "departure_id",
+            selectedDepartureId
           )
           .eq(
             "id",
@@ -1449,9 +1461,9 @@ export default function TourFinancePage() {
 
 
       if (
-        deleteError
+        updateError
       ) {
-        throw deleteError;
+        throw updateError;
       }
 
 
@@ -1462,7 +1474,7 @@ export default function TourFinancePage() {
 
 
       setNotice(
-        "Gider silindi."
+        "Gider iptal edildi. Finans geçmişi korundu."
       );
 
 
@@ -1540,8 +1552,16 @@ export default function TourFinancePage() {
     );
 
 
+  const activeExpenses =
+    expenses.filter(
+      expense =>
+        expense.payment_status !==
+        "cancelled"
+    );
+
+
   const operationExpenseTotal =
-    expenses.reduce(
+    activeExpenses.reduce(
       (
         total,
         expense
@@ -1556,7 +1576,7 @@ export default function TourFinancePage() {
 
 
   const operationPaidTotal =
-    expenses.reduce(
+    activeExpenses.reduce(
       (
         total,
         expense
@@ -1571,7 +1591,7 @@ export default function TourFinancePage() {
 
 
   const supplierPayable =
-    expenses
+    activeExpenses
       .filter(
         expense =>
           Boolean(
@@ -1679,7 +1699,7 @@ export default function TourFinancePage() {
 
         for (
           const expense
-          of expenses
+          of activeExpenses
         ) {
 
           const group =
@@ -1700,7 +1720,7 @@ export default function TourFinancePage() {
 
       },
       [
-        expenses,
+        activeExpenses,
       ]
     );
 
@@ -2709,10 +2729,18 @@ export default function TourFinancePage() {
                                 <button
                                   type="button"
                                   disabled={
-                                    busy
+                                    busy ||
+                                    expense.payment_status ===
+                                      "cancelled"
+                                  }
+                                  title={
+                                    expense.payment_status ===
+                                    "cancelled"
+                                      ? "Bu gider daha önce iptal edilmiş."
+                                      : "Gideri iptal et ve geçmişte koru"
                                   }
                                   onClick={() =>
-                                    void removeExpense(
+                                    void cancelExpense(
                                       expense.id
                                     )
                                   }

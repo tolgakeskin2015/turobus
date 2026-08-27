@@ -1323,6 +1323,14 @@ export default function TourSupplierCurrentPage() {
             companyId
           )
           .eq(
+            "tour_id",
+            tourId
+          )
+          .eq(
+            "departure_id",
+            selectedDepartureId
+          )
+          .eq(
             "id",
             commitment.id
           );
@@ -1411,6 +1419,14 @@ export default function TourSupplierCurrentPage() {
             companyId
           )
           .eq(
+            "tour_id",
+            tourId
+          )
+          .eq(
+            "departure_id",
+            selectedDepartureId
+          )
+          .eq(
             "id",
             commitment.id
           );
@@ -1459,14 +1475,14 @@ export default function TourSupplierCurrentPage() {
   }
 
 
-  async function deleteCommitment(
+  async function cancelCommitment(
     commitment:
       Commitment
   ) {
 
     if (
       !window.confirm(
-        "Bu tedarikçi operasyon kaydını silmek istediğinize emin misiniz?"
+        "Bu tedarikçi operasyon kaydını iptal etmek istediğinize emin misiniz? Kayıt geçmişte korunacaktır."
       )
     ) {
       return;
@@ -1477,21 +1493,41 @@ export default function TourSupplierCurrentPage() {
       true
     );
 
+    setError(
+      ""
+    );
+
 
     try {
 
       const {
         error:
-          deleteError,
+          updateError,
       } =
         await supabase
           .from(
             "tour_supplier_commitments"
           )
-          .delete()
+          .update({
+            confirmation_status:
+              "cancelled",
+            operational_status:
+              "cancelled",
+            updated_by:
+              currentUserId ||
+              null,
+          })
           .eq(
             "company_id",
             companyId
+          )
+          .eq(
+            "tour_id",
+            tourId
+          )
+          .eq(
+            "departure_id",
+            selectedDepartureId
           )
           .eq(
             "id",
@@ -1500,9 +1536,9 @@ export default function TourSupplierCurrentPage() {
 
 
       if (
-        deleteError
+        updateError
       ) {
-        throw deleteError;
+        throw updateError;
       }
 
 
@@ -1513,7 +1549,7 @@ export default function TourSupplierCurrentPage() {
 
 
       setNotice(
-        "Tedarikçi operasyon kaydı silindi."
+        "Tedarikçi operasyon kaydı iptal edildi. Geçmiş kayıt korundu."
       );
 
 
@@ -2853,7 +2889,7 @@ export default function TourSupplierCurrentPage() {
                                       busy
                                     }
                                     onClick={() =>
-                                      void deleteCommitment(
+                                      void cancelCommitment(
                                         commitment
                                       )
                                     }

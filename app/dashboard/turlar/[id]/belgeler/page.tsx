@@ -136,6 +136,16 @@ type Flight = {
 };
 
 
+type FlightPassengerAssignment = {
+  id: string;
+  flight_id: string;
+  passenger_id: string;
+  passenger_pnr: string | null;
+  ticket_number: string | null;
+  e_ticket_number: string | null;
+  ticketing_status: string;
+};
+
 type SupplierCommitment = {
   id: string;
   service_title: string;
@@ -515,6 +525,14 @@ export default function TourDocumentCenterPage() {
 
 
   const [
+    flightPassengerAssignments,
+    setFlightPassengerAssignments,
+  ] =
+    useState<FlightPassengerAssignment[]>(
+      []
+    );
+
+  const [
     supplierCommitments,
     setSupplierCommitments,
   ] =
@@ -618,6 +636,7 @@ export default function TourDocumentCenterPage() {
         if (!departureId) {
 
           setReservations([]);
+          setFlightPassengerAssignments([]);
           setSupplierCommitments([]);
           setDocuments([]);
 
@@ -628,6 +647,7 @@ export default function TourDocumentCenterPage() {
 
         const [
           reservationResult,
+          flightPassengerAssignmentResult,
           supplierResult,
           documentResult,
         ] =
@@ -666,6 +686,34 @@ export default function TourDocumentCenterPage() {
                 }
               ),
 
+
+            supabase
+              .from(
+                "tour_flight_passenger_assignments"
+              )
+              .select(
+                [
+                  "id",
+                  "flight_id",
+                  "passenger_id",
+                  "passenger_pnr",
+                  "ticket_number",
+                  "e_ticket_number",
+                  "ticketing_status",
+                ].join(",")
+              )
+              .eq(
+                "company_id",
+                currentCompanyId
+              )
+              .eq(
+                "tour_id",
+                tourId
+              )
+              .eq(
+                "departure_id",
+                departureId
+              ),
 
             supabase
               .from(
@@ -752,6 +800,12 @@ export default function TourDocumentCenterPage() {
 
 
         if (
+          flightPassengerAssignmentResult.error
+        ) {
+          throw flightPassengerAssignmentResult.error;
+        }
+
+        if (
           supplierResult.error
         ) {
           throw supplierResult.error;
@@ -773,6 +827,14 @@ export default function TourDocumentCenterPage() {
             Reservation[]
         );
 
+
+        setFlightPassengerAssignments(
+          (
+            flightPassengerAssignmentResult.data ??
+            []
+          ) as unknown as
+            FlightPassengerAssignment[]
+        );
 
         setSupplierCommitments(
           (
@@ -1582,6 +1644,21 @@ export default function TourDocumentCenterPage() {
         "cancelled"
     );
 
+
+  const activeFlightIds =
+    new Set(
+      activeFlights.map(
+        flight => flight.id
+      )
+    );
+
+  const activeFlightPassengerAssignments =
+    flightPassengerAssignments.filter(
+      assignment =>
+        activeFlightIds.has(
+          assignment.flight_id
+        )
+    );
 
   const pnrCount =
     activeFlights.filter(
@@ -2394,6 +2471,13 @@ export default function TourDocumentCenterPage() {
                           flight.group_booking_code ||
                           "PNR yok";
 
+                        const passengerAssignments =
+                          activeFlightPassengerAssignments.filter(
+                            assignment =>
+                              assignment.flight_id ===
+                              flight.id
+                          );
+
 
                         return (
                           <div
@@ -2438,6 +2522,112 @@ export default function TourDocumentCenterPage() {
                               )}
 
                             </div>
+
+
+                            {passengerAssignments.length >
+                              0 && (
+                              <div className="mt-3 space-y-2 border-t border-white/[.06] pt-3">
+
+                                <div className="text-[7px] font-black uppercase tracking-wide text-slate-500">
+                                  Yolcu PNR / Bilet
+                                </div>
+
+
+                                {passengerAssignments.map(
+                                  assignment => {
+
+                                    const passengerPnr =
+                                      assignment.passenger_pnr ||
+                                      "-";
+
+                                    const ticketRef =
+                                      assignment.e_ticket_number ||
+                                      assignment.ticket_number ||
+                                      "-";
+
+
+                                    return (
+                                      <div
+                                        key={
+                                          assignment.id
+                                        }
+                                        className="rounded-lg border border-white/[.05] bg-black/20 px-2.5 py-2"
+                                      >
+
+                                        <div className="flex items-start justify-between gap-2">
+
+                                          <div className="min-w-0">
+
+                                            <div className="text-[7px] font-black text-slate-300">
+                                              Yolcu{" "}
+                                              {assignment.passenger_id.slice(
+                                                0,
+                                                8
+                                              )}
+                                            </div>
+
+
+                                            <div className="mt-1 text-[7px] text-blue-300">
+                                              PNR:{" "}
+                                              {passengerPnr}
+                                            </div>
+
+
+                                            <div className="mt-0.5 text-[7px] text-slate-500">
+                                              Bilet / E-ticket:{" "}
+                                              {ticketRef}
+                                            </div>
+
+
+                                            <div className="mt-0.5 text-[6px] uppercase tracking-wide text-slate-600">
+                                              {assignment.ticketing_status}
+                                            </div>
+
+                                          </div>
+
+
+                                          {(passengerPnr !==
+                                            "-" ||
+                                            ticketRef !==
+                                              "-") && (
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                void copyText(
+                                                  [
+                                                    passengerPnr !==
+                                                    "-"
+                                                      ? `PNR: ${passengerPnr}`
+                                                      : "",
+                                                    ticketRef !==
+                                                    "-"
+                                                      ? `Bilet: ${ticketRef}`
+                                                      : "",
+                                                  ]
+                                                    .filter(
+                                                      Boolean
+                                                    )
+                                                    .join(
+                                                      " · "
+                                                    )
+                                                )
+                                              }
+                                              className="grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-white/10 text-slate-500"
+                                            >
+                                              <FaCopy />
+                                            </button>
+                                          )}
+
+                                        </div>
+
+                                      </div>
+                                    );
+
+                                  }
+                                )}
+
+                              </div>
+                            )}
 
                           </div>
                         );

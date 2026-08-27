@@ -64,6 +64,14 @@ type Tour = {
 };
 
 
+type TourDeparture = {
+  id: string;
+  departure_date: string;
+  operation_stage:
+    OperationStage | null;
+};
+
+
 type Readiness = {
   transport_mode: string;
   blockers: number;
@@ -323,6 +331,21 @@ export default function TourStateEnginePage() {
   ] =
     useState("");
 
+  const [
+    departures,
+    setDepartures,
+  ] =
+    useState<TourDeparture[]>(
+      []
+    );
+
+
+  const [
+    selectedDepartureId,
+    setSelectedDepartureId,
+  ] =
+    useState("");
+
 
   const [
     tour,
@@ -447,6 +470,98 @@ export default function TourStateEnginePage() {
           );
 
 
+          const {
+            data:
+              departureData,
+            error:
+              departureError,
+          } =
+            await supabase
+              .from(
+                "tour_departures"
+              )
+              .select(
+                [
+                  "id",
+                  "departure_date",
+                  "operation_stage",
+                ].join(",")
+              )
+              .eq(
+                "company_id",
+                currentCompanyId
+              )
+              .eq(
+                "tour_id",
+                tourId
+              )
+              .order(
+                "departure_date",
+                {
+                  ascending:
+                    true,
+                }
+              );
+
+
+          if (
+            departureError
+          ) {
+            throw departureError;
+          }
+
+
+          const departureRows =
+            (
+              departureData ??
+              []
+            ) as unknown as
+              TourDeparture[];
+
+
+          if (
+            departureRows.length ===
+            0
+          ) {
+            throw new Error(
+              "Bu tur için kayıtlı çıkış bulunamadı."
+            );
+          }
+
+
+          const activeDepartureId =
+            departureRows.some(
+              departure =>
+                departure.id ===
+                selectedDepartureId
+            )
+              ? selectedDepartureId
+              : departureRows[0].id;
+
+
+          const activeDeparture =
+            departureRows.find(
+              departure =>
+                departure.id ===
+                activeDepartureId
+            );
+
+
+          setDepartures(
+            departureRows
+          );
+
+
+          if (
+            activeDepartureId !==
+            selectedDepartureId
+          ) {
+            setSelectedDepartureId(
+              activeDepartureId
+            );
+          }
+
+
           const [
             tourResult,
             readinessResult,
@@ -479,13 +594,15 @@ export default function TourStateEnginePage() {
 
 
               supabase.rpc(
-                "get_tour_operation_readiness",
+                "get_tour_operation_readiness_by_departure",
                 {
                   p_company_id:
                     currentCompanyId,
 
                   p_tour_id:
                     tourId,
+                  p_departure_id:
+                    activeDepartureId,
                 }
               ),
 
@@ -512,6 +629,10 @@ export default function TourStateEnginePage() {
                 .eq(
                   "tour_id",
                   tourId
+                )
+                .eq(
+                  "departure_id",
+                  activeDepartureId
                 )
                 .order(
                   "created_at",
@@ -548,10 +669,19 @@ export default function TourStateEnginePage() {
           }
 
 
-          setTour(
+          const loadedTour =
             tourResult.data as unknown as
-              Tour
-          );
+              Tour;
+
+
+          setTour({
+            ...loadedTour,
+            operation_stage:
+              activeDeparture
+                ?.operation_stage ??
+              loadedTour
+                .operation_stage,
+          });
 
 
           setReadiness(
@@ -594,6 +724,7 @@ export default function TourStateEnginePage() {
       },
       [
         tourId,
+        selectedDepartureId,
       ]
     );
 
@@ -628,7 +759,8 @@ export default function TourStateEnginePage() {
 
     if (
       !companyId ||
-      !tour
+      !tour ||
+      !selectedDepartureId
     ) {
       return;
     }
@@ -670,7 +802,7 @@ export default function TourStateEnginePage() {
           transitionError,
       } =
         await supabase.rpc(
-          "transition_tour_operation_stage",
+          "transition_tour_operation_stage_by_departure",
           {
 
             p_company_id:
@@ -678,6 +810,9 @@ export default function TourStateEnginePage() {
 
             p_tour_id:
               tour.id,
+
+            p_departure_id:
+              selectedDepartureId,
 
             p_target_stage:
               target,
@@ -875,6 +1010,89 @@ export default function TourStateEnginePage() {
 
           </div>
 
+        </section>
+
+
+        <section className="mt-5 rounded-[22px] border border-white/10 bg-[#07131f] p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-[8px] font-black uppercase tracking-[.14em] text-orange-300">
+                OPERASYON ÇIKIŞI
+              </div>
+
+              <div className="mt-1 text-sm font-black text-white">
+                Durumu incelenecek tur çıkışını seçin
+              </div>
+
+              <div className="mt-1 text-[8px] font-bold text-slate-500">
+                Hazırlık sonucu ve durum geçmişi yalnız seçilen çıkışa göre hesaplanır.
+              </div>
+            </div>
+
+            <div className="w-full lg:max-w-[360px]">
+              <label
+                htmlFor="tour-state-departure"
+                className="mb-2 block text-[8px] font-black text-slate-500"
+              >
+                TUR ÇIKIŞ TARİHİ
+              </label>
+
+              <select
+                id="tour-state-departure"
+                value={
+                  selectedDepartureId
+                }
+                disabled={
+                  busy ||
+                  departures.length ===
+                    0
+                }
+                onChange={event => {
+                  setReadiness(
+                    null
+                  );
+                  setHistory(
+                    []
+                  );
+                  setSelectedDepartureId(
+                    event.target.value
+                  );
+                }}
+                className="h-11 w-full rounded-xl border border-white/10 bg-[#030a11] px-3 text-sm font-bold text-white outline-none transition focus:border-orange-500/40 disabled:opacity-50"
+              >
+                {departures.map(
+                  departure => (
+                    <option
+                      key={
+                        departure.id
+                      }
+                      value={
+                        departure.id
+                      }
+                    >
+                      {new Date(
+                        `${departure.departure_date}T00:00:00`
+                      ).toLocaleDateString(
+                        "tr-TR",
+                        {
+                          day:
+                            "2-digit",
+                          month:
+                            "2-digit",
+                          year:
+                            "numeric",
+                        }
+                      )}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-amber-500/15 bg-amber-500/[.04] px-4 py-3 text-[8px] font-bold text-amber-200/80">
+            Hazırlık, durum aşaması ve geçmiş seçilen tur çıkışına aittir. Diğer çıkışların operasyon durumu bu işlemden etkilenmez.
+          </div>
         </section>
 
 
